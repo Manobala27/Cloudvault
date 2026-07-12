@@ -52,6 +52,9 @@ def create_app(config_class=Config):
     from app.routes.tags import tags_bp as tags_blueprint
     app.register_blueprint(tags_blueprint)
 
+    from app.routes.search import search_bp as search_blueprint
+    app.register_blueprint(search_blueprint)
+
     # Custom Jinja filter for file sizes
     @app.template_filter('format_size')
     def format_size(size_in_bytes):

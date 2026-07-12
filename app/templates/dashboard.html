@@ -91,7 +91,8 @@
     <div class="d-flex gap-2 w-100" style="max-width: 500px;">
         <div class="input-group">
             <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
-            <input class="form-control border-start-0 ps-0 shadow-none" type="text" id="instant-search" placeholder="Instant Search...">
+            <input class="form-control border-start-0 border-end-0 ps-0 shadow-none" type="text" id="instant-search" placeholder="Instant Filter...">
+            <a href="{{ url_for('search.advanced_search') }}" class="btn btn-outline-primary"><i class="bi bi-sliders"></i> Advanced</a>
         </div>
         <form method="GET" action="{{ url_for('files.dashboard') }}" class="d-flex">
             {% if current_folder %}

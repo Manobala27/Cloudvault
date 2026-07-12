@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% block title %}Advanced Search{% endblock %}
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <h2 class="mb-0 fw-bold"><i class="bi bi-search text-primary me-2"></i> Advanced Search</h2>
+</div>
+
+<!-- Main Search Layout -->
+<div class="row">
+    <!-- Filter Panel (Left Sidebar) -->
+    <div class="col-lg-3 col-md-4 mb-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Filters</h5>
+                <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted" onclick="resetFilters()">Clear</button>
+            </div>
+            <div class="card-body">
+                <form id="advancedSearchForm" onsubmit="event.preventDefault(); triggerSearch(true);">
+                    <!-- Search Query -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small">Keywords</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" class="form-control bg-light border-start-0 ps-0" id="filter-query" placeholder="Search files & folders...">
+                        </div>
+                    </div>
+                    
+                    <!-- Item Type -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small">Item Type</label>
+                        <select class="form-select bg-light" id="filter-type">
+                            <option value="all">All Items</option>
+                            <option value="files">Files Only</option>
+                            <option value="folders">Folders Only</option>
+                        </select>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small">Tags</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for tag in user_tags %}
+                            <input type="checkbox" class="btn-check filter-tag" id="tag-{{ tag.id }}" value="{{ tag.id }}" data-tag-name="{{ tag.name }}" data-tag-color="{{ tag.color_hex }}">
+                            <label class="btn btn-sm btn-outline-secondary rounded-pill" for="tag-{{ tag.id }}">
+                                <span class="d-inline-block rounded-circle me-1" style="width:8px; height:8px; background-color: {{ tag.color_hex }};"></span>{{ tag.name }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Favorites -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="filter-favorite">
+                            <label class="form-check-label fw-semibold text-muted small" for="filter-favorite">Favorites Only</label>
+                        </div>
+                    </div>
+
+                    <!-- File Extensions -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small">File Type (Extensions)</label>
+                        <input type="text" class="form-control bg-light" id="filter-ext" placeholder="e.g. .pdf, .jpg, .docx">
+                        <div class="form-text">Comma separated</div>
+                    </div>
+
+                    <!-- Size Range -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small">File Size Range (MB)</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" class="form-control bg-light" id="filter-size-min" placeholder="Min" min="0">
+                            <input type="number" class="form-control bg-light" id="filter-size-max" placeholder="Max" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Date Range -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small">Upload Date Range</label>
+                        <input type="date" class="form-control bg-light mb-2" id="filter-date-start" placeholder="From">
+                        <input type="date" class="form-control bg-light" id="filter-date-end" placeholder="To">
+                    </div>
+
+                    <!-- Sort -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small">Sort By</label>
+                        <select class="form-select bg-light" id="filter-sort">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Area -->
+    <div class="col-lg-9 col-md-8">
+        
+        <!-- Active Filter Chips -->
+        <div id="active-filters" class="d-flex flex-wrap gap-2 mb-4 align-items-center">
+            <!-- Dynamically populated via JS -->
+            <span class="text-muted small d-none" id="no-filters-text">No active filters</span>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="search-loading" class="text-center py-5 d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-3">Searching your vault...</p>
+        </div>
+
+        <!-- Results Grid -->
+        <div id="search-results-container">
+            <h5 class="fw-bold mb-3 d-none" id="results-count">Found 0 items</h5>
+            <div class="cv-grid" id="search-results-grid">
+                <!-- Results rendered via JS -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="search-empty" class="text-center py-5 border rounded-4 bg-light d-none">
+                <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                <h4 class="mt-3 text-muted">No results found</h4>
+                <p class="text-muted">Try adjusting your filters or search query.</p>
+                <button type="button" class="btn btn-outline-primary mt-3 rounded-pill px-4" onclick="resetFilters()">Clear All Filters</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const csrfToken = "{{ csrf_token() }}";
+    
+    // Formatting helpers
+    function formatSize(bytes) {
+        if(bytes === 0) return '0 B';
+        const k = 1024, sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // UI Elements
+    const formInputs = document.querySelectorAll('#advancedSearchForm input, #advancedSearchForm select');
+    const resultsGrid = document.getElementById('search-results-grid');
+    const loadingState = document.getElementById('search-loading');
+    const emptyState = document.getElementById('search-empty');
+    const activeFiltersContainer = document.getElementById('active-filters');
+    const resultsCount = document.getElementById('results-count');
+
+    function resetFilters() {
+        document.getElementById('advancedSearchForm').reset();
+        document.querySelectorAll('.filter-tag').forEach(cb => {
+            cb.checked = false;
+        });
+        triggerSearch(true);
+    }
+
+    // Bind real-time change events
+    formInputs.forEach(input => {
+        if(input.type === 'text' || input.type === 'number') {
+            // Debounce for text typing
+            let timeout = null;
+            input.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => triggerSearch(false), 500);
+            });
+        } else {
+            input.addEventListener('change', () => triggerSearch(false));
+        }
+    });
+
+    function triggerSearch(logEvent = false) {
+        const query = document.getElementById('filter-query').value.trim();
+        const type = document.getElementById('filter-type').value;
+        const favorite = document.getElementById('filter-favorite').checked;
+        const sizeMinMb = parseFloat(document.getElementById('filter-size-min').value);
+        const sizeMaxMb = parseFloat(document.getElementById('filter-size-max').value);
+        const dateStart = document.getElementById('filter-date-start').value;
+        const dateEnd = document.getElementById('filter-date-end').value;
+        const sort = document.getElementById('filter-sort').value;
+        
+        let extensions = [];
+        const extStr = document.getElementById('filter-ext').value.trim();
+        if(extStr) {
+            extensions = extStr.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
+            // Ensure they start with dot
+            extensions = extensions.map(s => s.startsWith('.') ? s : '.' + s);
+        }
+
+        const tags = Array.from(document.querySelectorAll('.filter-tag:checked')).map(cb => parseInt(cb.value));
+        const tagNames = Array.from(document.querySelectorAll('.filter-tag:checked')).map(cb => ({
+            name: cb.getAttribute('data-tag-name'),
+            color: cb.getAttribute('data-tag-color')
+        }));
+
+        // Convert MB to bytes
+        const sizeMin = !isNaN(sizeMinMb) ? sizeMinMb * 1024 * 1024 : null;
+        const sizeMax = !isNaN(sizeMaxMb) ? sizeMaxMb * 1024 * 1024 : null;
+
+        const payload = {
+            query, type, favorite, tags, extensions, size_min: sizeMin, size_max: sizeMax, date_start: dateStart, date_end: dateEnd, sort, log_event: logEvent
+        };
+
+        renderActiveFilters(payload, tagNames);
+
+        // UI State: Loading
+        resultsGrid.innerHTML = '';
+        emptyState.classList.add('d-none');
+        resultsCount.classList.add('d-none');
+        loadingState.classList.remove('d-none');
+
+        fetch('/search/api', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            loadingState.classList.add('d-none');
+            
+            const totalFound = data.files.length + data.folders.length;
+            
+            if (totalFound === 0) {
+                emptyState.classList.remove('d-none');
+                return;
+            }
+            
+            resultsCount.textContent = `Found ${totalFound} item${totalFound !== 1 ? 's' : ''}`;
+            resultsCount.classList.remove('d-none');
+            
+            // Render Folders
+            data.folders.forEach(folder => {
+                let tagsHtml = folder.tags.map(t => `<span class="badge rounded-pill me-1" style="background-color: ${t.color_hex}; font-weight: normal; font-size: 0.75rem;">${t.name}</span>`).join('');
+                
+                const card = `
+                <div class="cv-card">
+                    <div class="cv-card-icon">
+                        <i class="bi bi-folder-fill text-warning" style="font-size: 3rem;"></i>
+                    </div>
+                    <a href="${folder.url}" class="cv-card-title text-decoration-none">${folder.name}</a>
+                    <div class="cv-card-meta mb-2">
+                        <span>${folder.files_count} files</span>
+                        <span>${folder.created_at}</span>
+                    </div>
+                    <div class="mb-3">${tagsHtml}</div>
+                    <div class="cv-card-actions">
+                        <a href="${folder.url}" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right"></i> Open Folder
+                        </a>
+                    </div>
+                </div>
+                `;
+                resultsGrid.insertAdjacentHTML('beforeend', card);
+            });
+            
+            // Render Files
+            data.files.forEach(file => {
+                let tagsHtml = file.tags.map(t => `<span class="badge rounded-pill me-1" style="background-color: ${t.color_hex}; font-weight: normal; font-size: 0.75rem;">${t.name}</span>`).join('');
+                let thumbHtml = file.filename.match(/\.(jpeg|jpg|gif|png)$/i) 
+                    ? `<img src="${file.preview_url}" alt="thumbnail">`
+                    : `<i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>`;
+                
+                const card = `
+                <div class="cv-card">
+                    <div class="cv-card-icon position-relative">
+                        ${thumbHtml}
+                        ${file.has_active_share ? '<span class="cv-share-badge"><i class="bi bi-link-45deg"></i></span>' : ''}
+                        ${file.version > 0 ? `<span class="cv-version-badge badge bg-secondary position-absolute top-0 start-0 m-2 rounded-pill shadow-sm" style="font-size: 0.75rem;">V${file.version}</span>` : ''}
+                    </div>
+                    <h6 class="cv-card-title">${file.filename}</h6>
+                    <div class="cv-card-meta mb-2">
+                        <span>${formatSize(file.size)}</span>
+                        <span>${file.upload_date}</span>
+                    </div>
+                    <div class="mb-3">${tagsHtml}</div>
+                    <div class="cv-card-actions">
+                        <a href="${file.preview_url}" target="_blank" class="btn btn-outline-info w-50" title="Preview"><i class="bi bi-eye"></i></a>
+                        <a href="${file.download_url}" class="btn btn-primary w-50" title="Download"><i class="bi bi-download"></i></a>
+                    </div>
+                </div>
+                `;
+                resultsGrid.insertAdjacentHTML('beforeend', card);
+            });
+        })
+        .catch(err => {
+            console.error('Search failed', err);
+            loadingState.classList.add('d-none');
+            emptyState.innerHTML = `<h4 class="text-danger"><i class="bi bi-exclamation-triangle"></i> Error</h4><p>Failed to retrieve search results.</p>`;
+            emptyState.classList.remove('d-none');
+        });
+    }
+
+    function renderActiveFilters(p, tagNames) {
+        activeFiltersContainer.innerHTML = '';
+        let hasFilter = false;
+        
+        function addChip(label, colorClass = 'bg-secondary') {
+            hasFilter = true;
+            activeFiltersContainer.insertAdjacentHTML('beforeend', `
+                <span class="badge ${colorClass} rounded-pill fw-normal px-3 py-2 shadow-sm d-flex align-items-center gap-1">
+                    ${label}
+                </span>
+            `);
+        }
+
+        if(p.query) addChip(`Query: "${p.query}"`, 'bg-primary');
+        if(p.type !== 'all') addChip(`Type: ${p.type}`, 'bg-info');
+        if(p.favorite) addChip(`<i class="bi bi-star-fill text-warning"></i> Favorites`, 'bg-dark');
+        
+        tagNames.forEach(t => {
+            hasFilter = true;
+            activeFiltersContainer.insertAdjacentHTML('beforeend', `
+                <span class="badge rounded-pill fw-normal px-3 py-2 shadow-sm d-flex align-items-center gap-1" style="background-color: ${t.color};">
+                    <i class="bi bi-tag-fill"></i> ${t.name}
+                </span>
+            `);
+        });
+
+        if(p.extensions.length > 0) addChip(`Ext: ${p.extensions.join(', ')}`, 'bg-dark');
+        if(p.size_min || p.size_max) addChip(`Size: ${p.size_min ? formatSize(p.size_min) : '0'} - ${p.size_max ? formatSize(p.size_max) : 'Max'}`, 'bg-dark');
+        if(p.date_start || p.date_end) addChip(`Date: ${p.date_start || 'Any'} to ${p.date_end || 'Any'}`, 'bg-dark');
+
+        if(!hasFilter) {
+            activeFiltersContainer.innerHTML = `<span class="text-muted small">Showing all active items</span>`;
+        }
+    }
+
+    // Trigger initial search on page load
+    triggerSearch(false);
+</script>
+
+{% endblock %}
