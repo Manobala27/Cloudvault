@@ -97,6 +97,16 @@
             {% if current_folder %}
             <input type="hidden" name="folder_id" value="{{ current_folder.id }}">
             {% endif %}
+            
+            {% if user_tags %}
+            <select class="form-select shadow-none me-2" onchange="if(this.value) window.location.href=this.value;" style="min-width: 140px;">
+                <option value="">Filter by Tag...</option>
+                {% for t in user_tags %}
+                <option value="{{ url_for('tags.view_tag', tag_id=t.id) }}">{{ t.name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            
             <select class="form-select shadow-none" name="sort" onchange="this.form.submit()" style="min-width: 140px;">
                 <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest</option>
                 <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest</option>
@@ -117,17 +127,29 @@
             <i class="bi bi-folder-fill text-warning" style="font-size: 3rem;"></i>
         </div>
         <a href="{{ url_for('files.dashboard', folder_id=folder.id) }}" class="cv-card-title">{{ folder.name }}</a>
-        <div class="cv-card-meta">
+        <div class="cv-card-meta mb-2">
             <span>{{ folder.files|selectattr('is_deleted', 'equalto', False)|list|length }} files</span>
             <span>{{ folder.created_at.strftime('%Y-%m-%d') }}</span>
         </div>
+        
+        <div class="mb-3 folder-tags-container-{{ folder.id }}">
+            {% for t in folder.tags %}
+            <span class="badge rounded-pill me-1" style="background-color: {{ t.color_hex }}; font-weight: normal; font-size: 0.75rem;">{{ t.name }}</span>
+            {% endfor %}
+        </div>
+        
         <div class="cv-card-actions">
             <button type="button" class="btn btn-outline-warning w-100 mb-2 btn-favorite-folder" data-folder-id="{{ folder.id }}">
                 <i class="bi {% if folder.is_favorite %}bi-star-fill{% else %}bi-star{% endif %}"></i>
             </button>
-            <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#deleteFolderModal{{ folder.id }}">
-                <i class="bi bi-trash"></i> Delete
-            </button>
+            <div class="d-flex gap-2 w-100">
+                <button type="button" class="btn btn-outline-secondary w-50" data-bs-toggle="modal" data-bs-target="#tagFolderModal{{ folder.id }}" title="Tags">
+                    <i class="bi bi-tags"></i>
+                </button>
+                <button type="button" class="btn btn-outline-danger w-50" data-bs-toggle="modal" data-bs-target="#deleteFolderModal{{ folder.id }}" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
         </div>
     </div>
     {% endfor %}
@@ -154,9 +176,15 @@
         </div>
         
         <h6 class="cv-card-title">{{ f.original_filename }}</h6>
-        <div class="cv-card-meta">
+        <div class="cv-card-meta mb-2">
             <span>{{ f.file_size|format_size }}</span>
             <span>{{ f.upload_date.strftime('%Y-%m-%d') }}</span>
+        </div>
+        
+        <div class="mb-3 file-tags-container-{{ f.id }}">
+            {% for t in f.tags %}
+            <span class="badge rounded-pill me-1" style="background-color: {{ t.color_hex }}; font-weight: normal; font-size: 0.75rem;">{{ t.name }}</span>
+            {% endfor %}
         </div>
         
         <div class="cv-card-actions">
@@ -166,6 +194,7 @@
             <button type="button" class="btn btn-outline-warning btn-favorite-file" data-file-id="{{ f.id }}" title="Favorite">
                 <i class="bi {% if f.is_favorite %}bi-star-fill{% else %}bi-star{% endif %}"></i>
             </button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#tagFileModal{{ f.id }}" title="Tags"><i class="bi bi-tags"></i></button>
             <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#versionModal{{ f.id }}" title="Versions"><i class="bi bi-clock-history"></i></button>
             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ f.id }}" title="Delete"><i class="bi bi-trash"></i></button>
         </div>
@@ -251,6 +280,39 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">Yes, Move to Trash</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Folder Tags Modal -->
+<div class="modal fade text-start" id="tagFolderModal{{ folder.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-tags text-primary me-2"></i> Manage Tags for {{ folder.name }}</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                {% if user_tags %}
+                    <div class="list-group list-group-flush">
+                    {% for t in user_tags %}
+                        <label class="list-group-item d-flex align-items-center border-0 px-0 py-2">
+                            <input class="form-check-input me-3 folder-tag-checkbox" type="checkbox" data-folder-id="{{ folder.id }}" data-tag-id="{{ t.id }}" data-tag-name="{{ t.name }}" data-tag-color="{{ t.color_hex }}" {% if t in folder.tags %}checked{% endif %}>
+                            <span class="badge rounded-pill px-3 py-2" style="background-color: {{ t.color_hex }}; font-weight: normal;">{{ t.name }}</span>
+                        </label>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted my-3">
+                        <i class="bi bi-tags fs-1"></i>
+                        <p class="mt-2">You don't have any tags yet.</p>
+                        <a href="{{ url_for('tags.manage_tags') }}" class="btn btn-primary btn-sm rounded-pill">Create Tags</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Done</button>
             </div>
         </div>
     </div>
@@ -409,6 +471,39 @@
         </div>
     </div>
 </div>
+
+<!-- File Tags Modal -->
+<div class="modal fade text-start" id="tagFileModal{{ f.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-tags text-primary me-2"></i> Manage Tags for {{ f.original_filename }}</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                {% if user_tags %}
+                    <div class="list-group list-group-flush">
+                    {% for t in user_tags %}
+                        <label class="list-group-item d-flex align-items-center border-0 px-0 py-2">
+                            <input class="form-check-input me-3 file-tag-checkbox" type="checkbox" data-file-id="{{ f.id }}" data-tag-id="{{ t.id }}" data-tag-name="{{ t.name }}" data-tag-color="{{ t.color_hex }}" {% if t in f.tags %}checked{% endif %}>
+                            <span class="badge rounded-pill px-3 py-2" style="background-color: {{ t.color_hex }}; font-weight: normal;">{{ t.name }}</span>
+                        </label>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted my-3">
+                        <i class="bi bi-tags fs-1"></i>
+                        <p class="mt-2">You don't have any tags yet.</p>
+                        <a href="{{ url_for('tags.manage_tags') }}" class="btn btn-primary btn-sm rounded-pill">Create Tags</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endfor %}
 
 <script>
@@ -487,6 +582,99 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         icon.classList.remove('bi-star-fill');
                         icon.classList.add('bi-star');
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+
+    // AJAX Tag Toggles for Files
+    document.querySelectorAll('.file-tag-checkbox').forEach(chk => {
+        chk.addEventListener('change', function() {
+            const fileId = this.getAttribute('data-file-id');
+            const tagId = this.getAttribute('data-tag-id');
+            const tagName = this.getAttribute('data-tag-name');
+            const tagColor = this.getAttribute('data-tag-color');
+            const isChecked = this.checked;
+            
+            fetch(`/tags/assign/file/${fileId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tag_id: tagId, assign: isChecked })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const container = document.querySelector(`.file-tags-container-${fileId}`);
+                    if(isChecked) {
+                        const span = document.createElement('span');
+                        span.className = 'badge rounded-pill me-1';
+                        span.style.backgroundColor = tagColor;
+                        span.style.fontWeight = 'normal';
+                        span.style.fontSize = '0.75rem';
+                        span.textContent = tagName;
+                        span.setAttribute('data-tag-id', tagId);
+                        container.appendChild(span);
+                    } else {
+                        const span = container.querySelector(`span[data-tag-id="${tagId}"]`);
+                        if(span) span.remove();
+                        // fallback if data-tag-id wasn't set initially from server render
+                        else {
+                            const spans = container.querySelectorAll('span');
+                            spans.forEach(s => {
+                                if(s.textContent.trim() === tagName) s.remove();
+                            });
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+
+    // AJAX Tag Toggles for Folders
+    document.querySelectorAll('.folder-tag-checkbox').forEach(chk => {
+        chk.addEventListener('change', function() {
+            const folderId = this.getAttribute('data-folder-id');
+            const tagId = this.getAttribute('data-tag-id');
+            const tagName = this.getAttribute('data-tag-name');
+            const tagColor = this.getAttribute('data-tag-color');
+            const isChecked = this.checked;
+            
+            fetch(`/tags/assign/folder/${folderId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tag_id: tagId, assign: isChecked })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const container = document.querySelector(`.folder-tags-container-${folderId}`);
+                    if(isChecked) {
+                        const span = document.createElement('span');
+                        span.className = 'badge rounded-pill me-1';
+                        span.style.backgroundColor = tagColor;
+                        span.style.fontWeight = 'normal';
+                        span.style.fontSize = '0.75rem';
+                        span.textContent = tagName;
+                        span.setAttribute('data-tag-id', tagId);
+                        container.appendChild(span);
+                    } else {
+                        const span = container.querySelector(`span[data-tag-id="${tagId}"]`);
+                        if(span) span.remove();
+                        else {
+                            const spans = container.querySelectorAll('span');
+                            spans.forEach(s => {
+                                if(s.textContent.trim() === tagName) s.remove();
+                            });
+                        }
                     }
                 }
             })

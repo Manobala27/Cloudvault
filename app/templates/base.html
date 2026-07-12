@@ -40,6 +40,11 @@
                                 <i class="bi bi-star-fill me-1"></i> Favorites
                             </a>
                         </li>
+                        <li class="nav-item me-2">
+                            <a class="nav-link text-primary {% if request.endpoint == 'tags.manage_tags' %}active{% endif %}" href="{{ url_for('tags.manage_tags') }}">
+                                <i class="bi bi-tags-fill me-1"></i> Tags
+                            </a>
+                        </li>
                         <li class="nav-item me-3">
                             <a class="nav-link text-success {% if request.endpoint == 'files.shared_dashboard' %}active{% endif %}" href="{{ url_for('files.shared_dashboard') }}">
                                 <i class="bi bi-link-45deg me-1"></i> Shares

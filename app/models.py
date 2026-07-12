@@ -21,6 +21,29 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image_file}')"
 
+# Many-to-Many Association Tables for Tags (Module 16)
+file_tag = db.Table('file_tag',
+    db.Column('file_id', db.Integer, db.ForeignKey('file.id'), primary_key=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True)
+)
+
+folder_tag = db.Table('folder_tag',
+    db.Column('folder_id', db.Integer, db.ForeignKey('folder.id'), primary_key=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True)
+)
+
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    color_hex = db.Column(db.String(7), nullable=False, default='#0d6efd')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (db.UniqueConstraint('name', 'user_id', name='_user_tag_uc'),)
+
+    def __repr__(self):
+        return f"Tag('{self.name}', '{self.color_hex}')"
+
 class Folder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -41,6 +64,9 @@ class Folder(db.Model):
     
     # Files in this folder
     files = db.relationship('File', backref='folder', lazy=True, cascade="all, delete-orphan")
+    
+    # Tags (Module 16)
+    tags = db.relationship('Tag', secondary=folder_tag, lazy='subquery', backref=db.backref('folders', lazy=True))
 
     def __repr__(self):
         return f"Folder('{self.name}', '{self.created_at}')"
@@ -71,6 +97,9 @@ class File(db.Model):
     # Favorites (Module 15)
     is_favorite = db.Column(db.Boolean, default=False, nullable=False)
     favorited_at = db.Column(db.DateTime, nullable=True)
+
+    # Tags (Module 16)
+    tags = db.relationship('Tag', secondary=file_tag, lazy='subquery', backref=db.backref('files', lazy=True))
 
     def __repr__(self):
         return f"File('{self.original_filename}', '{self.upload_date}')"

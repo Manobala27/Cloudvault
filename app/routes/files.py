@@ -124,9 +124,11 @@ def dashboard():
             flash("You don't have permission to view this folder.", "danger")
             return redirect(url_for('files.dashboard'))
 
+    from sqlalchemy.orm import joinedload
+    
     # Base query for current user's files and folders
-    file_query = File.query.filter_by(owner=current_user, is_deleted=False)
-    folder_query = Folder.query.filter_by(owner=current_user, is_deleted=False)
+    file_query = File.query.options(joinedload(File.tags)).filter_by(owner=current_user, is_deleted=False)
+    folder_query = Folder.query.options(joinedload(Folder.tags)).filter_by(owner=current_user, is_deleted=False)
 
     if search_query:
         file_query = file_query.filter(File.original_filename.ilike(f'%{search_query}%'))
@@ -179,8 +181,13 @@ def dashboard():
         while curr:
             breadcrumbs.insert(0, curr)
             curr = curr.parent
-
-    return render_template('dashboard.html', title='Dashboard',
+            
+    # Pre-fetch all tags for this user so we can render them in the assign modal
+    from app.models import Tag
+    user_tags = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.name.asc()).all()
+    
+    return render_template('dashboard.html',
+                           title='Dashboard',
                            files=files_paginated,
                            folders=folders,
                            current_folder=current_folder,
@@ -188,7 +195,8 @@ def dashboard():
                            search_query=search_query,
                            sort_by=sort_by,
                            total_files=total_files,
-                           total_size=total_size)
+                           total_size=total_size,
+                           user_tags=user_tags)
 
 @files.route("/download/<int:file_id>")
 @login_required
