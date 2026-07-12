@@ -27,8 +27,9 @@ def dashboard():
     total_shared_files = Share.query.filter_by(is_active=True).count()
     
     # Calculate total storage used
-    all_files = File.query.filter_by(is_deleted=False).all()
-    total_storage_used = sum(f.file_size for f in all_files)
+    from app.models import FileVersion
+    all_versions = FileVersion.query.all()
+    total_storage_used = sum(v.file_size for v in all_versions)
     
     total_activity_logs = ActivityLog.query.count()
     
@@ -53,6 +54,11 @@ def users():
         query = query.filter((User.username.ilike(f"%{search_query}%")) | (User.email.ilike(f"%{search_query}%")))
         
     users_paginated = query.order_by(User.id.asc()).paginate(page=page, per_page=15)
+    
+    # Precompute total storage per user manually to support versioning correctly
+    for u in users_paginated.items:
+        u_versions = FileVersion.query.filter_by(uploaded_by=u.id).all()
+        u._total_storage = sum(v.file_size for v in u_versions)
     
     return render_template('admin/users.html', users=users_paginated, search_query=search_query)
 
@@ -123,10 +129,15 @@ def delete_user(user_id):
     # Hard Delete: Files in S3, DB Records (Files, Folders, Shares, Logs, User)
     files = File.query.filter_by(user_id=user.id).all()
     for f in files:
+        for v in f.versions:
+            try:
+                s3_service.delete_file(v.s3_key)
+            except Exception:
+                pass
         try:
             s3_service.delete_file(f.filename)
-        except Exception as e:
-            pass # Continue deleting other files even if one fails
+        except Exception:
+            pass
     
     # DB cascade deletion handles the rest if configured, but let's be explicit
     file_ids = [f.id for f in files]

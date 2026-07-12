@@ -69,8 +69,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% set total_size = u.files|selectattr('is_deleted', 'equalto', False)|sum(attribute='file_size') %}
-                        <strong>{{ total_size|format_size }}</strong>
+                        <strong>{{ u._total_storage|format_size }}</strong>
                     </td>
                     <td>
                         <div class="small">

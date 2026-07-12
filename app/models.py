@@ -61,8 +61,26 @@ class File(db.Model):
     # Advanced Sharing (Module 12)
     shares = db.relationship('Share', backref='file', lazy=True, cascade="all, delete-orphan")
 
+    # File Versioning (Module 14)
+    versions = db.relationship('FileVersion', backref='file', lazy=True, cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"File('{self.original_filename}', '{self.upload_date}')"
+
+class FileVersion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id'), nullable=False)
+    version_number = db.Column(db.Integer, nullable=False)
+    s3_key = db.Column(db.String(100), nullable=False)
+    file_size = db.Column(db.Integer, nullable=False)
+    uploaded_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    uploaded_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    is_current = db.Column(db.Boolean, default=False, nullable=False)
+
+    uploader = db.relationship('User', foreign_keys=[uploaded_by])
+
+    def __repr__(self):
+        return f"FileVersion(V{self.version_number}, file_id={self.file_id}, current={self.is_current})"
 
 class Share(db.Model):
     id = db.Column(db.Integer, primary_key=True)

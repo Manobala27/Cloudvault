@@ -5,8 +5,7 @@ from flask import Blueprint, render_template, request, jsonify, flash, redirect,
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 from app import db, bcrypt
-from app.models import File, Folder, ActivityLog, Share
-from app.s3_service import s3_service
+from app.models import File, Folder, ActivityLog, Share, FileVersion
 from app.s3_service import s3_service
 from app.forms import UploadForm
 
@@ -20,7 +19,7 @@ def upload():
         file_obj = form.file.data
         original_filename = secure_filename(file_obj.filename)
         
-        # Check size (Max 10MB) - typically handled in configuration or client-side too
+        # Check size (Max 10MB)
         file_obj.seek(0, os.SEEK_END)
         file_size = file_obj.tell()
         file_obj.seek(0, os.SEEK_SET) # Reset pointer
@@ -39,27 +38,69 @@ def upload():
         success = s3_service.upload_file(file_obj, s3_key, content_type)
         
         if success:
-            # Check if uploaded into a folder
             folder_id_str = request.form.get('folder_id')
             folder_id = int(folder_id_str) if folder_id_str and folder_id_str.isdigit() else None
             
-            # Save metadata to DB
-            new_file = File(
-                filename=s3_key,
-                original_filename=original_filename,
-                file_size=file_size,
+            existing_file = File.query.filter_by(
                 owner=current_user,
-                folder_id=folder_id
-            )
-            db.session.add(new_file)
+                folder_id=folder_id,
+                original_filename=original_filename,
+                is_deleted=False
+            ).first()
+
+            if existing_file:
+                # Update existing file to point to new version
+                existing_file.filename = s3_key
+                existing_file.file_size = file_size
+                existing_file.upload_date = datetime.now(timezone.utc)
+                
+                # Demote old versions
+                for v in existing_file.versions:
+                    v.is_current = False
+                    
+                max_version = max([v.version_number for v in existing_file.versions] + [0])
+                
+                new_version = FileVersion(
+                    file_id=existing_file.id,
+                    version_number=max_version + 1,
+                    s3_key=s3_key,
+                    file_size=file_size,
+                    uploaded_by=current_user.id,
+                    is_current=True
+                )
+                db.session.add(new_version)
+                
+                log = ActivityLog(user_id=current_user.id, action='VERSION_CREATED', file_name=f"{original_filename} (V{max_version+1})", ip_address=request.remote_addr)
+                db.session.add(log)
+                db.session.commit()
+                flash(f"New version of '{original_filename}' uploaded successfully!", "success")
+            else:
+                # Create new file and version 1
+                new_file = File(
+                    filename=s3_key,
+                    original_filename=original_filename,
+                    file_size=file_size,
+                    owner=current_user,
+                    folder_id=folder_id
+                )
+                db.session.add(new_file)
+                db.session.flush() # get ID
+                
+                new_version = FileVersion(
+                    file_id=new_file.id,
+                    version_number=1,
+                    s3_key=s3_key,
+                    file_size=file_size,
+                    uploaded_by=current_user.id,
+                    is_current=True
+                )
+                db.session.add(new_version)
+                
+                log = ActivityLog(user_id=current_user.id, action='UPLOAD', file_name=original_filename, ip_address=request.remote_addr)
+                db.session.add(log)
+                db.session.commit()
+                flash(f"File '{original_filename}' uploaded successfully!", "success")
             
-            # Log Upload
-            log = ActivityLog(user_id=current_user.id, action='UPLOAD', file_name=original_filename, ip_address=request.remote_addr)
-            db.session.add(log)
-            
-            db.session.commit()
-            
-            flash(f"File '{original_filename}' uploaded successfully!", "success")
             return redirect(url_for('files.dashboard'))
         else:
             flash("Failed to upload file to S3. Please try again.", "danger")
@@ -121,7 +162,11 @@ def dashboard():
     # Calculate stats
     all_files = File.query.filter_by(owner=current_user).all()
     total_files = len(all_files)
-    total_size = sum(f.file_size for f in all_files)
+    
+    # Calculate total size including all historical versions
+    from app.models import FileVersion
+    all_versions = FileVersion.query.filter_by(uploaded_by=current_user.id).all()
+    total_size = sum(v.file_size for v in all_versions)
 
     # Generate presigned URLs for preview/download for current page items
     for f in files_paginated.items:
@@ -553,15 +598,22 @@ def delete_permanent_file(file_id):
         flash("Permission denied.", "danger")
         return redirect(url_for('files.trash'))
         
+    # Delete all versions from S3
+    for v in file_record.versions:
+        s3_service.delete_file(v.s3_key)
+        
+    # Fallback delete just in case
     s3_service.delete_file(file_record.filename)
     
     # Log Permanent Delete File
     log = ActivityLog(user_id=current_user.id, action='PERMANENT_DELETE', file_name=file_record.original_filename, ip_address=request.remote_addr)
     db.session.add(log)
+    log_v = ActivityLog(user_id=current_user.id, action='VERSION_DELETED', file_name=file_record.original_filename, ip_address=request.remote_addr)
+    db.session.add(log_v)
     
     db.session.delete(file_record)
     db.session.commit()
-    flash(f"'{file_record.original_filename}' permanently deleted.", "success")
+    flash(f"'{file_record.original_filename}' and all its versions permanently deleted.", "success")
     return redirect(url_for('files.trash'))
 
 @files.route("/delete_permanent/folder/<int:folder_id>", methods=['POST'])
@@ -604,3 +656,84 @@ def revoke_specific_share(share_id):
     
     flash("Share link revoked successfully.", "success")
     return redirect(url_for('files.shared_dashboard'))
+
+@files.route("/restore_version/<int:file_id>/<int:version_id>", methods=['POST'])
+@login_required
+def restore_version(file_id, version_id):
+    file_record = File.query.get_or_404(file_id)
+    if file_record.owner != current_user:
+        flash("Permission denied.", "danger")
+        return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
+        
+    version = FileVersion.query.get_or_404(version_id)
+    if version.file_id != file_record.id:
+        flash("Invalid version.", "danger")
+        return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
+        
+    if version.is_current:
+        flash("This version is already the current version.", "info")
+        return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
+        
+    # Generate new S3 key
+    unique_id = str(uuid.uuid4())
+    _, ext = os.path.splitext(file_record.original_filename)
+    new_s3_key = f"user_{current_user.id}/{unique_id}{ext}"
+    
+    # Copy S3 object
+    success = s3_service.copy_file(version.s3_key, new_s3_key)
+    if not success:
+        flash("Failed to restore version from storage.", "danger")
+        return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
+        
+    # Demote old versions
+    for v in file_record.versions:
+        v.is_current = False
+        
+    # Create new version representing the restoration
+    max_version = max([v.version_number for v in file_record.versions] + [0])
+    new_version_num = max_version + 1
+    
+    new_version = FileVersion(
+        file_id=file_record.id,
+        version_number=new_version_num,
+        s3_key=new_s3_key,
+        file_size=version.file_size,
+        uploaded_by=current_user.id,
+        is_current=True
+    )
+    db.session.add(new_version)
+    
+    # Update main file
+    file_record.filename = new_s3_key
+    file_record.file_size = version.file_size
+    file_record.upload_date = datetime.now(timezone.utc)
+    
+    # Log Activity
+    log = ActivityLog(user_id=current_user.id, action='VERSION_RESTORED', file_name=f"{file_record.original_filename} (V{new_version_num} from V{version.version_number})", ip_address=request.remote_addr)
+    db.session.add(log)
+    
+    db.session.commit()
+    flash(f"Restored Version {version.version_number} as Version {new_version_num}.", "success")
+    return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
+
+@files.route("/download_version/<int:version_id>")
+@login_required
+def download_version(version_id):
+    version = FileVersion.query.get_or_404(version_id)
+    if version.file.owner != current_user:
+        flash("Permission denied.", "danger")
+        return redirect(url_for('files.dashboard'))
+        
+    url = s3_service.generate_presigned_url(
+        version.s3_key, 
+        download_filename=version.file.original_filename
+    )
+    
+    if url:
+        log = ActivityLog(user_id=current_user.id, action='VERSION_DOWNLOADED', file_name=f"{version.file.original_filename} (V{version.version_number})", ip_address=request.remote_addr)
+        db.session.add(log)
+        db.session.commit()
+        return redirect(url)
+    else:
+        flash("Failed to generate download link for version.", "danger")
+        return redirect(url_for('files.dashboard'))

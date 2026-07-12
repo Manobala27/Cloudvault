@@ -150,5 +150,25 @@ class S3Service:
             logger.error(f"Failed to delete {filename} from {self.bucket_name}: {str(e)}")
             return False
 
+    def copy_file(self, source_key, target_key):
+        """
+        Copies a file within the S3 bucket to a new key.
+        """
+        self.initialize()
+        if not self.bucket_name:
+            return False
+            
+        try:
+            copy_source = {
+                'Bucket': self.bucket_name,
+                'Key': source_key
+            }
+            self.s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=target_key)
+            logger.info(f"Successfully copied {source_key} to {target_key}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to copy {source_key} to {target_key}: {str(e)}")
+            return False
+
 # A single instance to be used across the application
 s3_service = S3Service()
