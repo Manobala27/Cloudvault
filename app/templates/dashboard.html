@@ -8,6 +8,8 @@
 {% set total_folders_count = current_user.folders|selectattr('is_deleted', 'equalto', False)|list|length %}
 {% set shared_files_count = non_deleted_files|selectattr('shares')|list|length %}
 {% set trash_count = (current_user.files|selectattr('is_deleted', 'equalto', True)|list|length) + (current_user.folders|selectattr('is_deleted', 'equalto', True)|list|length) %}
+{% set fav_files_count = non_deleted_files|selectattr('is_favorite', 'equalto', True)|list|length %}
+{% set fav_folders_count = current_user.folders|selectattr('is_deleted', 'equalto', False)|selectattr('is_favorite', 'equalto', True)|list|length %}
 {% set storage_limit = 5 * 1024 * 1024 * 1024 %} <!-- 5 GB Example Limit -->
 {% set used_percent = (total_size / storage_limit * 100)|round(2) %}
 
@@ -32,27 +34,39 @@
     </div>
     
     <div class="row g-3">
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg-2">
             <div class="stat-card">
                 <div class="stat-value text-primary">{{ total_files_count }}</div>
                 <div class="stat-label">Total Files</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg-2">
             <div class="stat-card">
                 <div class="stat-value text-success">{{ total_folders_count }}</div>
                 <div class="stat-label">Folders</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="stat-value text-warning">{{ fav_files_count }}</div>
+                <div class="stat-label">Fav Files</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="stat-value text-warning">{{ fav_folders_count }}</div>
+                <div class="stat-label">Fav Folders</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
             <div class="stat-card">
                 <div class="stat-value text-info">{{ shared_files_count }}</div>
                 <div class="stat-label">Shared</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg-2">
             <div class="stat-card">
-                <div class="stat-value text-warning">{{ trash_count }}</div>
+                <div class="stat-value text-danger">{{ trash_count }}</div>
                 <div class="stat-label">In Trash</div>
             </div>
         </div>
@@ -108,6 +122,9 @@
             <span>{{ folder.created_at.strftime('%Y-%m-%d') }}</span>
         </div>
         <div class="cv-card-actions">
+            <button type="button" class="btn btn-outline-warning w-100 mb-2 btn-favorite-folder" data-folder-id="{{ folder.id }}">
+                <i class="bi {% if folder.is_favorite %}bi-star-fill{% else %}bi-star{% endif %}"></i>
+            </button>
             <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#deleteFolderModal{{ folder.id }}">
                 <i class="bi bi-trash"></i> Delete
             </button>
@@ -146,6 +163,9 @@
             <a href="{{ f.presigned_url }}" target="_blank" class="btn btn-outline-info" title="Preview"><i class="bi bi-eye"></i></a>
             <a href="{{ url_for('files.download', file_id=f.id) }}" class="btn btn-primary" title="Download"><i class="bi bi-download"></i></a>
             <button type="button" class="btn btn-{% if active_share %}success{% else %}outline-success{% endif %}" data-bs-toggle="modal" data-bs-target="#shareModal{{ f.id }}" title="Share"><i class="bi bi-share"></i></button>
+            <button type="button" class="btn btn-outline-warning btn-favorite-file" data-file-id="{{ f.id }}" title="Favorite">
+                <i class="bi {% if f.is_favorite %}bi-star-fill{% else %}bi-star{% endif %}"></i>
+            </button>
             <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#versionModal{{ f.id }}" title="Versions"><i class="bi bi-clock-history"></i></button>
             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ f.id }}" title="Delete"><i class="bi bi-trash"></i></button>
         </div>
@@ -407,5 +427,72 @@ function copyToClipboard(url) {
         console.error('Could not copy text: ', err);
     });
 }
+
+// AJAX Favorite Toggles
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = "{{ csrf_token() }}";
+
+    // Toggle File Favorite
+    document.querySelectorAll('.btn-favorite-file').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const fileId = this.getAttribute('data-file-id');
+            const icon = this.querySelector('i');
+            
+            fetch(`/favorite/file/${fileId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if(data.is_favorite) {
+                        icon.classList.remove('bi-star');
+                        icon.classList.add('bi-star-fill');
+                    } else {
+                        icon.classList.remove('bi-star-fill');
+                        icon.classList.add('bi-star');
+                    }
+                } else {
+                    console.error("Failed to toggle favorite");
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+
+    // Toggle Folder Favorite
+    document.querySelectorAll('.btn-favorite-folder').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const folderId = this.getAttribute('data-folder-id');
+            const icon = this.querySelector('i');
+            
+            fetch(`/favorite/folder/${folderId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if(data.is_favorite) {
+                        icon.classList.remove('bi-star');
+                        icon.classList.add('bi-star-fill');
+                    } else {
+                        icon.classList.remove('bi-star-fill');
+                        icon.classList.add('bi-star');
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+});
 </script>
 {% endblock %}

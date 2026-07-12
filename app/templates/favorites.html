@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Favorites{% endblock %}
+{% block content %}
+
+<!-- Header & Controls -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <h2 class="mb-0 fw-bold"><i class="bi bi-star-fill text-warning me-2"></i>Favorites</h2>
+    
+    <div class="d-flex gap-2 w-100" style="max-width: 500px;">
+        <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input class="form-control border-start-0 ps-0 shadow-none" type="text" id="instant-search" placeholder="Search favorites...">
+        </div>
+        <form method="GET" action="{{ url_for('files.favorites') }}" class="d-flex">
+            <select class="form-select shadow-none" name="sort" onchange="this.form.submit()" style="min-width: 160px;">
+                <option value="recently_favorited" {% if sort_by == 'recently_favorited' %}selected{% endif %}>Recently Favorited</option>
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Upload</option>
+                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest Upload</option>
+                <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+            </select>
+        </form>
+    </div>
+</div>
+
+<!-- Favorites Grid -->
+<div class="cv-grid">
+    
+    <!-- Render Folders -->
+    {% for folder in folders %}
+    <div class="cv-card" data-search-name="{{ folder.name }}">
+        <div class="cv-card-icon">
+            <i class="bi bi-folder-fill text-warning" style="font-size: 3rem;"></i>
+        </div>
+        <a href="{{ url_for('files.dashboard', folder_id=folder.id) }}" class="cv-card-title">{{ folder.name }}</a>
+        <div class="cv-card-meta">
+            <span>{{ folder.files|selectattr('is_deleted', 'equalto', False)|list|length }} files</span>
+            <span>{{ folder.created_at.strftime('%Y-%m-%d') }}</span>
+        </div>
+        <div class="cv-card-actions">
+            <button type="button" class="btn btn-warning w-100 mb-2 btn-favorite-folder text-white" data-folder-id="{{ folder.id }}" title="Unfavorite">
+                <i class="bi bi-star-fill"></i> Unfavorite
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Render Files -->
+    {% for f in files.items %}
+    <div class="cv-card" data-search-name="{{ f.original_filename }}">
+        <div class="cv-card-icon position-relative">
+            {% if f.original_filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
+                <img src="{{ f.presigned_url }}" alt="thumbnail">
+            {% else %}
+                <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>
+            {% endif %}
+            
+            {% set active_share = f.shares|selectattr('is_active', 'equalto', True)|first %}
+            {% if active_share %}
+                <span class="cv-share-badge"><i class="bi bi-link-45deg"></i></span>
+            {% endif %}
+            
+            {% if f.versions|length > 0 %}
+                {% set max_ver = f.versions|map(attribute='version_number')|max %}
+                <span class="cv-version-badge badge bg-secondary position-absolute top-0 start-0 m-2 rounded-pill shadow-sm" style="font-size: 0.75rem;">V{{ max_ver }}</span>
+            {% endif %}
+        </div>
+        
+        <h6 class="cv-card-title">{{ f.original_filename }}</h6>
+        <div class="cv-card-meta">
+            <span>{{ f.file_size|format_size }}</span>
+            <span>{{ f.upload_date.strftime('%Y-%m-%d') }}</span>
+        </div>
+        
+        <div class="cv-card-actions">
+            <a href="{{ f.presigned_url }}" target="_blank" class="btn btn-outline-info" title="Preview"><i class="bi bi-eye"></i></a>
+            <a href="{{ url_for('files.download', file_id=f.id) }}" class="btn btn-primary" title="Download"><i class="bi bi-download"></i></a>
+            <button type="button" class="btn btn-warning btn-favorite-file text-white" data-file-id="{{ f.id }}" title="Unfavorite">
+                <i class="bi bi-star-fill"></i>
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Empty State -->
+{% if not folders and not files.items %}
+<div class="text-center py-5">
+    <i class="bi bi-star text-muted" style="font-size: 4rem;"></i>
+    <h4 class="mt-3 text-muted">No Favorites Yet</h4>
+    <p class="text-muted">Star important files and folders in your Dashboard to access them here quickly.</p>
+    <a href="{{ url_for('files.dashboard') }}" class="btn btn-primary mt-3 rounded-pill px-4">Go to Dashboard</a>
+</div>
+{% endif %}
+
+<!-- Pagination -->
+{% if files.pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not files.has_prev %}disabled{% endif %}">
+            <a class="page-link shadow-sm border-0" href="{{ url_for('files.favorites', page=files.prev_num, search=search_query, sort=sort_by) }}"><i class="bi bi-chevron-left"></i></a>
+        </li>
+        {% for page_num in files.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                <li class="page-item {% if files.page == page_num %}active{% endif %}">
+                    <a class="page-link shadow-sm border-0 mx-1 rounded" href="{{ url_for('files.favorites', page=page_num, search=search_query, sort=sort_by) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link border-0 mx-1">...</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not files.has_next %}disabled{% endif %}">
+            <a class="page-link shadow-sm border-0" href="{{ url_for('files.favorites', page=files.next_num, search=search_query, sort=sort_by) }}"><i class="bi bi-chevron-right"></i></a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+// AJAX Favorite Toggles (Removing from Favorites page will instantly hide it or unstar it)
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = "{{ csrf_token() }}";
+
+    // Toggle File Favorite
+    document.querySelectorAll('.btn-favorite-file').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const fileId = this.getAttribute('data-file-id');
+            const card = this.closest('.cv-card');
+            
+            fetch(`/favorite/file/${fileId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if(!data.is_favorite) {
+                        // Fade out and remove the card from the favorites page
+                        card.style.transition = 'opacity 0.3s ease';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.remove();
+                            // Optional: If empty, show empty state (would require extra logic, a page reload is often fine or we just let it be)
+                            if(document.querySelectorAll('.cv-card').length === 0) {
+                                window.location.reload();
+                            }
+                        }, 300);
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+
+    // Toggle Folder Favorite
+    document.querySelectorAll('.btn-favorite-folder').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const folderId = this.getAttribute('data-folder-id');
+            const card = this.closest('.cv-card');
+            
+            fetch(`/favorite/folder/${folderId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if(!data.is_favorite) {
+                        card.style.transition = 'opacity 0.3s ease';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.remove();
+                            if(document.querySelectorAll('.cv-card').length === 0) {
+                                window.location.reload();
+                            }
+                        }, 300);
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+});
+</script>
+{% endblock %}

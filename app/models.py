@@ -32,6 +32,10 @@ class Folder(db.Model):
     is_deleted = db.Column(db.Boolean, default=False, nullable=False)
     deleted_at = db.Column(db.DateTime, nullable=True)
     
+    # Favorites (Module 15)
+    is_favorite = db.Column(db.Boolean, default=False, nullable=False)
+    favorited_at = db.Column(db.DateTime, nullable=True)
+    
     # Self-referential relationship for subfolders
     subfolders = db.relationship('Folder', backref=db.backref('parent', remote_side=[id]), lazy=True, cascade="all, delete-orphan")
     
@@ -63,6 +67,10 @@ class File(db.Model):
 
     # File Versioning (Module 14)
     versions = db.relationship('FileVersion', backref='file', lazy=True, cascade="all, delete-orphan")
+
+    # Favorites (Module 15)
+    is_favorite = db.Column(db.Boolean, default=False, nullable=False)
+    favorited_at = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f"File('{self.original_filename}', '{self.upload_date}')"

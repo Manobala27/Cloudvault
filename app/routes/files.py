@@ -737,3 +737,79 @@ def download_version(version_id):
     else:
         flash("Failed to generate download link for version.", "danger")
         return redirect(url_for('files.dashboard'))
+
+@files.route("/favorite/file/<int:file_id>", methods=['POST'])
+@login_required
+def toggle_favorite_file(file_id):
+    file_record = File.query.get_or_404(file_id)
+    if file_record.owner != current_user:
+        return jsonify({'error': 'Permission denied'}), 403
+        
+    file_record.is_favorite = not file_record.is_favorite
+    file_record.favorited_at = datetime.now(timezone.utc) if file_record.is_favorite else None
+    
+    action = 'FAVORITE_ADDED' if file_record.is_favorite else 'FAVORITE_REMOVED'
+    log = ActivityLog(user_id=current_user.id, action=action, file_name=file_record.original_filename, ip_address=request.remote_addr)
+    db.session.add(log)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'is_favorite': file_record.is_favorite})
+
+@files.route("/favorite/folder/<int:folder_id>", methods=['POST'])
+@login_required
+def toggle_favorite_folder(folder_id):
+    folder_record = Folder.query.get_or_404(folder_id)
+    if folder_record.owner != current_user:
+        return jsonify({'error': 'Permission denied'}), 403
+        
+    folder_record.is_favorite = not folder_record.is_favorite
+    folder_record.favorited_at = datetime.now(timezone.utc) if folder_record.is_favorite else None
+    
+    action = 'FAVORITE_ADDED' if folder_record.is_favorite else 'FAVORITE_REMOVED'
+    log = ActivityLog(user_id=current_user.id, action=action, folder_name=folder_record.name, ip_address=request.remote_addr)
+    db.session.add(log)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'is_favorite': folder_record.is_favorite})
+
+@files.route("/favorites")
+@login_required
+def favorites():
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('search', '')
+    sort_by = request.args.get('sort', 'recently_favorited')
+    
+    file_query = File.query.filter_by(owner=current_user, is_deleted=False, is_favorite=True)
+    folder_query = Folder.query.filter_by(owner=current_user, is_deleted=False, is_favorite=True)
+    
+    if search_query:
+        file_query = file_query.filter(File.original_filename.ilike(f'%{search_query}%'))
+        folder_query = folder_query.filter(Folder.name.ilike(f'%{search_query}%'))
+        
+    if sort_by == 'oldest':
+        file_query = file_query.order_by(File.upload_date.asc())
+        folder_query = folder_query.order_by(Folder.created_at.asc())
+    elif sort_by == 'name_asc':
+        file_query = file_query.order_by(File.original_filename.asc())
+        folder_query = folder_query.order_by(Folder.name.asc())
+    elif sort_by == 'name_desc':
+        file_query = file_query.order_by(File.original_filename.desc())
+        folder_query = folder_query.order_by(Folder.name.desc())
+    elif sort_by == 'recently_favorited':
+        file_query = file_query.order_by(File.favorited_at.desc())
+        folder_query = folder_query.order_by(Folder.favorited_at.desc())
+    else: # newest
+        file_query = file_query.order_by(File.upload_date.desc())
+        folder_query = folder_query.order_by(Folder.created_at.desc())
+        
+    folders = folder_query.all()
+    files_paginated = file_query.paginate(page=page, per_page=10)
+    
+    for f in files_paginated.items:
+        f.presigned_url = s3_service.generate_presigned_url(f.filename)
+        
+    return render_template('favorites.html', title='Favorites',
+                           files=files_paginated,
+                           folders=folders,
+                           search_query=search_query,
+                           sort_by=sort_by)
