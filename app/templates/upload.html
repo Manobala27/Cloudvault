@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Upload File{% endblock %}
+{% block content %}
+<div class="row justify-content-center mb-5">
+    <div class="col-md-8 col-lg-6">
+        
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('files.dashboard', folder_id=request.args.get('folder_id')) }}" class="btn btn-outline-secondary rounded-circle me-3 shadow-sm btn-icon">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h3 class="mb-0 fw-bold">Upload File</h3>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                
+                <form id="upload-form" action="{{ url_for('files.upload') }}" method="POST" enctype="multipart/form-data" data-redirect-url="{{ url_for('files.dashboard', folder_id=request.args.get('folder_id')) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    {% set folder_id = request.args.get('folder_id') %}
+                    {% if folder_id %}
+                    <input type="hidden" name="folder_id" value="{{ folder_id }}">
+                    <div class="alert alert-info py-2 d-flex align-items-center rounded-3 mb-4">
+                        <i class="bi bi-folder-fill me-2 fs-5"></i>
+                        <span>Uploading to this folder</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Drag & Drop Zone -->
+                    <div id="upload-dropzone" class="upload-dropzone mb-4">
+                        <i class="bi bi-cloud-arrow-up-fill upload-icon"></i>
+                        <h4 class="fw-bold mb-2">Drag & Drop your file here</h4>
+                        <p class="text-muted mb-4">Or click to browse your computer</p>
+                        
+                        <!-- The actual file input is hidden but triggered by clicking the dropzone -->
+                        {{ form.file(class="d-none", id="file-input", required=True) }}
+                        <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="document.getElementById('file-input').click()">
+                            Browse Files
+                        </button>
+                    </div>
+                    
+                    <p class="text-center text-muted small"><i class="bi bi-info-circle me-1"></i> Maximum file size: 10MB</p>
+
+                    <!-- Custom Progress Bar (Hidden by default) -->
+                    <div id="progress-container" class="mt-4" style="display: none;">
+                        <p id="upload-text" class="mb-2 text-center text-primary fw-semibold">Uploading...</p>
+                        <div class="progress rounded-pill shadow-sm" style="height: 20px;">
+                            <div id="upload-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary fw-bold" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                        </div>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Activity Log{% endblock %}
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h3 class="mb-1 fw-bold"><i class="bi bi-clock-history text-info"></i> Activity Log</h3>
+        <p class="text-muted mb-0">Audit history of all your actions in CloudVault.</p>
+    </div>
+    <div class="col-md-6 mt-3 mt-md-0">
+        <form method="GET" action="{{ url_for('activity.index') }}" class="d-flex gap-2 justify-content-md-end">
+            <select name="action" class="form-select shadow-sm" style="max-width: 180px;" onchange="this.form.submit()">
+                <option value="">All Actions</option>
+                {% for act in distinct_actions %}
+                <option value="{{ act }}" {% if action_filter == act %}selected{% endif %}>{{ act }}</option>
+                {% endfor %}
+            </select>
+            <div class="input-group" style="max-width: 250px;">
+                <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" class="form-control border-start-0 ps-0 shadow-none" placeholder="Search files/folders..." value="{{ search_query }}">
+            </div>
+            <button type="submit" class="btn btn-primary d-none">Search</button>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Time</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in activities.items %}
+                <tr>
+                    <td class="ps-4 text-nowrap text-muted small">
+                        {{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </td>
+                    <td>
+                        {% if 'DELETE' in log.action or 'REVOKE' in log.action %}
+                            <span class="badge bg-danger rounded-pill px-3">{{ log.action }}</span>
+                        {% elif 'UPLOAD' in log.action or 'CREATE' in log.action %}
+                            <span class="badge bg-success rounded-pill px-3">{{ log.action }}</span>
+                        {% elif 'SHARE' in log.action %}
+                            <span class="badge bg-info rounded-pill px-3">{{ log.action }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary rounded-pill px-3">{{ log.action }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-semibold">
+                        {% if log.file_name %}
+                            <i class="bi bi-file-earmark-text text-secondary me-1"></i> {{ log.file_name }}
+                        {% elif log.folder_name %}
+                            <i class="bi bi-folder-fill text-warning me-1"></i> {{ log.folder_name }}
+                        {% else %}
+                            <span class="text-muted fst-italic">Account</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted small">
+                        <i class="bi bi-geo-alt-fill me-1"></i> {{ log.ip_address or 'Unknown' }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        No activity logs found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if activities.pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not activities.has_prev %}disabled{% endif %}">
+            <a class="page-link shadow-sm border-0" href="{{ url_for('activity.index', page=activities.prev_num, action=action_filter, search=search_query) }}"><i class="bi bi-chevron-left"></i></a>
+        </li>
+        {% for page_num in activities.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                <li class="page-item {% if activities.page == page_num %}active{% endif %}">
+                    <a class="page-link shadow-sm border-0 mx-1 rounded" href="{{ url_for('activity.index', page=page_num, action=action_filter, search=search_query) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link border-0 mx-1">...</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not activities.has_next %}disabled{% endif %}">
+            <a class="page-link shadow-sm border-0" href="{{ url_for('activity.index', page=activities.next_num, action=action_filter, search=search_query) }}"><i class="bi bi-chevron-right"></i></a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

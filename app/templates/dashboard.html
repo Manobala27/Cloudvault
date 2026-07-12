@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- Calculate Dynamic Stats via Jinja (No backend changes needed) -->
+{% set non_deleted_files = current_user.files|selectattr('is_deleted', 'equalto', False)|list %}
+{% set total_files_count = non_deleted_files|length %}
+{% set total_folders_count = current_user.folders|selectattr('is_deleted', 'equalto', False)|list|length %}
+{% set shared_files_count = non_deleted_files|selectattr('shares')|list|length %}
+{% set trash_count = (current_user.files|selectattr('is_deleted', 'equalto', True)|list|length) + (current_user.folders|selectattr('is_deleted', 'equalto', True)|list|length) %}
+{% set storage_limit = 5 * 1024 * 1024 * 1024 %} <!-- 5 GB Example Limit -->
+{% set used_percent = (total_size / storage_limit * 100)|round(2) %}
+
+<!-- Storage Banner -->
+<div class="storage-banner mb-4">
+    <div class="row align-items-center mb-3">
+        <div class="col-md-6">
+            <h4 class="mb-1 fw-bold"><i class="bi bi-cloud-check-fill text-primary"></i> Cloud Storage</h4>
+            <p class="text-muted mb-0 small">Using {{ total_size|format_size }} of 5.00 GB ({{ used_percent }}%)</p>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
+            <button type="button" class="btn btn-outline-secondary rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                <i class="bi bi-folder-plus"></i> New Folder
+            </button>
+            <a href="{{ url_for('files.upload', folder_id=current_folder.id if current_folder else '') }}" class="btn btn-primary rounded-pill shadow-sm px-4">
+                <i class="bi bi-cloud-upload-fill"></i> Upload
+            </a>
+        </div>
+    </div>
+    <div class="progress mb-4 rounded-pill" style="height: 12px; background-color: var(--cv-border);">
+        <div class="progress-bar progress-bar-animated progress-bar-striped bg-primary" role="progressbar" style="width: {{ used_percent }}%" aria-valuenow="{{ used_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    
+    <div class="row g-3">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value text-primary">{{ total_files_count }}</div>
+                <div class="stat-label">Total Files</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value text-success">{{ total_folders_count }}</div>
+                <div class="stat-label">Folders</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value text-info">{{ shared_files_count }}</div>
+                <div class="stat-label">Shared</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value text-warning">{{ trash_count }}</div>
+                <div class="stat-label">In Trash</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Controls & Breadcrumbs -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0 fs-5">
+        <li class="breadcrumb-item"><a href="{{ url_for('files.dashboard') }}" class="text-decoration-none fw-bold"><i class="bi bi-house-door-fill"></i> Home</a></li>
+        {% for b in breadcrumbs %}
+            {% if loop.last %}
+                <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">{{ b.name }}</li>
+            {% else %}
+                <li class="breadcrumb-item"><a href="{{ url_for('files.dashboard', folder_id=b.id) }}" class="text-decoration-none fw-semibold">{{ b.name }}</a></li>
+            {% endif %}
+        {% endfor %}
+      </ol>
+    </nav>
+    
+    <div class="d-flex gap-2 w-100" style="max-width: 500px;">
+        <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input class="form-control border-start-0 ps-0 shadow-none" type="text" id="instant-search" placeholder="Instant Search...">
+        </div>
+        <form method="GET" action="{{ url_for('files.dashboard') }}" class="d-flex">
+            {% if current_folder %}
+            <input type="hidden" name="folder_id" value="{{ current_folder.id }}">
+            {% endif %}
+            <select class="form-select shadow-none" name="sort" onchange="this.form.submit()" style="min-width: 140px;">
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest</option>
+                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest</option>
+                <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+            </select>
+        </form>
+    </div>
+</div>
+
+<!-- File & Folder Grid -->
+<div class="cv-grid">
+    
+    <!-- Render Folders -->
+    {% for folder in folders %}
+    <div class="cv-card" data-search-name="{{ folder.name }}">
+        <div class="cv-card-icon">
+            <i class="bi bi-folder-fill text-warning" style="font-size: 3rem;"></i>
+        </div>
+        <a href="{{ url_for('files.dashboard', folder_id=folder.id) }}" class="cv-card-title">{{ folder.name }}</a>
+        <div class="cv-card-meta">
+            <span>{{ folder.files|selectattr('is_deleted', 'equalto', False)|list|length }} files</span>
+            <span>{{ folder.created_at.strftime('%Y-%m-%d') }}</span>
+        </div>
+        <div class="cv-card-actions">
+            <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#deleteFolderModal{{ folder.id }}">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Render Files -->
+    {% for f in files.items %}
+    <div class="cv-card" data-search-name="{{ f.original_filename }}">
+        <div class="cv-card-icon position-relative">
+            {% if f.original_filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
+                <img src="{{ f.presigned_url }}" alt="thumbnail">
+            {% else %}
+                <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>
+            {% endif %}
+            
+            {% set active_share = f.shares|selectattr('is_active', 'equalto', True)|first %}
+            {% if active_share %}
+                <span class="cv-share-badge"><i class="bi bi-link-45deg"></i></span>
+            {% endif %}
+        </div>
+        
+        <h6 class="cv-card-title">{{ f.original_filename }}</h6>
+        <div class="cv-card-meta">
+            <span>{{ f.file_size|format_size }}</span>
+            <span>{{ f.upload_date.strftime('%Y-%m-%d') }}</span>
+        </div>
+        
+        <div class="cv-card-actions">
+            <a href="{{ f.presigned_url }}" target="_blank" class="btn btn-outline-info" title="Preview"><i class="bi bi-eye"></i></a>
+            <a href="{{ url_for('files.download', file_id=f.id) }}" class="btn btn-primary" title="Download"><i class="bi bi-download"></i></a>
+            <button type="button" class="btn btn-{% if active_share %}success{% else %}outline-success{% endif %}" data-bs-toggle="modal" data-bs-target="#shareModal{{ f.id }}" title="Share"><i class="bi bi-share"></i></button>
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ f.id }}" title="Delete"><i class="bi bi-trash"></i></button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Empty State -->
+{% if not folders and not files.items %}
+<div class="text-center py-5">
+    <i class="bi bi-cloud-plus text-muted" style="font-size: 4rem;"></i>
+    <h4 class="mt-3 text-muted">This folder is empty</h4>
+    <p class="text-muted">Drag & drop files to upload, or create a new folder.</p>
+</div>
+{% endif %}
+
+<!-- Pagination -->
+{% if files.pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not files.has_prev %}disabled{% endif %}">
+            <a class="page-link shadow-sm border-0" href="{{ url_for('files.dashboard', page=files.prev_num, search=search_query, sort=sort_by) }}"><i class="bi bi-chevron-left"></i></a>
+        </li>
+        {% for page_num in files.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                <li class="page-item {% if files.page == page_num %}active{% endif %}">
+                    <a class="page-link shadow-sm border-0 mx-1 rounded" href="{{ url_for('files.dashboard', page=page_num, search=search_query, sort=sort_by) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link border-0 mx-1">...</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not files.has_next %}disabled{% endif %}">
+            <a class="page-link shadow-sm border-0" href="{{ url_for('files.dashboard', page=files.next_num, search=search_query, sort=sort_by) }}"><i class="bi bi-chevron-right"></i></a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Create Folder Modal -->
+<div class="modal fade" id="createFolderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-folder-plus text-primary me-2"></i>Create New Folder</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('files.create_folder') }}" method="POST">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% if current_folder %}
+                    <input type="hidden" name="parent_id" value="{{ current_folder.id }}">
+                    {% endif %}
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Folder Name</label>
+                        <input type="text" class="form-control form-control-lg shadow-sm" name="folder_name" placeholder="e.g., Important Documents" required autofocus>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Create Folder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modals for Folders -->
+{% for folder in folders %}
+<div class="modal fade text-start" id="deleteFolderModal{{ folder.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Folder</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Move <strong>{{ folder.name }}</strong> and all its contents to the Trash?
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('files.delete_folder', folder_id=folder.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Yes, Move to Trash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modals for Files -->
+{% for f in files.items %}
+<!-- Share Modal -->
+<div class="modal fade text-start" id="shareModal{{ f.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Share {{ f.original_filename }}</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% set active_share = f.shares|selectattr('is_active', 'equalto', True)|first %}
+                {% if active_share %}
+                    <div class="alert alert-success d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill me-2 fs-4"></i>
+                        <div>This file is being shared publicly.</div>
+                    </div>
+                    <label class="form-label fw-bold">Public Link <span class="text-muted fw-normal">(Expires {{ active_share.expires_at.strftime('%Y-%m-%d') if active_share.expires_at else 'N/A' }})</span></label>
+                    <div class="input-group mb-4">
+                        <input type="text" class="form-control" value="{{ url_for('files.shared_file', share_token=active_share.share_token, _external=True) }}" readonly id="shareLink{{ f.id }}">
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard(document.getElementById('shareLink{{ f.id }}').value)"><i class="bi bi-clipboard"></i> Copy</button>
+                    </div>
+                    
+                    <div class="row text-muted small mb-4">
+                        <div class="col-6"><i class="bi bi-download"></i> DL Limit: {{ active_share.download_limit if active_share.download_limit else 'Unlimited' }}</div>
+                        <div class="col-6"><i class="bi bi-key"></i> Password: {{ 'Yes' if active_share.password_hash else 'No' }}</div>
+                    </div>
+                    
+                    <form action="{{ url_for('files.toggle_share', file_id=f.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="share_action" value="revoke">
+                        <button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold">Revoke Access</button>
+                    </form>
+                {% else %}
+                    <div class="text-center mb-4">
+                        <i class="bi bi-globe2 text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3">Generate Public Link</h5>
+                        <p class="text-muted mb-0">Create a secure link to share this file with anyone.</p>
+                    </div>
+                    <form action="{{ url_for('files.toggle_share', file_id=f.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="share_action" value="create">
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Password Protection (Optional)</label>
+                            <input type="password" name="share_password" class="form-control" placeholder="Leave blank for no password">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-muted small fw-bold">Expiration</label>
+                                <select name="share_expiry" class="form-select">
+                                    <option value="1">1 Day</option>
+                                    <option value="7" selected>7 Days</option>
+                                    <option value="30">30 Days</option>
+                                    <option value="unlimited">Never</option>
+                                </select>
+                            </div>
+                            <div class="col-6 mb-4">
+                                <label class="form-label text-muted small fw-bold">Download Limit</label>
+                                <select name="share_limit" class="form-select">
+                                    <option value="unlimited">Unlimited</option>
+                                    <option value="1">1 Download</option>
+                                    <option value="5">5 Downloads</option>
+                                    <option value="10">10 Downloads</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold">Create Link</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade text-start" id="deleteModal{{ f.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Delete File</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to move <strong>{{ f.original_filename }}</strong> to the Trash?
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('files.delete_file', file_id=f.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Yes, Move to Trash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function copyToClipboard(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        // Find the copy button that triggered this and show success
+        event.target.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+        event.target.classList.remove('btn-outline-secondary');
+        event.target.classList.add('btn-success');
+        setTimeout(() => {
+            event.target.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+            event.target.classList.add('btn-outline-secondary');
+            event.target.classList.remove('btn-success');
+        }, 2000);
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %}

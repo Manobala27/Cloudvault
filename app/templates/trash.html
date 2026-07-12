@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Trash{% endblock %}
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h3 class="mb-1 fw-bold"><i class="bi bi-trash-fill text-warning"></i> Trash / Recycle Bin</h3>
+        <p class="text-muted mb-0">Items here are automatically and permanently deleted after 30 days.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="{{ url_for('files.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="cv-grid">
+    <!-- Render Deleted Folders -->
+    {% for folder in folders %}
+    <div class="cv-card border-warning">
+        <div class="cv-card-icon">
+            <i class="bi bi-folder-fill text-warning" style="font-size: 3rem; opacity: 0.7;"></i>
+        </div>
+        <h6 class="cv-card-title text-muted text-decoration-line-through">{{ folder.name }}</h6>
+        <div class="cv-card-meta">
+            <span>Orig: {% if folder.parent %}{{ folder.parent.name }}{% else %}Home{% endif %}</span>
+            <span class="text-danger">Del: {{ folder.deleted_at.strftime('%Y-%m-%d') if folder.deleted_at else 'Unknown' }}</span>
+        </div>
+        <div class="cv-card-actions mt-auto d-flex gap-2">
+            <form action="{{ url_for('files.restore_folder', folder_id=folder.id) }}" method="POST" class="flex-grow-1">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-success w-100"><i class="bi bi-arrow-counterclockwise"></i> Restore</button>
+            </form>
+            <button type="button" class="btn btn-outline-danger flex-grow-1" data-bs-toggle="modal" data-bs-target="#deletePermFolderModal{{ folder.id }}">
+                <i class="bi bi-x-octagon"></i> Purge
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Render Deleted Files -->
+    {% for f in files %}
+    <div class="cv-card border-warning">
+        <div class="cv-card-icon position-relative" style="opacity: 0.6;">
+            <i class="bi bi-file-earmark-x-fill text-danger" style="font-size: 3rem;"></i>
+            <span class="position-absolute bottom-0 start-50 translate-middle-x badge bg-secondary mb-2">
+                {{ f.original_filename.split('.')[-1] | upper }}
+            </span>
+        </div>
+        
+        <h6 class="cv-card-title text-muted text-decoration-line-through">{{ f.original_filename }}</h6>
+        <div class="cv-card-meta">
+            <span>{{ f.file_size|format_size }}</span>
+            <span class="text-danger">Del: {{ f.deleted_at.strftime('%Y-%m-%d') if f.deleted_at else 'Unknown' }}</span>
+        </div>
+        <div class="cv-card-meta mt-0 mb-3" style="font-size: 0.75rem;">
+            <span>Orig: {% if f.folder %} {{ f.folder.name }} {% else %} Home {% endif %}</span>
+        </div>
+        
+        <div class="cv-card-actions mt-auto d-flex gap-2">
+            <form action="{{ url_for('files.restore_file', file_id=f.id) }}" method="POST" class="flex-grow-1">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-success w-100"><i class="bi bi-arrow-counterclockwise"></i> Restore</button>
+            </form>
+            <button type="button" class="btn btn-outline-danger flex-grow-1" data-bs-toggle="modal" data-bs-target="#deletePermFileModal{{ f.id }}">
+                <i class="bi bi-x-octagon"></i> Purge
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not folders and not files %}
+<div class="text-center py-5 my-5">
+    <i class="bi bi-emoji-smile text-success mb-3 d-block" style="font-size: 4rem;"></i>
+    <h4 class="text-success fw-bold">Your trash is empty</h4>
+    <p class="text-muted">You have a clean workspace!</p>
+</div>
+{% endif %}
+
+<!-- Modals for Folders -->
+{% for folder in folders %}
+<div class="modal fade text-start" id="deletePermFolderModal{{ folder.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Permanent Deletion</h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                Are you absolutely sure you want to permanently delete the folder <strong>{{ folder.name }}</strong>?<br><br>
+                <span class="text-danger fw-bold">This will securely erase the folder and ALL its contents from AWS S3. This action CANNOT be undone!</span>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('files.delete_permanent_folder', folder_id=folder.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger px-4">Permanently Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modals for Files -->
+{% for f in files %}
+<div class="modal fade text-start" id="deletePermFileModal{{ f.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Permanent Deletion</h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                Are you absolutely sure you want to permanently delete the file <strong>{{ f.original_filename }}</strong>?<br><br>
+                <span class="text-danger fw-bold">This will securely erase the file from AWS S3 forever. This action CANNOT be undone!</span>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('files.delete_permanent_file', file_id=f.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger px-4">Permanently Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

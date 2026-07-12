@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Too Many Requests{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-1 fw-bold text-warning">429</h1>
+    <h2 class="mb-4">Too Many Requests</h2>
+    <p class="lead text-muted mb-4">You have exceeded the rate limit for this action. Please wait a moment and try again.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">Return to Homepage</a>
+</div>
+{% endblock %}

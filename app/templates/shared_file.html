@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Shared File{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-primary text-white text-center py-4 border-0 position-relative">
+                {% if share.password_hash %}
+                    <span class="position-absolute top-0 end-0 badge bg-warning text-dark mt-3 me-3 rounded-pill shadow-sm"><i class="bi bi-lock-fill"></i> Protected</span>
+                {% endif %}
+                
+                {% if file.original_filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
+                    <img src="{{ preview_url }}" alt="thumbnail" class="img-fluid rounded shadow mt-3 mb-3" style="max-height: 150px; object-fit: contain;">
+                {% else %}
+                    <i class="bi bi-file-earmark-text-fill mt-3 mb-3 d-inline-block" style="font-size: 5rem;"></i>
+                {% endif %}
+                
+                <h3 class="mb-0 fw-bold">CloudVault Share</h3>
+            </div>
+            <div class="card-body p-5 text-center">
+                
+                <h4 class="fw-bold mb-4">{{ file.original_filename }}</h4>
+                
+                <div class="d-flex justify-content-center gap-4 mb-5 text-muted">
+                    <div>
+                        <i class="bi bi-hdd-fill mb-1 fs-4 text-secondary d-block"></i>
+                        <small class="fw-bold">{{ file.file_size|format_size }}</small>
+                    </div>
+                    <div>
+                        <i class="bi bi-calendar-event-fill mb-1 fs-4 text-secondary d-block"></i>
+                        <small class="fw-bold">{{ file.upload_date.strftime('%b %d, %Y') }}</small>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-3">
+                    <form action="{{ url_for('files.public_download', share_token=share.share_token) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm py-3 fw-bold w-100">
+                            <i class="bi bi-download me-2"></i> Secure Download
+                        </button>
+                    </form>
+                    
+                    {% if file.original_filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
+                    <a href="{{ preview_url }}" target="_blank" class="btn btn-outline-secondary rounded-pill py-2 fw-bold">
+                        <i class="bi bi-image me-2"></i> Preview Image
+                    </a>
+                    {% endif %}
+                </div>
+                
+            </div>
+            <div class="card-footer text-center py-3 border-0 text-muted small">
+                <i class="bi bi-shield-lock-fill text-success"></i> This file is securely hosted on CloudVault.<br>
+                {% if share.expires_at %}
+                    Link expires on {{ share.expires_at.strftime('%Y-%m-%d') }}<br>
+                {% else %}
+                    Link never expires<br>
+                {% endif %}
+                
+                {% if share.download_limit %}
+                    {{ share.download_limit - share.download_count }} download(s) remaining
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
