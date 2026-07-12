@@ -170,5 +170,21 @@ class S3Service:
             logger.error(f"Failed to copy {source_key} to {target_key}: {str(e)}")
             return False
 
+    def get_file_content(self, filename):
+        """
+        Retrieves the raw bytes of an object from S3.
+        Useful for text/code preview without downloading to a local file.
+        """
+        self.initialize()
+        if not self.bucket_name:
+            return None
+            
+        try:
+            response = self.s3_client.get_object(Bucket=self.bucket_name, Key=filename)
+            return response['Body'].read()
+        except Exception as e:
+            logger.error(f"Failed to get content for {filename}: {str(e)}")
+            return None
+
 # A single instance to be used across the application
 s3_service = S3Service()

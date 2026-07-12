@@ -65,7 +65,7 @@
         </div>
         
         <div class="cv-card-actions">
-            <a href="{{ f.presigned_url }}" target="_blank" class="btn btn-outline-info w-50" title="Preview"><i class="bi bi-eye"></i> Preview</a>
+            <a href="{{ url_for('files.preview', file_id=f.id) }}" class="btn btn-outline-info w-50" title="Preview"><i class="bi bi-eye"></i> Preview</a>
             <a href="{{ url_for('files.download', file_id=f.id) }}" class="btn btn-primary w-50" title="Download"><i class="bi bi-download"></i> DL</a>
         </div>
     </div>

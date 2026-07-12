@@ -189,7 +189,7 @@
         </div>
         
         <div class="cv-card-actions">
-            <a href="{{ f.presigned_url }}" target="_blank" class="btn btn-outline-info" title="Preview"><i class="bi bi-eye"></i></a>
+            <a href="{{ url_for('files.preview', file_id=f.id) }}" class="btn btn-outline-info" title="Preview"><i class="bi bi-eye"></i></a>
             <a href="{{ url_for('files.download', file_id=f.id) }}" class="btn btn-primary" title="Download"><i class="bi bi-download"></i></a>
             <button type="button" class="btn btn-{% if active_share %}success{% else %}outline-success{% endif %}" data-bs-toggle="modal" data-bs-target="#shareModal{{ f.id }}" title="Share"><i class="bi bi-share"></i></button>
             <button type="button" class="btn btn-outline-warning btn-favorite-file" data-file-id="{{ f.id }}" title="Favorite">

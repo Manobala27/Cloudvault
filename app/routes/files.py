@@ -821,3 +821,141 @@ def favorites():
                            folders=folders,
                            search_query=search_query,
                            sort_by=sort_by)
+
+@files.route("/preview/<int:file_id>")
+@login_required
+def preview(file_id):
+    file_record = File.query.get_or_404(file_id)
+    if file_record.owner != current_user:
+        flash("You don't have permission to view this file.", "danger")
+        return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
+    
+    # Get previous and next files in the same folder for navigation
+    folder_files = File.query.filter_by(folder_id=file_record.folder_id, owner=current_user, is_deleted=False).order_by(File.original_filename.asc()).all()
+    
+    prev_file = None
+    next_file = None
+    for i, f in enumerate(folder_files):
+        if f.id == file_record.id:
+            if i > 0:
+                prev_file = folder_files[i-1]
+            if i < len(folder_files) - 1:
+                next_file = folder_files[i+1]
+            break
+            
+    # Determine file type
+    filename = file_record.original_filename.lower()
+    
+    image_exts = ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg')
+    video_exts = ('.mp4', '.mov', '.webm')
+    audio_exts = ('.mp3', '.wav', '.ogg')
+    pdf_ext = ('.pdf',)
+    text_exts = ('.txt', '.json', '.csv', '.log', '.py', '.js', '.html', '.css', '.md', '.xml', '.yml', '.yaml')
+    
+    file_type = 'unsupported'
+    text_content = None
+    
+    if filename.endswith(image_exts):
+        file_type = 'image'
+    elif filename.endswith(video_exts):
+        file_type = 'video'
+    elif filename.endswith(audio_exts):
+        file_type = 'audio'
+    elif filename.endswith(pdf_ext):
+        file_type = 'pdf'
+    elif filename.endswith(text_exts):
+        if file_record.file_size <= 2 * 1024 * 1024:  # <= 2MB
+            file_type = 'text'
+            raw_bytes = s3_service.get_file_content(file_record.filename)
+            if raw_bytes:
+                try:
+                    text_content = raw_bytes.decode('utf-8')
+                except UnicodeDecodeError:
+                    file_type = 'unsupported' # Fallback if not utf-8
+        else:
+            # Over 2MB -> unsupported -> forces download
+            file_type = 'unsupported'
+
+    presigned_url = s3_service.generate_presigned_url(file_record.filename)
+    
+    # Log Activity
+    log = ActivityLog(user_id=current_user.id, action='PREVIEW_OPENED', file_name=file_record.original_filename, ip_address=request.remote_addr)
+    db.session.add(log)
+    db.session.commit()
+    
+    return render_template('preview.html', 
+                           title=f'Preview {file_record.original_filename}',
+                           file=file_record,
+                           file_type=file_type,
+                           presigned_url=presigned_url,
+                           text_content=text_content,
+                           prev_file=prev_file,
+                           next_file=next_file)
+
+@files.route("/shared/<share_token>/preview", methods=['GET', 'POST'])
+def shared_preview(share_token):
+    from app.models import Share
+    share_record = Share.query.filter_by(share_token=share_token).first_or_404()
+    
+    if not share_record.is_active:
+        flash("This shared link has expired or been revoked.", "danger")
+        return redirect(url_for('auth.login'))
+        
+    if share_record.password_hash:
+        if request.method == 'GET':
+            if not session.get(f'share_auth_{share_token}'):
+                # Redirect back to the auth page
+                return redirect(url_for('files.shared_file', share_token=share_token))
+        elif request.method == 'POST':
+            from app import bcrypt
+            pwd = request.form.get('password')
+            if not pwd or not bcrypt.check_password_hash(share_record.password_hash, pwd):
+                flash("Incorrect password.", "danger")
+                return redirect(url_for('files.shared_file', share_token=share_token))
+            session[f'share_auth_{share_token}'] = True
+    
+    file_record = share_record.file
+    
+    # Determine file type
+    filename = file_record.original_filename.lower()
+    image_exts = ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg')
+    video_exts = ('.mp4', '.mov', '.webm')
+    audio_exts = ('.mp3', '.wav', '.ogg')
+    pdf_ext = ('.pdf',)
+    text_exts = ('.txt', '.json', '.csv', '.log', '.py', '.js', '.html', '.css', '.md', '.xml', '.yml', '.yaml')
+    
+    file_type = 'unsupported'
+    text_content = None
+    
+    if filename.endswith(image_exts):
+        file_type = 'image'
+    elif filename.endswith(video_exts):
+        file_type = 'video'
+    elif filename.endswith(audio_exts):
+        file_type = 'audio'
+    elif filename.endswith(pdf_ext):
+        file_type = 'pdf'
+    elif filename.endswith(text_exts):
+        if file_record.file_size <= 2 * 1024 * 1024:  # <= 2MB
+            file_type = 'text'
+            raw_bytes = s3_service.get_file_content(file_record.filename)
+            if raw_bytes:
+                try:
+                    text_content = raw_bytes.decode('utf-8')
+                except UnicodeDecodeError:
+                    file_type = 'unsupported' # Fallback if not utf-8
+        else:
+            file_type = 'unsupported'
+
+    presigned_url = s3_service.generate_presigned_url(file_record.filename)
+    
+    return render_template('preview.html', 
+                           title=f'Preview {file_record.original_filename}',
+                           file=file_record,
+                           file_type=file_type,
+                           presigned_url=presigned_url,
+                           text_content=text_content,
+                           prev_file=None,
+                           next_file=None,
+                           is_shared=True,
+                           share_token=share_token)
