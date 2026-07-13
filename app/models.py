@@ -146,3 +146,19 @@ class ActivityLog(db.Model):
 
     def __repr__(self):
         return f"ActivityLog('{self.action}', '{self.created_at}')"
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    title = db.Column(db.String(100), nullable=False)
+    message = db.Column(db.String(255), nullable=False)
+    notification_type = db.Column(db.String(50), nullable=False)
+    icon = db.Column(db.String(50), nullable=True, default='bi-bell')
+    is_read = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    action_url = db.Column(db.String(255), nullable=True)
+
+    user = db.relationship('User', backref=db.backref('notifications', lazy='dynamic', cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f"Notification('{self.title}', '{self.notification_type}', read={self.is_read})"

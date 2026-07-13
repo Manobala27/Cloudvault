@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.models import Tag, File, Folder, ActivityLog
 from app.s3_service import s3_service
+from app.services.notification_service import notification_service
 import re
 
 tags_bp = Blueprint('tags', __name__, url_prefix='/tags')
@@ -82,11 +83,13 @@ def assign_file_tag(file_id):
             file_record.tags.append(tag)
             log = ActivityLog(user_id=current_user.id, action='ITEM_TAGGED', file_name=f"{file_record.original_filename} (Tag: {tag.name})", ip_address=request.remote_addr)
             db.session.add(log)
+            notification_service.create_notification(current_user.id, "Tag Added", f"Added tag '{tag.name}' to '{file_record.original_filename}'.", "TAG_ADDED", "bi-tag-fill")
     else:
         if tag in file_record.tags:
             file_record.tags.remove(tag)
             log = ActivityLog(user_id=current_user.id, action='ITEM_UNTAGGED', file_name=f"{file_record.original_filename} (Tag: {tag.name})", ip_address=request.remote_addr)
             db.session.add(log)
+            notification_service.create_notification(current_user.id, "Tag Removed", f"Removed tag '{tag.name}' from '{file_record.original_filename}'.", "TAG_REMOVED", "bi-tag")
             
     db.session.commit()
     return jsonify({'success': True})

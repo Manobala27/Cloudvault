@@ -7,6 +7,7 @@ from flask_login import login_required, current_user
 from app import db, bcrypt
 from app.models import File, Folder, ActivityLog, Share, FileVersion
 from app.s3_service import s3_service
+from app.services.notification_service import notification_service
 from app.forms import UploadForm
 
 files = Blueprint('files', __name__)
@@ -73,6 +74,7 @@ def upload():
                 log = ActivityLog(user_id=current_user.id, action='VERSION_CREATED', file_name=f"{original_filename} (V{max_version+1})", ip_address=request.remote_addr)
                 db.session.add(log)
                 db.session.commit()
+                notification_service.create_notification(current_user.id, "Version Created", f"New version of {original_filename} uploaded.", "VERSION_CREATED", "bi-cloud-arrow-up")
                 flash(f"New version of '{original_filename}' uploaded successfully!", "success")
             else:
                 # Create new file and version 1
@@ -99,10 +101,12 @@ def upload():
                 log = ActivityLog(user_id=current_user.id, action='UPLOAD', file_name=original_filename, ip_address=request.remote_addr)
                 db.session.add(log)
                 db.session.commit()
+                notification_service.create_notification(current_user.id, "Upload Success", f"File '{original_filename}' uploaded successfully.", "UPLOAD_SUCCESS", "bi-check-circle")
                 flash(f"File '{original_filename}' uploaded successfully!", "success")
             
             return redirect(url_for('files.dashboard'))
         else:
+            notification_service.create_notification(current_user.id, "Upload Failed", "Failed to upload file to S3.", "UPLOAD_FAILED", "bi-x-circle")
             flash("Failed to upload file to S3. Please try again.", "danger")
             
     return render_template('upload.html', title='Upload File', form=form)
@@ -238,6 +242,7 @@ def delete_file(file_id):
     db.session.add(log)
     
     db.session.commit()
+    notification_service.create_notification(current_user.id, "File Trashed", f"'{file_record.original_filename}' moved to trash.", "FILE_DELETED", "bi-trash")
     flash(f"File '{file_record.original_filename}' has been moved to Trash.", "success")
     return redirect(url_for('files.dashboard', folder_id=folder_id))
 
@@ -298,6 +303,8 @@ def toggle_share(file_id):
         # Log Share Created
         log = ActivityLog(user_id=current_user.id, action='SHARE_CREATED', file_name=file_record.original_filename, ip_address=request.remote_addr)
         db.session.add(log)
+        
+        notification_service.create_notification(current_user.id, "File Shared", f"Created share link for '{file_record.original_filename}'.", "FILE_SHARED", "bi-share")
         
         flash(f"Public link created for '{file_record.original_filename}'.", "success")
         db.session.commit()
@@ -558,6 +565,8 @@ def restore_file(file_id):
     # Log Restore
     log = ActivityLog(user_id=current_user.id, action='RESTORE', file_name=file_record.original_filename, ip_address=request.remote_addr)
     db.session.add(log)
+    
+    notification_service.create_notification(current_user.id, "File Restored", f"'{file_record.original_filename}' restored from trash.", "FILE_RESTORED", "bi-bootstrap-reboot")
         
     db.session.commit()
     return redirect(url_for('files.trash'))
@@ -719,9 +728,11 @@ def restore_version(file_id, version_id):
     # Log Activity
     log = ActivityLog(user_id=current_user.id, action='VERSION_RESTORED', file_name=f"{file_record.original_filename} (V{new_version_num} from V{version.version_number})", ip_address=request.remote_addr)
     db.session.add(log)
-    
     db.session.commit()
-    flash(f"Restored Version {version.version_number} as Version {new_version_num}.", "success")
+    
+    notification_service.create_notification(current_user.id, "Version Restored", f"Restored {file_record.original_filename} to V{version.version_number}.", "VERSION_RESTORED", "bi-clock-history")
+
+    flash(f"Version {version.version_number} of '{file_record.original_filename}' restored successfully.", "success")
     return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
 
 @files.route("/download_version/<int:version_id>")
@@ -760,6 +771,11 @@ def toggle_favorite_file(file_id):
     log = ActivityLog(user_id=current_user.id, action=action, file_name=file_record.original_filename, ip_address=request.remote_addr)
     db.session.add(log)
     db.session.commit()
+    
+    if is_fav:
+        notification_service.create_notification(current_user.id, "Favorite Added", f"'{file_record.original_filename}' favorited.", "FAVORITE_ADDED", "bi-star-fill")
+    else:
+        notification_service.create_notification(current_user.id, "Favorite Removed", f"'{file_record.original_filename}' unfavorited.", "FAVORITE_REMOVED", "bi-star")
     
     return jsonify({'success': True, 'is_favorite': file_record.is_favorite})
 

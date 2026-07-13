@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -40,6 +40,9 @@ def create_app(config_class=Config):
     from app.routes.files import files as files_blueprint
     app.register_blueprint(files_blueprint)
 
+    from app.routes.notifications import notifications_bp
+    app.register_blueprint(notifications_bp)
+
     from app.routes.activity import activity_bp as activity_blueprint
     app.register_blueprint(activity_blueprint)
 
@@ -54,6 +57,21 @@ def create_app(config_class=Config):
 
     from app.routes.search import search_bp as search_blueprint
     app.register_blueprint(search_blueprint)
+
+    # Context Processor for Notifications
+    @app.context_processor
+    def inject_globals():
+        from datetime import datetime
+        from app.models import Notification
+        
+        context = {'now': lambda: datetime.utcnow()}
+        if current_user.is_authenticated:
+            count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+            context['unread_notifications_count'] = count
+        else:
+            context['unread_notifications_count'] = 0
+            
+        return context
 
     # Custom Jinja filter for file sizes
     @app.template_filter('format_size')

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="container py-4 mt-5">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold mb-0"><i class="bi bi-bell-fill text-primary me-2"></i>Notifications</h2>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <button onclick="markAllRead()" class="btn btn-outline-primary btn-sm me-2"><i class="bi bi-check2-all me-1"></i>Mark All Read</button>
+            <button onclick="deleteAll()" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete All</button>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if current_filter == 'all' %}active{% endif %}" href="{{ url_for('notifications.index', filter='all') }}">All Notifications</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if current_filter == 'unread' %}active{% endif %} text-primary fw-bold" href="{{ url_for('notifications.index', filter='unread') }}">Unread</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if current_filter == 'read' %}active{% endif %} text-secondary" href="{{ url_for('notifications.index', filter='read') }}">Read</a>
+        </li>
+    </ul>
+
+    <!-- Notifications List -->
+    <div class="card shadow-sm border-0">
+        <div class="list-group list-group-flush">
+            {% if notifications %}
+                {% for notif in notifications %}
+                <div class="list-group-item list-group-item-action d-flex align-items-start py-3 {% if not notif.is_read %}bg-light bg-opacity-25 border-start border-primary border-4{% endif %}" id="notif-{{ notif.id }}">
+                    <div class="me-3 fs-3 text-primary mt-1">
+                        <i class="{{ notif.icon }}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <h6 class="mb-1 fw-bold">{{ notif.title }}</h6>
+                            <small class="text-muted" title="{{ notif.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}">
+                                {% set diff = (now() - notif.created_at).total_seconds() %}
+                                {% if diff < 60 %} Just now
+                                {% elif diff < 3600 %} {{ (diff / 60)|int }}m ago
+                                {% elif diff < 86400 %} {{ (diff / 3600)|int }}h ago
+                                {% else %} {{ (diff / 86400)|int }}d ago
+                                {% endif %}
+                            </small>
+                        </div>
+                        <p class="mb-1 text-secondary">{{ notif.message }}</p>
+                    </div>
+                    <div class="ms-3 d-flex flex-column align-items-end gap-2 mt-2">
+                        {% if not notif.is_read %}
+                        <button onclick="markRead({{ notif.id }})" class="btn btn-sm btn-link text-decoration-none text-success p-0" title="Mark as read">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </button>
+                        {% endif %}
+                        <button onclick="deleteNotif({{ notif.id }})" class="btn btn-sm btn-link text-decoration-none text-danger p-0 mt-auto" title="Delete">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="p-5 text-center text-muted">
+                    <i class="bi bi-bell-slash fs-1 mb-3 text-secondary"></i>
+                    <h4>No notifications yet.</h4>
+                    <p>You're all caught up!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- CSRF Token for Fetch API -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<script>
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    function markRead(id) {
+        fetch(`/notifications/read/${id}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Instantly update UI without reload
+                let item = document.getElementById(`notif-${id}`);
+                item.classList.remove('bg-light', 'bg-opacity-25', 'border-start', 'border-primary', 'border-4');
+                // Remove the check button
+                let btn = item.querySelector('.text-success');
+                if (btn) btn.remove();
+                if(typeof updateNotificationBadge === "function") {
+                    updateNotificationBadge();
+                }
+            }
+        });
+    }
+
+    function deleteNotif(id) {
+        fetch(`/notifications/delete/${id}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Instantly update UI without reload
+                let item = document.getElementById(`notif-${id}`);
+                item.style.transition = 'opacity 0.3s ease';
+                item.style.opacity = '0';
+                setTimeout(() => item.remove(), 300);
+                if(typeof updateNotificationBadge === "function") {
+                    updateNotificationBadge();
+                }
+            }
+        });
+    }
+
+    function markAllRead() {
+        fetch(`/notifications/read_all`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload to refresh the list state easily
+            }
+        });
+    }
+
+    function deleteAll() {
+        if(confirm("Are you sure you want to delete all notifications?")) {
+            fetch(`/notifications/delete_all`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}
