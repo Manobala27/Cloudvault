@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#0d6efd"/>
+  <path d="M144,116a28,28,0,0,0-10.1-21.5,36,36,0,0,0-71.8-6.1A24,24,0,0,0,48,112a24.1,24.1,0,0,0,24,24h68A28,28,0,0,0,144,116Z" fill="#ffffff"/>
+  <text x="50%" y="105" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="32" fill="#0d6efd">CV</text>
+</svg>

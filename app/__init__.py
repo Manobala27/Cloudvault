@@ -122,6 +122,22 @@ def create_app(config_class=Config):
         app.logger.setLevel(logging.INFO)
         app.logger.info('CloudVault startup')
 
+    # Define root-level PWA routes
+    @app.route('/manifest.json')
+    def manifest():
+        from flask import send_from_directory
+        return send_from_directory('static', 'manifest.json')
+
+    @app.route('/service-worker.js')
+    def service_worker():
+        from flask import send_from_directory
+        return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+        
+    @app.route('/offline.html')
+    def offline():
+        from flask import send_from_directory
+        return send_from_directory('static', 'offline.html')
+        
     return app
 
 
