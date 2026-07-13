@@ -1,16 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Notifications{% endblock %}
 {% block content %}
-<div class="container py-4 mt-5">
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h2 class="fw-bold mb-0"><i class="bi bi-bell-fill text-primary me-2"></i>Notifications</h2>
-        </div>
-        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-            <button onclick="markAllRead()" class="btn btn-outline-primary btn-sm me-2"><i class="bi bi-check2-all me-1"></i>Mark All Read</button>
-            <button onclick="deleteAll()" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete All</button>
-        </div>
+<div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
+    <div class="mb-3 mb-md-0">
+        <h2 class="text-dark"><i class="bi bi-bell-fill text-primary me-2"></i> Notifications</h2>
     </div>
+    <div class="d-flex gap-2">
+        <button onclick="markAllRead()" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold"><i class="bi bi-check2-all me-2"></i>Mark All Read</button>
+        <button onclick="deleteAll()" class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold"><i class="bi bi-trash me-2"></i>Delete All</button>
+    </div>
+</div>
 
     <!-- Filter Tabs -->
     <ul class="nav nav-tabs mb-4">
@@ -69,7 +68,7 @@
             {% endif %}
         </div>
     </div>
-</div>
+
 
 <!-- CSRF Token for Fetch API -->
 <meta name="csrf-token" content="{{ csrf_token() }}">

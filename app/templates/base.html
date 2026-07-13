@@ -110,7 +110,7 @@
                                 <span class="d-none d-lg-inline">{{ current_user.username }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item py-2" href="{{ url_for('security.index') }}"><i class="bi bi-shield-lock me-2 text-primary"></i>Security</a></li>
+                                <li><a class="dropdown-item py-2" href="{{ url_for('security.settings') }}"><i class="bi bi-shield-lock me-2 text-primary"></i>Security</a></li>
                                 <li><a class="dropdown-item py-2" href="{{ url_for('api_keys.index') }}"><i class="bi bi-key-fill me-2 text-info"></i>API Keys</a></li>
                                 <li><a class="dropdown-item py-2" href="{{ url_for('backups.index') }}"><i class="bi bi-cloud-arrow-down-fill me-2 text-success"></i>Backup & Restore</a></li>
                                 <li><a class="dropdown-item py-2" href="#" id="installAppBtn" style="display: none;"><i class="bi bi-download me-2 text-warning"></i>Install App</a></li>
@@ -137,7 +137,7 @@
         </div>
     </nav>
 
-    <main class="container mb-5">
+    <main class="container mb-5 page-fade-in">
         <div class="row">
             <div class="col-md-12">
                 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -255,8 +255,10 @@
                         newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                document.getElementById('update-banner').style.display = 'flex';
-                                updateBannerPositions();
+                                if (!sessionStorage.getItem('pwaUpdateDismissed')) {
+                                    document.getElementById('update-banner').style.setProperty('display', 'flex', 'important');
+                                    updateBannerPositions();
+                                }
                             }
                         });
                     });
@@ -276,13 +278,13 @@
             
             document.getElementById('updateAppBtn')?.addEventListener('click', () => {
                 if (newWorker) {
-                    newWorker.postMessage({ action: 'skipWaiting' }); // If SW implemented listening for this
+                    newWorker.postMessage({ action: 'skipWaiting' });
                 }
-                document.getElementById('update-banner').style.display = 'none';
-                window.location.reload();
+                document.getElementById('update-banner').style.setProperty('display', 'none', 'important');
             });
             document.getElementById('dismissUpdateBtn')?.addEventListener('click', () => {
-                document.getElementById('update-banner').style.display = 'none';
+                sessionStorage.setItem('pwaUpdateDismissed', 'true');
+                document.getElementById('update-banner').style.setProperty('display', 'none', 'important');
             });
         }
 

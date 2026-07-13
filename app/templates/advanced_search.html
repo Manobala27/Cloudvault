@@ -3,8 +3,8 @@
 {% block content %}
 
 <!-- Header -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-    <h2 class="mb-0 fw-bold"><i class="bi bi-search text-primary me-2"></i> Advanced Search</h2>
+<div class="page-header">
+    <h2 class="text-dark"><i class="bi bi-search text-primary me-2"></i> Advanced Search</h2>
 </div>
 
 <!-- Main Search Layout -->
@@ -118,7 +118,7 @@
         <!-- Results Grid -->
         <div id="search-results-container">
             <h5 class="fw-bold mb-3 d-none" id="results-count">Found 0 items</h5>
-            <div class="cv-grid" id="search-results-grid">
+            <div class="row g-3" id="search-results-grid">
                 <!-- Results rendered via JS -->
             </div>
             
@@ -242,20 +242,22 @@
                 let tagsHtml = folder.tags.map(t => `<span class="badge rounded-pill me-1" style="background-color: ${t.color_hex}; font-weight: normal; font-size: 0.75rem;">${t.name}</span>`).join('');
                 
                 const card = `
-                <div class="cv-card">
-                    <div class="cv-card-icon">
-                        <i class="bi bi-folder-fill text-warning" style="font-size: 3rem;"></i>
-                    </div>
-                    <a href="${folder.url}" class="cv-card-title text-decoration-none">${folder.name}</a>
-                    <div class="cv-card-meta mb-2">
-                        <span>${folder.files_count} files</span>
-                        <span>${folder.created_at}</span>
-                    </div>
-                    <div class="mb-3">${tagsHtml}</div>
-                    <div class="cv-card-actions">
-                        <a href="${folder.url}" class="btn btn-primary w-100">
-                            <i class="bi bi-box-arrow-in-right"></i> Open Folder
-                        </a>
+                <div class="col-12 col-sm-6 col-md-4 col-xl-3 cv-card-wrapper">
+                    <div class="saas-folder-card h-100 cv-hover-lift">
+                        <div class="card-body p-3 rounded-bottom-4 d-flex flex-column h-100">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-folder-fill text-warning" style="font-size: 2.5rem;"></i>
+                                <h6 class="ms-3 mb-0 fw-bold text-white text-truncate"><a href="${folder.url}" class="text-white text-decoration-none">${folder.name}</a></h6>
+                            </div>
+                            <div class="text-white-50 small fw-medium d-flex justify-content-between align-items-center mb-2">
+                                <span>${folder.files_count} files</span>
+                                <span>${folder.created_at}</span>
+                            </div>
+                            <div class="mb-3">${tagsHtml}</div>
+                            <div class="mt-auto">
+                                <a href="${folder.url}" class="btn btn-light w-100 fw-bold">Open</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 `;
@@ -270,21 +272,39 @@
                     : `<i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>`;
                 
                 const card = `
-                <div class="cv-card">
-                    <div class="cv-card-icon position-relative">
-                        ${thumbHtml}
-                        ${file.has_active_share ? '<span class="cv-share-badge"><i class="bi bi-link-45deg"></i></span>' : ''}
-                        ${file.version > 0 ? `<span class="cv-version-badge badge bg-secondary position-absolute top-0 start-0 m-2 rounded-pill shadow-sm" style="font-size: 0.75rem;">V${file.version}</span>` : ''}
-                    </div>
-                    <h6 class="cv-card-title">${file.filename}</h6>
-                    <div class="cv-card-meta mb-2">
-                        <span>${formatSize(file.size)}</span>
-                        <span>${file.upload_date}</span>
-                    </div>
-                    <div class="mb-3">${tagsHtml}</div>
-                    <div class="cv-card-actions">
-                        <a href="/preview/${file.id}" class="btn btn-outline-info w-50" title="Preview"><i class="bi bi-eye"></i></a>
-                        <a href="${file.download_url}" class="btn btn-primary w-50" title="Download"><i class="bi bi-download"></i></a>
+                <div class="col-12 col-sm-6 col-md-4 col-xl-3 cv-card-wrapper">
+                    <div class="saas-file-card h-100 d-flex flex-column cv-hover-lift">
+                        <div class="saas-file-preview d-flex justify-content-center align-items-center position-relative">
+                            ${thumbHtml.includes('img') ? thumbHtml.replace('alt="thumbnail"', 'alt="thumbnail" class="w-100 h-100 object-fit-cover"') : thumbHtml.replace('style="font-size: 3rem;"', 'style="font-size: 4rem; opacity: 0.5;"')}
+                            
+                            <div class="position-absolute top-0 start-0 p-2 d-flex flex-column gap-1 w-100">
+                                <div class="d-flex justify-content-between w-100">
+                                    <div class="d-flex gap-1">
+                                        ${file.has_active_share ? '<span class="badge bg-white text-success shadow-sm rounded-pill"><i class="bi bi-link-45deg"></i> Shared</span>' : ''}
+                                        ${file.version > 0 ? `<span class="badge bg-white text-dark shadow-sm rounded-pill">V${file.version}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <a href="/preview/${file.id}" class="saas-preview-overlay d-flex justify-content-center align-items-center text-white text-decoration-none stretched-link">
+                                <div class="bg-dark bg-opacity-75 rounded-circle p-3 d-flex shadow-lg hover-scale">
+                                    <i class="bi bi-eye fs-4"></i>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="card-body p-3 d-flex flex-column flex-grow-1 rounded-bottom-4">
+                            <h6 class="fw-bold text-white text-truncate mb-1 pe-2">${file.filename}</h6>
+                            <div class="d-flex justify-content-between text-white-50 small fw-medium mb-2">
+                                <span>${formatSize(file.size)}</span>
+                                <span>${file.upload_date}</span>
+                            </div>
+                            <div class="mt-auto position-relative z-3">
+                                <div class="mb-2">${tagsHtml}</div>
+                                <div class="d-flex gap-2">
+                                    <a href="${file.download_url}" class="btn btn-primary btn-sm flex-grow-1 shadow-sm"><i class="bi bi-download"></i></a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 `;

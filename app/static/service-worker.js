@@ -11,12 +11,18 @@ const STATIC_ASSETS = [
 
 // Install event: cache static assets
 self.addEventListener('install', event => {
-    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
             return cache.addAll(STATIC_ASSETS);
         })
     );
+});
+
+// Handle messages from the client (e.g. for skipWaiting)
+self.addEventListener('message', event => {
+    if (event.data && event.data.action === 'skipWaiting') {
+        self.skipWaiting();
+    }
 });
 
 // Activate event: clean up old caches

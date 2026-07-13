@@ -1,17 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Shared Files{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold"><i class="bi bi-link-45deg text-success me-2"></i> Shared Files</h3>
+<div class="page-header">
+    <h2 class="text-dark"><i class="bi bi-link-45deg text-success me-2"></i> Shared Files</h2>
 </div>
 
-<div class="card shadow-sm border-0 rounded-4">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-muted">
-                    <tr>
-                        <th class="ps-4 rounded-top-left">File Name</th>
+<div class="table-responsive mb-4">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-4">File Name</th>
                         <th>Created</th>
                         <th>Status</th>
                         <th>Security</th>
@@ -72,9 +70,7 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
     </div>
-</div>
 
 <script>
 function copyToClipboard(url) {

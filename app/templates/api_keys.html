@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 {% block title %}API Keys{% endblock %}
 {% block content %}
-<div class="container py-4 mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0"><i class="bi bi-key-fill text-primary me-2"></i>API Keys</h2>
-        <a href="{{ url_for('api_keys.docs') }}" class="btn btn-outline-info">
-            <i class="bi bi-book"></i> API Documentation
-        </a>
-    </div>
+<div class="page-header flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <h2 class="text-dark mb-0"><i class="bi bi-key-fill text-primary me-2"></i>API Keys</h2>
+    <a href="{{ url_for('api_keys.docs') }}" class="btn btn-info rounded-pill px-4 shadow-sm fw-bold text-white">
+        <i class="bi bi-book me-1"></i> API Documentation
+    </a>
+</div>
 
     <!-- Alert for New Key -->
     <div id="newKeyAlert" class="alert alert-success d-none shadow-sm" role="alert">
@@ -23,11 +22,11 @@
     <div class="row g-4">
         <!-- Generate Key Card -->
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+            <div class="premium-card-large h-100">
+                <div class="border-bottom pb-3 mb-4 px-4 pt-4">
                     <h5 class="fw-bold"><i class="bi bi-plus-circle-fill text-success me-2"></i>Generate Key</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <form id="generateKeyForm" onsubmit="generateKey(event)">
                         <div class="mb-3">
                             <label class="form-label text-muted">Key Name</label>
@@ -52,11 +51,11 @@
 
         <!-- Active Keys List -->
         <div class="col-md-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+            <div class="premium-card-large h-100">
+                <div class="border-bottom pb-3 mb-4 px-4 pt-4 d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold mb-0"><i class="bi bi-list-ul text-primary me-2"></i>Your Active Keys</h5>
                 </div>
-                <div class="card-body p-0 mt-3">
+                <div class="mt-3">
                     <ul class="list-group list-group-flush" id="keysList">
                         {% if current_user.api_keys %}
                             {% for key in current_user.api_keys %}
@@ -97,7 +96,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <script>
     const csrfToken = "{{ csrf_token() }}";

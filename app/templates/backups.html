@@ -1,19 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Backup & Restore{% endblock %}
 {% block content %}
-<div class="container py-4 mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0"><i class="bi bi-cloud-arrow-down-fill text-primary me-2"></i>Backup & Restore</h2>
-    </div>
+<div class="page-header mb-4">
+    <h2 class="text-dark mb-0"><i class="bi bi-cloud-arrow-down-fill text-primary me-2"></i>Backup & Restore</h2>
+</div>
 
     <div class="row g-4">
         <!-- Create Backup Card -->
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+            <div class="premium-card-large h-100">
+                <div class="border-bottom pb-3 mb-4 px-4 pt-4">
                     <h5 class="fw-bold"><i class="bi bi-plus-circle-fill text-success me-2"></i>Create New Backup</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <form action="{{ url_for('backups.create') }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
@@ -38,11 +37,11 @@
 
         <!-- Backup History List -->
         <div class="col-md-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+            <div class="premium-card-large h-100">
+                <div class="border-bottom pb-3 mb-4 px-4 pt-4 d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Backup History</h5>
                 </div>
-                <div class="card-body p-0 mt-3">
+                <div class="mt-3">
                     <ul class="list-group list-group-flush">
                         {% if backups %}
                             {% for backup in backups %}
@@ -118,5 +117,4 @@
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

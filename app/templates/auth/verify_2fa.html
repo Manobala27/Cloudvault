@@ -1,16 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Two-Factor Authentication{% endblock %}
 {% block content %}
-<div class="container py-5 mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card border-0 shadow-lg">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <i class="bi bi-shield-lock text-primary" style="font-size: 3rem;"></i>
-                        <h3 class="fw-bold mt-2">Two-Factor Authentication</h3>
-                        <p class="text-muted small">Enter the 6-digit code from your authenticator app.</p>
-                    </div>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="auth-card mt-4 mb-5 mx-auto">
+            <div class="text-center mb-4">
+                <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
+                <h2 class="text-dark mt-2">Two-Factor Auth</h2>
+                <p class="text-muted">Enter the 6-digit code from your app.</p>
+            </div>
 
                     <!-- TOTP Form -->
                     <form id="totpForm" method="POST" action="{{ url_for('security.verify_2fa') }}">
@@ -53,7 +51,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <script>
     let showingTotp = true;

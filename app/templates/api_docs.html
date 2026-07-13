@@ -1,18 +1,17 @@
 {% extends "base.html" %}
 {% block title %}API Documentation{% endblock %}
 {% block content %}
-<div class="container py-4 mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0"><i class="bi bi-book-half text-info me-2"></i>API Documentation</h2>
-        <a href="{{ url_for('api_keys.index') }}" class="btn btn-outline-primary">
-            <i class="bi bi-key"></i> Manage API Keys
-        </a>
-    </div>
+<div class="page-header flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <h2 class="text-dark mb-0"><i class="bi bi-book-half text-info me-2"></i>API Documentation</h2>
+    <a href="{{ url_for('api_keys.index') }}" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">
+        <i class="bi bi-key me-1"></i> Manage API Keys
+    </a>
+</div>
 
     <div class="row g-4">
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm sticky-top" style="top: 80px; z-index: 1;">
-                <div class="card-body p-0">
+            <div class="premium-card-large sticky-top" style="top: 80px; z-index: 1;">
+                <div>
                     <div class="list-group list-group-flush rounded">
                         <a href="#authentication" class="list-group-item list-group-item-action fw-bold border-0"><i class="bi bi-shield-lock me-2 text-primary"></i>Authentication</a>
                         <a href="#endpoints" class="list-group-item list-group-item-action fw-bold border-0"><i class="bi bi-hdd-network me-2 text-success"></i>Endpoints</a>
@@ -25,8 +24,8 @@
 
         <div class="col-md-9">
             <!-- Authentication -->
-            <div class="card border-0 shadow-sm mb-4" id="authentication">
-                <div class="card-body p-5">
+            <div class="premium-card-large mb-4" id="authentication">
+                <div class="p-5">
                     <h4 class="fw-bold mb-4">Authentication</h4>
                     <p class="text-muted mb-4">CloudVault uses API keys to authenticate requests. You can view and manage your API keys in the <a href="{{ url_for('api_keys.index') }}">API Keys Management</a> console.</p>
                     <div class="alert alert-info border-0 shadow-sm">
@@ -42,8 +41,8 @@
             </div>
 
             <!-- Endpoints -->
-            <div class="card border-0 shadow-sm mb-4" id="endpoints">
-                <div class="card-body p-5">
+            <div class="premium-card-large mb-4" id="endpoints">
+                <div class="p-5">
                     <h4 class="fw-bold mb-4">Endpoints</h4>
                     
                     <!-- GET /files -->
@@ -128,8 +127,8 @@
             </div>
 
             <!-- Rate Limits -->
-            <div class="card border-0 shadow-sm mb-4" id="rate-limits">
-                <div class="card-body p-5">
+            <div class="premium-card-large mb-4" id="rate-limits">
+                <div class="p-5">
                     <h4 class="fw-bold mb-4">Rate Limits</h4>
                     <p class="text-muted mb-4">To protect CloudVault's infrastructure, all API keys are globally limited to <strong>100 requests per minute</strong>.</p>
                     <p>If you exceed this rate limit, the API will respond with a <code>429 Too Many Requests</code> HTTP status code. You must wait until your minute window resets before making further requests.</p>
@@ -137,8 +136,8 @@
             </div>
 
             <!-- Errors -->
-            <div class="card border-0 shadow-sm mb-4" id="errors">
-                <div class="card-body p-5">
+            <div class="premium-card-large mb-4" id="errors">
+                <div class="p-5">
                     <h4 class="fw-bold mb-4">Error Codes</h4>
                     <p class="text-muted mb-4">CloudVault uses conventional HTTP response codes to indicate the success or failure of an API request.</p>
                     
@@ -160,5 +159,4 @@
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

@@ -4,34 +4,30 @@
 
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0 fw-bold"><i class="bi bi-tags-fill text-primary me-2"></i> Manage Tags</h2>
+        <div class="page-header">
+            <h2 class="text-dark"><i class="bi bi-tags-fill text-primary me-2"></i> Manage Tags</h2>
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-4">
-                <h5 class="card-title fw-bold mb-3">Create New Tag</h5>
-                <form action="{{ url_for('tags.create_tag') }}" method="POST" class="needs-loading">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-md-7">
-                            <input type="text" class="form-control form-control-lg shadow-none" name="tag_name" placeholder="e.g., Urgent, Work, Personal" required maxlength="50">
-                        </div>
-                        <div class="col-md-3">
-                            <input type="color" class="form-control form-control-lg form-control-color w-100 shadow-none p-1" name="tag_color" value="#0d6efd" title="Choose your color">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm"><i class="bi bi-plus-lg"></i> Add</button>
-                        </div>
+        <div class="premium-card-large mb-4">
+            <h5 class="fw-bold mb-3">Create New Tag</h5>
+            <form action="{{ url_for('tags.create_tag') }}" method="POST" class="needs-loading">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-7">
+                        <input type="text" class="form-control form-control-lg shadow-none" name="tag_name" placeholder="e.g., Urgent, Work, Personal" required maxlength="50">
                     </div>
-                </form>
-            </div>
+                    <div class="col-md-3">
+                        <input type="color" class="form-control form-control-lg form-control-color w-100 shadow-none p-1" name="tag_color" value="#0d6efd" title="Choose your color">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm"><i class="bi bi-plus-lg"></i> Add</button>
+                    </div>
+                </div>
+            </form>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th class="ps-4">Tag</th>
@@ -96,7 +92,6 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
         </div>
 
     </div>

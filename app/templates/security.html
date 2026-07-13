@@ -1,19 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Security Settings{% endblock %}
 {% block content %}
-<div class="container py-4 mt-5">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Security Settings</h2>
-            <p class="text-muted">Manage your account security and two-factor authentication.</p>
-        </div>
-    </div>
+<div class="page-header mb-4">
+    <h2 class="text-dark"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Security Settings</h2>
+    <p class="text-muted mb-0">Manage your account security and two-factor authentication.</p>
+</div>
 
     <div class="row">
         <!-- 2FA Status -->
         <div class="col-md-8 mx-auto">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body p-4">
+            <div class="premium-card-large mb-4">
+                <div class="p-4">
                     <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
                             {% if current_user.two_factor_enabled %}
@@ -67,11 +64,11 @@
             
             {% if current_user.two_factor_enabled %}
             <!-- Trusted Devices -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+            <div class="premium-card-large mb-4">
+                <div class="border-bottom pb-3 mb-4 px-4 pt-4">
                     <h5 class="fw-bold"><i class="bi bi-laptop text-primary me-2"></i>Trusted Devices</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     {% if current_user.trusted_device_expiry %}
                         <p class="text-muted">You have a device trusted until {{ current_user.trusted_device_expiry.strftime('%Y-%m-%d') }}.</p>
                         <button class="btn btn-outline-danger" id="btnRemoveTrust" onclick="removeTrust()">
@@ -84,11 +81,11 @@
             </div>
 
             <!-- Recovery Codes -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+            <div class="premium-card-large mb-4">
+                <div class="border-bottom pb-3 mb-4 px-4 pt-4">
                     <h5 class="fw-bold"><i class="bi bi-key-fill text-primary me-2"></i>Recovery Codes</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <p class="text-muted">Recovery codes can be used to access your account in the event you lose access to your device and cannot receive two-factor authentication codes.</p>
                     
                     <div id="recoveryCodesContainer" class="d-none mb-3">
@@ -113,7 +110,6 @@
             {% endif %}
         </div>
     </div>
-</div>
 
 <!-- Disable 2FA Modal -->
 <div class="modal fade" id="disable2faModal" tabindex="-1" aria-labelledby="disable2faModalLabel" aria-hidden="true">
