@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}API Documentation{% endblock %}
+{% block content %}
+<div class="container py-4 mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0"><i class="bi bi-book-half text-info me-2"></i>API Documentation</h2>
+        <a href="{{ url_for('api_keys.index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-key"></i> Manage API Keys
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 80px; z-index: 1;">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush rounded">
+                        <a href="#authentication" class="list-group-item list-group-item-action fw-bold border-0"><i class="bi bi-shield-lock me-2 text-primary"></i>Authentication</a>
+                        <a href="#endpoints" class="list-group-item list-group-item-action fw-bold border-0"><i class="bi bi-hdd-network me-2 text-success"></i>Endpoints</a>
+                        <a href="#rate-limits" class="list-group-item list-group-item-action fw-bold border-0"><i class="bi bi-speedometer2 me-2 text-warning"></i>Rate Limits</a>
+                        <a href="#errors" class="list-group-item list-group-item-action fw-bold border-0"><i class="bi bi-exclamation-triangle me-2 text-danger"></i>Error Codes</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <!-- Authentication -->
+            <div class="card border-0 shadow-sm mb-4" id="authentication">
+                <div class="card-body p-5">
+                    <h4 class="fw-bold mb-4">Authentication</h4>
+                    <p class="text-muted mb-4">CloudVault uses API keys to authenticate requests. You can view and manage your API keys in the <a href="{{ url_for('api_keys.index') }}">API Keys Management</a> console.</p>
+                    <div class="alert alert-info border-0 shadow-sm">
+                        <h6 class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Bearer Token Authentication</h6>
+                        <p class="mb-0">Your API keys carry many privileges, so be sure to keep them secure! Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, and so forth.</p>
+                    </div>
+                    <p class="mt-4 mb-2">All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.</p>
+                    
+                    <h6 class="fw-bold mt-4 mb-3">Example Request</h6>
+                    <pre class="bg-dark text-light p-3 rounded rounded-3"><code>curl -X GET https://your-domain.com/api/v1/files \
+  -H "Authorization: Bearer cv_your_api_key_here"</code></pre>
+                </div>
+            </div>
+
+            <!-- Endpoints -->
+            <div class="card border-0 shadow-sm mb-4" id="endpoints">
+                <div class="card-body p-5">
+                    <h4 class="fw-bold mb-4">Endpoints</h4>
+                    
+                    <!-- GET /files -->
+                    <div class="mb-5 pb-4 border-bottom">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-primary fs-6 me-3">GET</span>
+                            <h5 class="fw-bold mb-0"><code>/api/v1/files</code></h5>
+                        </div>
+                        <p class="text-muted">Returns a list of all files owned by the authenticated user.</p>
+                        
+                        <h6 class="fw-bold">Query Parameters</h6>
+                        <table class="table table-bordered mb-4">
+                            <thead class="table-light">
+                                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>folder_id</code></td><td>Integer</td><td>(Optional) Filter files by a specific folder ID.</td></tr>
+                            </tbody>
+                        </table>
+                        
+                        <h6 class="fw-bold">Response Example</h6>
+                        <pre class="bg-dark text-light p-3 rounded rounded-3"><code>{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "filename": "document.pdf",
+      "s3_key": "user_1/document.pdf",
+      "file_size": 1048576,
+      "content_type": "application/pdf",
+      "created_at": "2023-10-25T14:48:00",
+      "folder_id": null
+    }
+  ]
+}</code></pre>
+                    </div>
+
+                    <!-- POST /upload -->
+                    <div class="mb-5 pb-4 border-bottom">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-success fs-6 me-3">POST</span>
+                            <h5 class="fw-bold mb-0"><code>/api/v1/upload</code></h5>
+                        </div>
+                        <p class="text-muted">Uploads a new file directly to CloudVault and Amazon S3.</p>
+                        
+                        <h6 class="fw-bold">Form Data Parameters</h6>
+                        <table class="table table-bordered mb-4">
+                            <thead class="table-light">
+                                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>file</code></td><td>File</td><td><strong>(Required)</strong> The binary file payload.</td></tr>
+                                <tr><td><code>folder_id</code></td><td>Integer</td><td>(Optional) The folder ID to upload this file into.</td></tr>
+                            </tbody>
+                        </table>
+                        
+                        <h6 class="fw-bold">Example Request</h6>
+                        <pre class="bg-dark text-light p-3 rounded rounded-3"><code>curl -X POST https://your-domain.com/api/v1/upload \
+  -H "Authorization: Bearer cv_your_api_key_here" \
+  -F "file=@/path/to/local/file.jpg" \
+  -F "folder_id=2"</code></pre>
+                    </div>
+
+                    <!-- DELETE /files -->
+                    <div class="mb-5 pb-4 border-bottom">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-danger fs-6 me-3">DELETE</span>
+                            <h5 class="fw-bold mb-0"><code>/api/v1/files/&lt;id&gt;</code></h5>
+                        </div>
+                        <p class="text-muted">Moves a file to the trash, or permanently deletes it if it is already in the trash.</p>
+                    </div>
+                    
+                    <!-- GET /search -->
+                    <div class="mb-5">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-primary fs-6 me-3">GET</span>
+                            <h5 class="fw-bold mb-0"><code>/api/v1/search?q=&lt;query&gt;</code></h5>
+                        </div>
+                        <p class="text-muted">Executes an advanced search across all files and folders.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rate Limits -->
+            <div class="card border-0 shadow-sm mb-4" id="rate-limits">
+                <div class="card-body p-5">
+                    <h4 class="fw-bold mb-4">Rate Limits</h4>
+                    <p class="text-muted mb-4">To protect CloudVault's infrastructure, all API keys are globally limited to <strong>100 requests per minute</strong>.</p>
+                    <p>If you exceed this rate limit, the API will respond with a <code>429 Too Many Requests</code> HTTP status code. You must wait until your minute window resets before making further requests.</p>
+                </div>
+            </div>
+
+            <!-- Errors -->
+            <div class="card border-0 shadow-sm mb-4" id="errors">
+                <div class="card-body p-5">
+                    <h4 class="fw-bold mb-4">Error Codes</h4>
+                    <p class="text-muted mb-4">CloudVault uses conventional HTTP response codes to indicate the success or failure of an API request.</p>
+                    
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr><th>Code</th><th>Status</th><th>Meaning</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>200</code></td><td><span class="badge bg-success">OK</span></td><td>Request was successful.</td></tr>
+                            <tr><td><code>400</code></td><td><span class="badge bg-warning text-dark">Bad Request</span></td><td>Missing required parameters (e.g. no file attached).</td></tr>
+                            <tr><td><code>401</code></td><td><span class="badge bg-danger">Unauthorized</span></td><td>No valid API key provided.</td></tr>
+                            <tr><td><code>403</code></td><td><span class="badge bg-danger">Forbidden</span></td><td>The API key is valid, but the account is disabled or lacks permissions.</td></tr>
+                            <tr><td><code>404</code></td><td><span class="badge bg-secondary">Not Found</span></td><td>The requested resource does not exist.</td></tr>
+                            <tr><td><code>429</code></td><td><span class="badge bg-warning text-dark">Too Many Requests</span></td><td>You have exceeded your 100 req/min quota.</td></tr>
+                            <tr><td><code>500</code></td><td><span class="badge bg-dark">Server Error</span></td><td>Something went wrong on CloudVault's end (e.g. S3 upload failure).</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

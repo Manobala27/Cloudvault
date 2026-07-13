@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}API Keys{% endblock %}
+{% block content %}
+<div class="container py-4 mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0"><i class="bi bi-key-fill text-primary me-2"></i>API Keys</h2>
+        <a href="{{ url_for('api_keys.docs') }}" class="btn btn-outline-info">
+            <i class="bi bi-book"></i> API Documentation
+        </a>
+    </div>
+
+    <!-- Alert for New Key -->
+    <div id="newKeyAlert" class="alert alert-success d-none shadow-sm" role="alert">
+        <h4 class="alert-heading"><i class="bi bi-check-circle-fill me-2"></i>API Key Generated!</h4>
+        <p>Please copy your new API key now. You won't be able to see it again!</p>
+        <hr>
+        <div class="input-group mb-0">
+            <input type="text" id="newKeyInput" class="form-control font-monospace" readonly>
+            <button class="btn btn-primary" onclick="copyNewKey()"><i class="bi bi-clipboard"></i> Copy</button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Generate Key Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold"><i class="bi bi-plus-circle-fill text-success me-2"></i>Generate Key</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form id="generateKeyForm" onsubmit="generateKey(event)">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Key Name</label>
+                            <input type="text" id="keyName" class="form-control" placeholder="e.g. My Script" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted">Expiration</label>
+                            <select id="keyExpiry" class="form-select">
+                                <option value="30">30 Days</option>
+                                <option value="90">90 Days</option>
+                                <option value="365">1 Year</option>
+                                <option value="never">Never Expires</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100" id="btnGenerate">
+                            <i class="bi bi-magic"></i> Create API Key
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Keys List -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-list-ul text-primary me-2"></i>Your Active Keys</h5>
+                </div>
+                <div class="card-body p-0 mt-3">
+                    <ul class="list-group list-group-flush" id="keysList">
+                        {% if current_user.api_keys %}
+                            {% for key in current_user.api_keys %}
+                            {% if key.is_active %}
+                            <li class="list-group-item p-4 d-flex justify-content-between align-items-center" id="key-{{ key.id }}">
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ key.name }}</h6>
+                                    <small class="text-muted d-block">Created: {{ key.created_at.strftime('%b %d, %Y') }}</small>
+                                    <small class="text-muted d-block">
+                                        Expires: 
+                                        {% if key.expires_at %}
+                                            {% if key.expires_at < now %}
+                                                <span class="text-danger fw-bold">Expired</span>
+                                            {% else %}
+                                                {{ key.expires_at.strftime('%b %d, %Y') }}
+                                            {% endif %}
+                                        {% else %}
+                                            Never
+                                        {% endif %}
+                                    </small>
+                                    <small class="text-muted d-block">Last Used: {{ key.last_used.strftime('%b %d, %Y %H:%M') if key.last_used else 'Never' }}</small>
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm" onclick="revokeKey({{ key.id }})">
+                                    <i class="bi bi-trash3"></i> Revoke
+                                </button>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="p-5 text-center text-muted">
+                                <i class="bi bi-key text-muted opacity-50 display-1 mb-3"></i>
+                                <h5>No API keys found</h5>
+                                <p>Generate one to start interacting programmatically.</p>
+                            </div>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const csrfToken = "{{ csrf_token() }}";
+    
+    function generateKey(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnGenerate');
+        const name = document.getElementById('keyName').value;
+        const expiry = document.getElementById('keyExpiry').value;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+        
+        fetch("{{ url_for('api_keys.generate') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({name: name, expiry_days: expiry})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('newKeyInput').value = data.raw_key;
+                document.getElementById('newKeyAlert').classList.remove('d-none');
+                document.getElementById('keyName').value = '';
+                // The page needs to be reloaded to show the new key in the list, 
+                // but we want the user to copy the key first. 
+                // Let's scroll up
+                window.scrollTo(0,0);
+            } else {
+                alert(data.message);
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-magic"></i> Create API Key';
+        })
+        .catch(err => {
+            alert('An error occurred.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-magic"></i> Create API Key';
+        });
+    }
+    
+    function copyNewKey() {
+        const input = document.getElementById('newKeyInput');
+        input.select();
+        document.execCommand('copy');
+        alert("API Key copied to clipboard! Save it somewhere safe, you won't see it again.");
+        setTimeout(() => location.reload(), 1500);
+    }
+    
+    function revokeKey(id) {
+        if(!confirm("Are you sure you want to revoke this API key? Any applications using it will lose access immediately.")) return;
+        
+        fetch(`/settings/api-keys/revoke/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                const el = document.getElementById(`key-${id}`);
+                if(el) {
+                    el.style.transition = "opacity 0.3s ease";
+                    el.style.opacity = "0";
+                    setTimeout(() => el.remove(), 300);
+                }
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+</script>
+{% endblock %}

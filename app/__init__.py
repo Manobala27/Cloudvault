@@ -58,6 +58,15 @@ def create_app(config_class=Config):
     from app.routes.admin import admin_bp as admin_blueprint
     app.register_blueprint(admin_blueprint)
 
+    from app.routes.api_keys import api_keys_bp
+    app.register_blueprint(api_keys_bp)
+    
+    from app.routes.api import api_bp
+    app.register_blueprint(api_bp)
+    
+    # Exempt API Blueprint from CSRF as it uses Bearer tokens
+    csrf.exempt(api_bp)
+
     from app.routes.tags import tags_bp as tags_blueprint
     app.register_blueprint(tags_blueprint)
 

@@ -171,3 +171,15 @@ class Notification(db.Model):
 
     def __repr__(self):
         return f"Notification('{self.title}', '{self.notification_type}', read={self.is_read})"
+
+class APIKey(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    api_key_hash = db.Column(db.String(255), nullable=False)
+    last_used = db.Column(db.DateTime, nullable=True)
+    expires_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    
+    user = db.relationship('User', backref=db.backref('api_keys', lazy=True))

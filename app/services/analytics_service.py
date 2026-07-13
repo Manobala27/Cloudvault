@@ -116,6 +116,13 @@ class AnalyticsService:
         two_factor_enabled_count = sum(1 for u in users if u.two_factor_enabled)
         two_factor_disabled_count = total_users - two_factor_enabled_count
         
+        # API Stats
+        from app.models import APIKey
+        all_keys = APIKey.query.all()
+        total_api_keys = len(all_keys)
+        active_api_keys = sum(1 for k in all_keys if k.is_active)
+        revoked_api_keys = total_api_keys - active_api_keys
+        
         avg_user_storage = total_storage / total_users if total_users > 0 else 0
         
         # User storage list to find largest
@@ -151,6 +158,11 @@ class AnalyticsService:
             'avg_user_storage': avg_user_storage,
             'two_factor_enabled': two_factor_enabled_count,
             'two_factor_disabled': two_factor_disabled_count,
+            'api_stats': {
+                'total_keys': total_api_keys,
+                'active_keys': active_api_keys,
+                'revoked_keys': revoked_api_keys
+            },
             'largest_user': {
                 'username': largest_user.username if largest_user else 'None',
                 'storage': user_storages.get(largest_user_id, 0) if largest_user_id else 0
