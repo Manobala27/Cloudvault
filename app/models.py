@@ -183,3 +183,15 @@ class APIKey(db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     
     user = db.relationship('User', backref=db.backref('api_keys', lazy=True))
+
+class Backup(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    backup_name = db.Column(db.String(100), nullable=False)
+    backup_type = db.Column(db.String(20), nullable=False) # 'Full', 'Metadata', 'Settings'
+    backup_size = db.Column(db.Integer, nullable=False, default=0) # bytes
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='completed') # 'completed', 'failed', 'processing'
+    storage_path = db.Column(db.String(255), nullable=False)
+    
+    user = db.relationship('User', backref=db.backref('backups', lazy=True, cascade="all, delete-orphan"))

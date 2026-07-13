@@ -106,8 +106,9 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item py-2" href="{{ url_for('security.index') }}"><i class="bi bi-shield-lock me-2 text-primary"></i>Security</a></li>
-                            <li><a class="dropdown-item py-2" href="{{ url_for('api_keys.index') }}"><i class="bi bi-key-fill me-2 text-info"></i>API Keys</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item py-2" href="{{ url_for('api_keys.index') }}"><i class="bi bi-key-fill me-2 text-info"></i>API Keys</a></li>
+                                <li><a class="dropdown-item py-2" href="{{ url_for('backups.index') }}"><i class="bi bi-cloud-arrow-down-fill me-2 text-success"></i>Backup & Restore</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
                             </ul>
                         </li>

@@ -123,6 +123,12 @@ class AnalyticsService:
         active_api_keys = sum(1 for k in all_keys if k.is_active)
         revoked_api_keys = total_api_keys - active_api_keys
         
+        # Backup Stats
+        from app.models import Backup
+        all_backups = Backup.query.all()
+        total_backups = len(all_backups)
+        backup_storage = sum(b.backup_size for b in all_backups)
+        
         avg_user_storage = total_storage / total_users if total_users > 0 else 0
         
         # User storage list to find largest
@@ -162,6 +168,10 @@ class AnalyticsService:
                 'total_keys': total_api_keys,
                 'active_keys': active_api_keys,
                 'revoked_keys': revoked_api_keys
+            },
+            'backup_stats': {
+                'total_backups': total_backups,
+                'storage': backup_storage
             },
             'largest_user': {
                 'username': largest_user.username if largest_user else 'None',

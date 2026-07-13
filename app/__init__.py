@@ -64,6 +64,9 @@ def create_app(config_class=Config):
     from app.routes.api import api_bp
     app.register_blueprint(api_bp)
     
+    from app.routes.backups import backups_bp
+    app.register_blueprint(backups_bp)
+    
     # Exempt API Blueprint from CSRF as it uses Bearer tokens
     csrf.exempt(api_bp)
 
