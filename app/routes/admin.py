@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request, abort
+from flask import Blueprint, render_template, url_for, flash, redirect, request, abort, jsonify
 from app import db, bcrypt
 from app.models import User, File, Folder, Share, ActivityLog
 from app.s3_service import s3_service
@@ -157,3 +157,20 @@ def delete_user(user_id):
     
     flash(f"User {username} and all associated data have been permanently deleted.", "success")
     return redirect(url_for('admin.users'))
+
+@admin_bp.route("/analytics", methods=['GET'])
+@login_required
+@admin_required
+def analytics():
+    log = ActivityLog(user_id=current_user.id, action='ADMIN_ANALYTICS_VIEWED', ip_address=request.remote_addr)
+    db.session.add(log)
+    db.session.commit()
+    return render_template('admin/admin_analytics.html')
+
+@admin_bp.route("/analytics/data", methods=['GET'])
+@login_required
+@admin_required
+def analytics_data():
+    from app.services.analytics_service import analytics_service
+    data = analytics_service.get_admin_analytics()
+    return jsonify(data)

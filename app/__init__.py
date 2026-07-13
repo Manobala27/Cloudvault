@@ -43,6 +43,9 @@ def create_app(config_class=Config):
     from app.routes.notifications import notifications_bp
     app.register_blueprint(notifications_bp)
 
+    from app.routes.analytics import analytics_bp
+    app.register_blueprint(analytics_bp)
+
     from app.routes.activity import activity_bp as activity_blueprint
     app.register_blueprint(activity_blueprint)
 

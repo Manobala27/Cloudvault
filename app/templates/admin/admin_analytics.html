@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Admin Analytics{% endblock %}
+{% block content %}
+<div class="container py-4 mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Global Analytics</h2>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Admin
+        </a>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="row g-3 mb-4" id="adminCards">
+        <!-- Skeleton Loaders -->
+        {% for i in range(4) %}
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm placeholder-glow h-100">
+                <div class="card-body py-4 text-center">
+                    <div class="placeholder col-8 bg-secondary rounded py-2 mb-2"></div>
+                    <div class="placeholder col-6 bg-primary rounded py-3"></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="fw-bold mb-0">System Activity Trend (Last 7 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="adminTrendChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                    <h5 class="fw-bold mb-0">Newest Users</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="newestUsers">
+                        <div class="list-group-item p-3 placeholder-glow"><span class="placeholder col-12"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let adminTrendChart = null;
+
+    function formatBytes(bytes, decimals = 2) {
+        if (!+bytes) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    }
+
+    function loadAdminAnalytics() {
+        fetch("{{ url_for('admin.analytics_data') }}")
+            .then(response => response.json())
+            .then(data => renderAdminAnalytics(data));
+    }
+
+    function renderAdminAnalytics(data) {
+        const cardsHTML = `
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-primary bg-opacity-10">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-people-fill text-primary fs-1 mb-2"></i>
+                        <h6 class="text-muted fw-bold text-uppercase">Total Users</h6>
+                        <h3 class="fw-bold mb-0">${data.total_users}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-success bg-opacity-10">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-hdd-network-fill text-success fs-1 mb-2"></i>
+                        <h6 class="text-muted fw-bold text-uppercase">Global Storage</h6>
+                        <h3 class="fw-bold mb-0">${formatBytes(data.total_storage)}</h3>
+                        <small class="text-muted d-block mt-2">Avg: ${formatBytes(data.avg_user_storage)} / user</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-share-fill text-warning fs-1 mb-2"></i>
+                        <h6 class="text-muted fw-bold text-uppercase">Active Shares</h6>
+                        <h3 class="fw-bold mb-0">${data.total_shares}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-danger bg-opacity-10">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-person-bounding-box text-danger fs-1 mb-2"></i>
+                        <h6 class="text-muted fw-bold text-uppercase">Top Consumer</h6>
+                        <h3 class="fw-bold mb-0 text-truncate px-2" title="${data.largest_user.username}">${data.largest_user.username}</h3>
+                        <small class="text-muted d-block mt-2">${formatBytes(data.largest_user.storage)}</small>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('adminCards').innerHTML = cardsHTML;
+
+        // Newest Users
+        let usersHTML = '';
+        if (data.newest_users.length > 0) {
+            data.newest_users.forEach(u => {
+                usersHTML += `
+                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                    <div>
+                        <i class="bi bi-person-circle me-2 text-primary fs-5"></i>
+                        <span class="fw-bold">${u.username}</span>
+                    </div>
+                    <span class="text-muted small">${u.email}</span>
+                </div>`;
+            });
+        } else {
+            usersHTML = `<div class="p-4 text-center text-muted">No users found</div>`;
+        }
+        document.getElementById('newestUsers').innerHTML = usersHTML;
+
+        // Chart
+        const ctx = document.getElementById('adminTrendChart').getContext('2d');
+        if (adminTrendChart) adminTrendChart.destroy();
+        
+        adminTrendChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.trend.dates,
+                datasets: [{
+                    label: 'System Actions',
+                    data: data.trend.activity,
+                    backgroundColor: '#0d6efd',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d' },
+                        grid: { color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#343a40' : '#e9ecef' }
+                    },
+                    x: {
+                        ticks: { color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === "data-bs-theme") {
+                loadAdminAnalytics();
+            }
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+
+    document.addEventListener("DOMContentLoaded", loadAdminAnalytics);
+</script>
+{% endblock %}

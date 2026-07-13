@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% block title %}Analytics Dashboard{% endblock %}
+{% block content %}
+<div class="container py-4 mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <h2 class="fw-bold mb-2"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Storage Analytics</h2>
+        <div class="d-flex gap-2 mb-2">
+            <select id="timeRange" class="form-select w-auto" onchange="loadAnalytics()">
+                <option value="7">Last 7 Days</option>
+                <option value="30" selected>Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+                <option value="365">Last Year</option>
+                <option value="all">All Time</option>
+            </select>
+            <a href="{{ url_for('analytics.export_csv') }}" class="btn btn-outline-success">
+                <i class="bi bi-file-earmark-excel"></i> Export CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="row g-3 mb-4" id="overviewCards">
+        <!-- Skeleton Loaders -->
+        {% for i in range(4) %}
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm placeholder-glow h-100">
+                <div class="card-body py-4 text-center">
+                    <div class="placeholder col-8 bg-secondary rounded py-2 mb-2"></div>
+                    <div class="placeholder col-6 bg-primary rounded py-3"></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="fw-bold mb-0">Storage Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="fw-bold mb-0">File Types Distribution</h5>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    <canvas id="typeChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                    <h5 class="fw-bold mb-0">System Details</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush" id="systemDetails">
+                        <li class="list-group-item placeholder-glow"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow"><span class="placeholder col-12"></span></li>
+                        <li class="list-group-item placeholder-glow"><span class="placeholder col-12"></span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                    <h5 class="fw-bold mb-0">Recent Uploads</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="recentUploads">
+                        <div class="list-group-item p-3 placeholder-glow"><span class="placeholder col-12"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let trendChartInstance = null;
+    let typeChartInstance = null;
+
+    function formatBytes(bytes, decimals = 2) {
+        if (!+bytes) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    }
+
+    function loadAnalytics() {
+        const days = document.getElementById('timeRange').value;
+        fetch(`/analytics/data?days=${days}`)
+            .then(response => response.json())
+            .then(data => renderAnalytics(data));
+    }
+
+    function renderAnalytics(data) {
+        // Overview Cards
+        const cardsHTML = `
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-primary bg-opacity-10">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-hdd-fill text-primary fs-1 mb-2"></i>
+                        <h6 class="text-muted fw-bold text-uppercase">Storage Used</h6>
+                        <h3 class="fw-bold mb-0">${formatBytes(data.storage_used)}</h3>
+                        <div class="progress mt-3" style="height: 5px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: ${data.storage_percent}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-success bg-opacity-10">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-file-earmark-text-fill text-success fs-1 mb-2"></i>
+                        <h6 class="text-muted fw-bold text-uppercase">Total Files</h6>
+                        <h3 class="fw-bold mb-0">${data.total_files}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-star-fill text-warning fs-1 mb-2"></i>
+                        <h6 class="text-muted fw-bold text-uppercase">Favorites</h6>
+                        <h3 class="fw-bold mb-0">${data.total_favorites}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-danger bg-opacity-10">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-trash-fill text-danger fs-1 mb-2"></i>
+                        <h6 class="text-muted fw-bold text-uppercase">In Trash</h6>
+                        <h3 class="fw-bold mb-0">${data.trash_count} <small class="text-muted fs-6">(${formatBytes(data.trash_size)})</small></h3>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('overviewCards').innerHTML = cardsHTML;
+
+        // Details List
+        let largest = data.largest_file ? `${data.largest_file.name} (${formatBytes(data.largest_file.size)})` : 'None';
+        let smallest = data.smallest_file ? `${data.smallest_file.name} (${formatBytes(data.smallest_file.size)})` : 'None';
+        
+        document.getElementById('systemDetails').innerHTML = `
+            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                <span class="text-muted"><i class="bi bi-folder-fill me-2"></i>Total Folders</span>
+                <span class="fw-bold">${data.total_folders}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                <span class="text-muted"><i class="bi bi-share-fill me-2"></i>Total Shares</span>
+                <span class="fw-bold">${data.total_shares}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                <span class="text-muted"><i class="bi bi-clock-history me-2"></i>Total Versions</span>
+                <span class="fw-bold">${data.total_versions}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                <span class="text-muted"><i class="bi bi-calculator me-2"></i>Average File Size</span>
+                <span class="fw-bold">${formatBytes(data.avg_size)}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center py-3 text-truncate">
+                <span class="text-muted"><i class="bi bi-arrow-up-circle-fill me-2"></i>Largest File</span>
+                <span class="fw-bold text-truncate ms-2" style="max-width:200px;" title="${largest}">${largest}</span>
+            </li>
+        `;
+
+        // Recent Uploads
+        let uploadsHTML = '';
+        if (data.recent_uploads.length > 0) {
+            data.recent_uploads.forEach(u => {
+                let d = new Date(u.date).toLocaleString();
+                uploadsHTML += `
+                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                    <div class="text-truncate me-3" style="max-width:250px;">
+                        <i class="bi bi-file-earmark me-2 text-primary"></i><span class="fw-bold">${u.name}</span>
+                    </div>
+                    <div class="text-end">
+                        <div class="small text-muted">${d}</div>
+                        <div class="badge bg-secondary rounded-pill">${formatBytes(u.size)}</div>
+                    </div>
+                </div>`;
+            });
+        } else {
+            uploadsHTML = `<div class="p-4 text-center text-muted">No recent uploads</div>`;
+        }
+        document.getElementById('recentUploads').innerHTML = uploadsHTML;
+
+        // Charts
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d'
+                    }
+                }
+            }
+        };
+
+        // Trend Chart
+        if (trendChartInstance) trendChartInstance.destroy();
+        const ctxTrend = document.getElementById('trendChart').getContext('2d');
+        trendChartInstance = new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: data.trend.dates,
+                datasets: [{
+                    label: 'Files Uploaded',
+                    data: data.trend.counts,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d' },
+                        grid: { color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#343a40' : '#e9ecef' }
+                    },
+                    x: {
+                        ticks: { color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Type Chart
+        if (typeChartInstance) typeChartInstance.destroy();
+        const ctxType = document.getElementById('typeChart').getContext('2d');
+        const typeLabels = Object.keys(data.type_counts);
+        const typeData = Object.values(data.type_counts);
+        
+        typeChartInstance = new Chart(ctxType, {
+            type: 'doughnut',
+            data: {
+                labels: typeLabels,
+                datasets: [{
+                    data: typeData,
+                    backgroundColor: [
+                        '#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0', '#6f42c1', '#6c757d'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...commonOptions,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Handle theme toggle changes to re-render chart text colors
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === "data-bs-theme") {
+                loadAnalytics();
+            }
+        });
+    });
+    observer.observe(document.documentElement, {
+        attributes: true
+    });
+
+    // Initial Load
+    document.addEventListener("DOMContentLoaded", loadAnalytics);
+</script>
+{% endblock %}
