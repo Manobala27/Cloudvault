@@ -64,8 +64,25 @@
                     {% endif %}
                 </div>
             </div>
-
+            
             {% if current_user.two_factor_enabled %}
+            <!-- Trusted Devices -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold"><i class="bi bi-laptop text-primary me-2"></i>Trusted Devices</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if current_user.trusted_device_expiry %}
+                        <p class="text-muted">You have a device trusted until {{ current_user.trusted_device_expiry.strftime('%Y-%m-%d') }}.</p>
+                        <button class="btn btn-outline-danger" id="btnRemoveTrust" onclick="removeTrust()">
+                            <i class="bi bi-laptop"></i> Remove Trust from Device
+                        </button>
+                    {% else %}
+                        <p class="text-muted">You do not have any trusted devices. The next time you log in, you can check "Trust this device" to avoid entering an OTP for 30 days.</p>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Recovery Codes -->
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
@@ -231,6 +248,34 @@
         })
         .catch(err => {
             alert("Error generating codes.");
+            btn.disabled = false;
+        });
+    }
+    
+    // Remove Trust
+    function removeTrust() {
+        const btn = document.getElementById('btnRemoveTrust');
+        btn.disabled = true;
+        
+        fetch("{{ url_for('security.remove_trust') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({action: 'remove'})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert("Failed to remove trust.");
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            alert("Error removing trust.");
             btn.disabled = false;
         });
     }

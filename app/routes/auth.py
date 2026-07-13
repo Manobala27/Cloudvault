@@ -44,8 +44,10 @@ def login():
             
             # Check if 2FA is enabled and if the device is trusted
             device_trusted = False
-            if user.trusted_device_until and user.trusted_device_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
-                device_trusted = True
+            device_token = request.cookies.get('trusted_device_token')
+            if user.trusted_device_expiry and user.trusted_device_expiry.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
+                if user.trusted_device_token and device_token == user.trusted_device_token:
+                    device_trusted = True
                 
             print(f"DEBUG LOGIN: user={user.email}, 2fa_enabled={user.two_factor_enabled}, trusted={device_trusted}")
                 

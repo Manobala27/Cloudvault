@@ -186,13 +186,25 @@ def verify_2fa():
             remember = session.get('2fa_remember', False)
             next_page = session.get('2fa_next_page')
             
+            # Update last_2fa_used
+            from datetime import datetime, timedelta, timezone
+            user.last_2fa_used = datetime.now(timezone.utc)
+            db.session.commit()
+            
+            response = make_response(redirect(next_page) if next_page else redirect(url_for('main.index')))
+            
             # Trust device if requested
             if trust_device:
-                from datetime import datetime, timedelta, timezone
-                user.trusted_device_until = datetime.now(timezone.utc) + timedelta(days=30)
+                import secrets
+                token = secrets.token_hex(32)
+                user.trusted_device_token = token
+                user.trusted_device_expiry = datetime.now(timezone.utc) + timedelta(days=30)
                 db.session.commit()
                 
-                log = ActivityLog(user_id=user.id, action='TRUSTED_DEVICE_ADDED', ip_address=request.remote_addr)
+                # Set cookie
+                response.set_cookie('trusted_device_token', token, max_age=30*24*60*60, httponly=True, secure=request.is_secure)
+                
+                log = ActivityLog(user_id=user.id, action='TRUSTED_DEVICE_CREATED', ip_address=request.remote_addr)
                 db.session.add(log)
                 db.session.commit()
                 
@@ -207,7 +219,7 @@ def verify_2fa():
             login_user(user, remember=remember)
             
             # Log successful 2FA
-            log = ActivityLog(user_id=user.id, action='2FA_SUCCESS', ip_address=request.remote_addr)
+            log = ActivityLog(user_id=user.id, action='OTP_SUCCESS', ip_address=request.remote_addr)
             db.session.add(log)
             db.session.commit()
             
@@ -217,12 +229,46 @@ def verify_2fa():
             session.pop('2fa_next_page', None)
             
             flash('Login successful!', 'success')
-            return redirect(next_page) if next_page else redirect(url_for('main.index'))
+            return response
         else:
             # Log failed attempt
-            log = ActivityLog(user_id=user.id, action='2FA_FAILED', ip_address=request.remote_addr)
+            log = ActivityLog(user_id=user.id, action='OTP_FAILED', ip_address=request.remote_addr)
             db.session.add(log)
             db.session.commit()
+            
+            notification_service.create_notification(
+                user_id=user.id,
+                title="Failed OTP Attempt",
+                message="A failed 2FA verification attempt occurred.",
+                notification_type="SECURITY_WARNING",
+                icon="bi-exclamation-triangle"
+            )
+            
             flash('Invalid verification code.', 'danger')
             
     return render_template('auth/verify_2fa.html', title='Two-Factor Verification')
+
+@security_bp.route('/2fa/trust', methods=['POST'])
+@login_required
+def remove_trust():
+    action = request.get_json().get('action')
+    if action == 'remove':
+        current_user.trusted_device_token = None
+        current_user.trusted_device_expiry = None
+        
+        log = ActivityLog(user_id=current_user.id, action='TRUSTED_DEVICE_REMOVED', ip_address=request.remote_addr)
+        db.session.add(log)
+        db.session.commit()
+        
+        notification_service.create_notification(
+            user_id=current_user.id,
+            title="Trusted Device Removed",
+            message="This device is no longer trusted.",
+            notification_type="SECURITY",
+            icon="bi-laptop"
+        )
+        
+        res = make_response(jsonify({'success': True}))
+        res.delete_cookie('trusted_device_token')
+        return res
+    return jsonify({'success': False})

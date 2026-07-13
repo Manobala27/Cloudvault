@@ -28,7 +28,9 @@ def verify_module21():
         user.two_factor_enabled = False
         user.two_factor_secret = None
         user.backup_codes = None
-        user.trusted_device_until = None
+        user.trusted_device_expiry = None
+        user.trusted_device_token = None
+        user.last_2fa_used = None
         db.session.commit()
 
         print("1. Testing 2FA Service...")

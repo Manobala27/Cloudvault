@@ -112,6 +112,10 @@ class AnalyticsService:
         total_storage = sum(f.file_size for f in all_files if f.file_size)
         total_shares = Share.query.count()
         
+        # 2FA Stats
+        two_factor_enabled_count = sum(1 for u in users if u.two_factor_enabled)
+        two_factor_disabled_count = total_users - two_factor_enabled_count
+        
         avg_user_storage = total_storage / total_users if total_users > 0 else 0
         
         # User storage list to find largest
@@ -145,6 +149,8 @@ class AnalyticsService:
             'total_shares': total_shares,
             'total_storage': total_storage,
             'avg_user_storage': avg_user_storage,
+            'two_factor_enabled': two_factor_enabled_count,
+            'two_factor_disabled': two_factor_disabled_count,
             'largest_user': {
                 'username': largest_user.username if largest_user else 'None',
                 'storage': user_storages.get(largest_user_id, 0) if largest_user_id else 0

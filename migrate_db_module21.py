@@ -17,16 +17,16 @@ def migrate():
         cursor.execute("PRAGMA table_info(user)")
         columns = [info[1] for info in cursor.fetchall()]
         
-        if 'two_factor_enabled' in columns:
-            print("Columns already exist. Skipping migration.")
-        else:
-            cursor.execute("ALTER TABLE user ADD COLUMN two_factor_enabled BOOLEAN NOT NULL DEFAULT 0")
-            cursor.execute("ALTER TABLE user ADD COLUMN two_factor_secret VARCHAR(32)")
-            cursor.execute("ALTER TABLE user ADD COLUMN backup_codes TEXT")
-            cursor.execute("ALTER TABLE user ADD COLUMN trusted_device_until DATETIME")
+        # We might need to add the new ones if they don't exist
+        if 'trusted_device_token' not in columns:
+            cursor.execute("ALTER TABLE user ADD COLUMN trusted_device_token VARCHAR(255)")
+        if 'trusted_device_expiry' not in columns:
+            cursor.execute("ALTER TABLE user ADD COLUMN trusted_device_expiry DATETIME")
+        if 'last_2fa_used' not in columns:
+            cursor.execute("ALTER TABLE user ADD COLUMN last_2fa_used DATETIME")
             
-            conn.commit()
-            print("Module 21 Migration Successful.")
+        conn.commit()
+        print("Module 21 DB Updated Successfully.")
     except Exception as e:
         print(f"Migration failed: {e}")
         conn.rollback()

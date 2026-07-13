@@ -18,9 +18,11 @@ class User(db.Model, UserMixin):
     
     # 2FA (Module 21)
     two_factor_enabled = db.Column(db.Boolean, default=False, nullable=False)
-    two_factor_secret = db.Column(db.String(32), nullable=True) # Usually a base32 string
+    two_factor_secret = db.Column(db.String(255), nullable=True) # Encrypted String
     backup_codes = db.Column(db.Text, nullable=True) # Encrypted JSON or text
-    trusted_device_until = db.Column(db.DateTime, nullable=True)
+    trusted_device_token = db.Column(db.String(255), nullable=True)
+    trusted_device_expiry = db.Column(db.DateTime, nullable=True)
+    last_2fa_used = db.Column(db.DateTime, nullable=True)
     
     files = db.relationship('File', backref='owner', lazy=True)
     folders = db.relationship('Folder', backref='owner', lazy=True)
