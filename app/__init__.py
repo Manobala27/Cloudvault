@@ -138,6 +138,40 @@ def create_app(config_class=Config):
         from flask import send_from_directory
         return send_from_directory('static', 'offline.html')
         
+    @app.route('/health')
+    def health():
+        from flask import jsonify
+        from datetime import datetime, timezone
+        from app import db
+        import logging
+        from app.s3_service import s3_service
+        
+        status = 'healthy'
+        db_status = 'connected'
+        s3_status = 'connected'
+        
+        try:
+            db.session.execute(db.text('SELECT 1'))
+        except Exception as e:
+            db_status = 'disconnected'
+            status = 'unhealthy'
+            app.logger.error(f"Healthcheck DB Error: {e}")
+            
+        try:
+            # Simple check if s3_service initialized
+            if not s3_service.s3_client:
+                s3_status = 'unconfigured'
+        except Exception:
+            s3_status = 'error'
+            
+        return jsonify({
+            'status': status,
+            'database': db_status,
+            'aws_s3': s3_status,
+            'version': '25.0',
+            'timestamp': datetime.now(timezone.utc).isoformat()
+        }), 200 if status == 'healthy' else 503
+
     return app
 
 

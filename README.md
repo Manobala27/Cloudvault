@@ -1,89 +1,58 @@
-# CloudVault - Secure Cloud File Storage System
+# CloudVault
 
-CloudVault is a modern, production-ready secure cloud file storage application built with Python, Flask, SQLite, and AWS S3. It provides user authentication, secure file uploads, dynamic presigned URLs for secure downloads, and a polished dashboard.
+CloudVault is a modern, secure, and fully-featured file storage and management platform. Designed with enterprise-grade modularity in mind, CloudVault allows users to manage, share, search, and secure their files with ease. 
 
-## Key Features
-- **User Authentication:** Secure registration, login, and session management using `Flask-Login` and `Flask-Bcrypt`.
-- **AWS S3 Integration:** Direct, secure file uploads to AWS S3 via `boto3`.
-- **Dynamic Presigned URLs:** Secure, expiring links generated for previewing and downloading private S3 objects.
-- **Advanced Secure File Sharing:** Generate secure public links for files with optional password protection, custom expiry dates, and download limits. Manage all active shares from a dedicated dashboard.
-- **Storage Dashboard:** View files, search, sort (by date/name), and monitor total storage usage.
-- **Activity Log & Audit History:** Comprehensive tracking of all major user actions (Logins, Uploads, Shares, Deletions) to ensure accountability and transparency.
-- **Security & Validation:** Password complexity enforcement, global CSRF protection, secure HTTP headers, rate-limiting on auth routes, and strict file validation.
-- **Responsive UI:** Clean, modern interface built with Bootstrap 5.
+## Features
 
-## Prerequisites
-- Python 3.8+
-- An AWS Account with an S3 Bucket.
-- AWS IAM credentials with programmatic access to the S3 bucket.
+- **Robust Architecture**: Built on Flask, SQLAlchemy, and AWS S3, ensuring high scalability and reliability.
+- **Progressive Web App (PWA)**: Installable on Desktop/Mobile with offline shell fallback and background caching.
+- **Security & 2FA**: Time-Based One-Time Password (TOTP) enforcement for accounts.
+- **Public REST API**: Full programmatic access mapped to secure, SHA-256 hashed API Keys.
+- **File Versioning**: Soft-deletion (Trash) combined with transparent S3-backed file versioning.
+- **Advanced Sharing & Tagging**: Create secure, password-protected, and expiring links. Organize data easily using tags and favorites.
+- **Backup & Restore**: Easily generate and restore JSON snapshots of your metadata without duplicating actual file storage.
+- **Admin Analytics**: Live dashboards for tracking usage, API limits, overall storage, and error margins.
+- **Live Search & Media Previews**: Instantly search file hierarchies and preview audio, video, images, PDFs, and code in-browser.
 
-## Installation & Setup
+## Architecture
 
-1. **Clone the repository and enter the directory:**
+CloudVault relies on a modular 25-step execution strategy encompassing:
+1. **Frontend**: Bootstrap 5 + Vanilla JS, capable of running in Dark & Light Modes seamlessly.
+2. **Backend**: Python 3.11 with Flask Blueprints routing logic. 
+3. **Database**: SQLAlchemy ORM for relational mapping of Users, Files, Folders, Tags, Shares, API Keys, and Backups.
+4. **Storage**: Direct streams to AWS S3 (or any S3 compatible object storage like MinIO or DigitalOcean Spaces).
+5. **Infrastructure**: Multi-stage Dockerized containers proxied via Nginx and managed by Gunicorn workers.
+
+## Installation & Deployment
+
+CloudVault is heavily container-optimized. 
+
+### Quick Start (Docker)
+1. Clone the repository.
+2. Copy the environment file and edit your secrets:
    ```bash
-   git clone <repository_url>
-   cd CloudVault
+   cp .env.example .env
    ```
-
-2. **Create and activate a virtual environment:**
+3. Build and launch the stack:
    ```bash
-   python -m venv venv
-   # Windows:
-   .\venv\Scripts\activate
-   # macOS/Linux:
-   source venv/bin/activate
+   docker-compose up -d --build
    ```
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+For detailed manual instructions, HTTPS/SSL certificates, and bare-metal deployment, please refer to the [DEPLOYMENT.md](DEPLOYMENT.md).
 
-4. **Environment Configuration:**
-   Create a `.env` file in the root directory matching the following structure. Do NOT add trailing spaces:
-   ```env
-   SECRET_KEY=your_super_secret_flask_key
-   DATABASE_URL=sqlite:///site.db
-   AWS_ACCESS_KEY_ID=your_aws_access_key
-   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-   AWS_REGION=us-east-1
-   S3_BUCKET_NAME=your-bucket-name
-   ```
+## API & Integrations
 
-## AWS S3 Setup
-Ensure your AWS IAM User has the following permissions for your S3 bucket (replace `your-bucket-name`):
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:PutObject",
-                "s3:GetObject",
-                "s3:DeleteObject",
-                "s3:GetBucketLocation",
-                "s3:ListBucket"
-            ],
-            "Resource": [
-                "arn:aws:s3:::your-bucket-name",
-                "arn:aws:s3:::your-bucket-name/*"
-            ]
-        }
-    ]
-}
-```
-*Note: Your bucket does NOT need to be public. CloudVault generates secure presigned URLs to access private files.*
+CloudVault supports full REST endpoints authenticated via Bearer tokens. 
+Generate a token in the `/settings/api-keys` dashboard. For full Swagger-like documentation, navigate to `/settings/api-keys/docs` in the live application.
 
-## Running the Application
-```bash
-python run.py
-```
-Open your browser and navigate to `http://127.0.0.1:5000`.
+## Tech Stack
+- **Python 3.11**
+- **Flask & Flask-Login**
+- **SQLAlchemy (SQLite / PostgreSQL)**
+- **Boto3 (AWS S3)**
+- **Docker, Docker Compose**
+- **Nginx & Gunicorn**
+- **Bootstrap 5 (Frontend)**
 
-## Production Readiness
-When deploying to a production WSGI server (like Gunicorn):
-- Ensure `app.debug` is disabled.
-- Set a strong `SECRET_KEY` in the environment.
-- HTTPS/SSL should be enforced at the reverse proxy (Nginx/Apache).
-- Error logs are automatically captured in `logs/cloudvault.log`.
+## License
+Proprietary & Confidential. All rights reserved.

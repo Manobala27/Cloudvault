@@ -1,0 +1,49 @@
+name: CloudVault CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:24.0-dind
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # (Assuming tests/ exist, or we run verifications)
+    # Since this project leverages verification scripts heavily:
+    - name: Run Module Verifications
+      run: |
+        # Skip interactive verifications and focus on structural checks or fast API checks if we refactor them for headless.
+        # Just verifying the module structures load correctly without syntax errors.
+        python -c "import app; print('App loads successfully.')"
+        
+    - name: Build Docker Image
+      run: |
+        docker build -t cloudvault-app:latest .
+        
+    - name: Test Docker Container Startup
+      run: |
+        docker run -d -p 5000:5000 --name cloudvault cloudvault-app:latest
+        sleep 10
+        curl -f http://localhost:5000/health || exit 1
+        docker stop cloudvault
