@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Two-Factor Authentication{% endblock %}
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-shield-lock text-primary" style="font-size: 3rem;"></i>
+                        <h3 class="fw-bold mt-2">Two-Factor Authentication</h3>
+                        <p class="text-muted small">Enter the 6-digit code from your authenticator app.</p>
+                    </div>
+
+                    <!-- TOTP Form -->
+                    <form id="totpForm" method="POST" action="{{ url_for('security.verify_2fa') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="totp">
+                        
+                        <div class="mb-4">
+                            <input type="text" class="form-control form-control-lg text-center fw-bold fs-4" name="token" id="totpCode" placeholder="000000" maxlength="6" required autocomplete="one-time-code" pattern="[0-9]{6}">
+                        </div>
+                        
+                        <div class="form-check mb-4 text-start">
+                            <input class="form-check-input" type="checkbox" name="trust_device" id="trustDevice" value="1">
+                            <label class="form-check-label text-muted small" for="trustDevice">
+                                Trust this device for 30 days
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">Verify</button>
+                    </form>
+
+                    <!-- Recovery Code Form (Hidden by default) -->
+                    <form id="recoveryForm" method="POST" action="{{ url_for('security.verify_2fa') }}" class="d-none">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="recovery">
+                        
+                        <div class="mb-4">
+                            <label class="form-label text-muted small">Enter one of your 8-character recovery codes.</label>
+                            <input type="text" class="form-control text-center text-uppercase fw-bold" name="token" id="recoveryCode" placeholder="XXXXXXXX" maxlength="8" required pattern="[a-zA-Z0-9]{8}">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning w-100 fw-bold text-dark mb-3">Use Recovery Code</button>
+                    </form>
+
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <button class="btn btn-link text-decoration-none small text-muted" id="toggleFormBtn" onclick="toggleForms()">
+                            Use a recovery code instead
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let showingTotp = true;
+    function toggleForms() {
+        showingTotp = !showingTotp;
+        const totpForm = document.getElementById('totpForm');
+        const recForm = document.getElementById('recoveryForm');
+        const btn = document.getElementById('toggleFormBtn');
+        const totpInput = document.getElementById('totpCode');
+        const recInput = document.getElementById('recoveryCode');
+
+        if (showingTotp) {
+            totpForm.classList.remove('d-none');
+            recForm.classList.add('d-none');
+            btn.textContent = 'Use a recovery code instead';
+            totpInput.setAttribute('required', 'required');
+            recInput.removeAttribute('required');
+        } else {
+            totpForm.classList.add('d-none');
+            recForm.classList.remove('d-none');
+            btn.textContent = 'Use authenticator app';
+            recInput.setAttribute('required', 'required');
+            totpInput.removeAttribute('required');
+        }
+    }
+</script>
+{% endblock %}

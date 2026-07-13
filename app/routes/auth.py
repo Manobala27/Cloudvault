@@ -40,6 +40,22 @@ def login():
                 flash("Your account has been disabled by an administrator.", "danger")
                 return redirect(url_for('auth.login'))
                 
+            from datetime import datetime, timezone
+            
+            # Check if 2FA is enabled and if the device is trusted
+            device_trusted = False
+            if user.trusted_device_until and user.trusted_device_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
+                device_trusted = True
+                
+            print(f"DEBUG LOGIN: user={user.email}, 2fa_enabled={user.two_factor_enabled}, trusted={device_trusted}")
+                
+            if user.two_factor_enabled and not device_trusted:
+                from flask import session
+                session['2fa_user_id'] = user.id
+                session['2fa_remember'] = form.remember.data
+                session['2fa_next_page'] = request.args.get('next')
+                return redirect(url_for('security.verify_2fa'))
+                
             login_user(user, remember=form.remember.data)
             
             # Log Login

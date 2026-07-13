@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}Security Settings{% endblock %}
+{% block content %}
+<div class="container py-4 mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Security Settings</h2>
+            <p class="text-muted">Manage your account security and two-factor authentication.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 2FA Status -->
+        <div class="col-md-8 mx-auto">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            {% if current_user.two_factor_enabled %}
+                                <i class="bi bi-shield-check text-success" style="font-size: 3rem;"></i>
+                            {% else %}
+                                <i class="bi bi-shield-exclamation text-warning" style="font-size: 3rem;"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-1">Two-Factor Authentication (2FA)</h4>
+                            {% if current_user.two_factor_enabled %}
+                                <span class="badge bg-success">Enabled</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Disabled</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if not current_user.two_factor_enabled %}
+                        <hr>
+                        <h5 class="fw-bold">Setup 2FA</h5>
+                        <p class="text-muted">Use an authenticator app (like Google Authenticator or Authy) to scan the QR code below.</p>
+                        
+                        <div class="row align-items-center">
+                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                                {% if qr_code %}
+                                    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid border rounded p-2 bg-white">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                <p class="small mb-1 text-muted">Can't scan the QR code? Enter this secret manually:</p>
+                                <code class="d-block p-2 bg-light border rounded mb-3 user-select-all">{{ secret }}</code>
+                                
+                                <form id="enable2faForm" class="d-flex gap-2">
+                                    <input type="text" class="form-control" id="token2fa" placeholder="Enter 6-digit code" maxlength="6" required pattern="[0-9]{6}">
+                                    <button type="submit" class="btn btn-primary" id="btnEnable2fa">Enable 2FA</button>
+                                </form>
+                                <div id="enableFeedback" class="mt-2 small"></div>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <p class="text-muted mt-3">Two-factor authentication is currently enabled on your account. This adds an extra layer of security by requiring a code from your authenticator app when you log in.</p>
+                        
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#disable2faModal">
+                            <i class="bi bi-shield-slash"></i> Disable 2FA
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if current_user.two_factor_enabled %}
+            <!-- Recovery Codes -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="fw-bold"><i class="bi bi-key-fill text-primary me-2"></i>Recovery Codes</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted">Recovery codes can be used to access your account in the event you lose access to your device and cannot receive two-factor authentication codes.</p>
+                    
+                    <div id="recoveryCodesContainer" class="d-none mb-3">
+                        <div class="bg-light p-3 border rounded text-center mb-3">
+                            <code id="codesList" class="fs-5 text-dark" style="white-space: pre-wrap;"></code>
+                        </div>
+                        <div class="alert alert-warning py-2 mb-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Save these codes now! They will not be shown again.
+                        </div>
+                        <form action="{{ url_for('security.download_recovery_codes') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="codes" id="downloadCodesInput">
+                            <button type="submit" class="btn btn-success"><i class="bi bi-download me-1"></i> Download Codes</button>
+                        </form>
+                    </div>
+
+                    <button class="btn btn-outline-primary" id="btnRegenerateCodes" onclick="regenerateCodes()">
+                        <i class="bi bi-arrow-clockwise"></i> Generate New Recovery Codes
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Disable 2FA Modal -->
+<div class="modal fade" id="disable2faModal" tabindex="-1" aria-labelledby="disable2faModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="disable2faModalLabel">Disable 2FA</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> This will decrease the security of your account.</p>
+                <p>Please enter your password to confirm you want to disable two-factor authentication.</p>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="disablePassword" placeholder="Your password">
+                </div>
+                <div id="disableFeedback" class="small text-danger"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btnDisableConfirm" onclick="disable2fa()">Disable 2FA</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<script>
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    // Enable 2FA
+    const enableForm = document.getElementById('enable2faForm');
+    if (enableForm) {
+        enableForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const token = document.getElementById('token2fa').value;
+            const btn = document.getElementById('btnEnable2fa');
+            const feedback = document.getElementById('enableFeedback');
+            
+            btn.disabled = true;
+            feedback.innerHTML = '<span class="text-muted">Verifying...</span>';
+            
+            fetch("{{ url_for('security.enable_2fa') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({token: token})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    feedback.innerHTML = '<span class="text-success">2FA Enabled Successfully!</span>';
+                    // Show recovery codes directly
+                    const codes = data.recovery_codes;
+                    localStorage.setItem('temp_recovery_codes', JSON.stringify(codes));
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    btn.disabled = false;
+                    feedback.innerHTML = `<span class="text-danger">${data.message}</span>`;
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                feedback.innerHTML = '<span class="text-danger">An error occurred.</span>';
+            });
+        });
+    }
+
+    // Disable 2FA
+    function disable2fa() {
+        const password = document.getElementById('disablePassword').value;
+        const btn = document.getElementById('btnDisableConfirm');
+        const feedback = document.getElementById('disableFeedback');
+        
+        if (!password) {
+            feedback.textContent = 'Password is required';
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.innerHTML = 'Disabling...';
+        
+        fetch("{{ url_for('security.disable_2fa') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({password: password})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = 'Disable 2FA';
+                feedback.textContent = data.message;
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = 'Disable 2FA';
+            feedback.textContent = 'An error occurred.';
+        });
+    }
+
+    // Regenerate Codes
+    function regenerateCodes() {
+        if (!confirm("Are you sure? Your old recovery codes will stop working immediately.")) return;
+        
+        const btn = document.getElementById('btnRegenerateCodes');
+        btn.disabled = true;
+        
+        fetch("{{ url_for('security.regenerate_recovery_codes') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                displayCodes(data.recovery_codes);
+            } else {
+                alert(data.message);
+            }
+            btn.disabled = false;
+        })
+        .catch(err => {
+            alert("Error generating codes.");
+            btn.disabled = false;
+        });
+    }
+
+    function displayCodes(codes) {
+        document.getElementById('recoveryCodesContainer').classList.remove('d-none');
+        document.getElementById('codesList').textContent = codes.join('    ');
+        document.getElementById('downloadCodesInput').value = JSON.stringify(codes);
+    }
+
+    // Check for newly generated codes from redirect
+    window.addEventListener('load', () => {
+        const tempCodes = localStorage.getItem('temp_recovery_codes');
+        if (tempCodes) {
+            try {
+                displayCodes(JSON.parse(tempCodes));
+            } catch (e) {}
+            localStorage.removeItem('temp_recovery_codes');
+        }
+    });
+</script>
+{% endblock %}

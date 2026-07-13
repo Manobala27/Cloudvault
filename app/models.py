@@ -15,6 +15,13 @@ class User(db.Model, UserMixin):
     date_registered = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    
+    # 2FA (Module 21)
+    two_factor_enabled = db.Column(db.Boolean, default=False, nullable=False)
+    two_factor_secret = db.Column(db.String(32), nullable=True) # Usually a base32 string
+    backup_codes = db.Column(db.Text, nullable=True) # Encrypted JSON or text
+    trusted_device_until = db.Column(db.DateTime, nullable=True)
+    
     files = db.relationship('File', backref='owner', lazy=True)
     folders = db.relationship('Folder', backref='owner', lazy=True)
 

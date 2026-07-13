@@ -46,6 +46,9 @@ def create_app(config_class=Config):
     from app.routes.analytics import analytics_bp
     app.register_blueprint(analytics_bp)
 
+    from app.routes.security import security_bp
+    app.register_blueprint(security_bp)
+
     from app.routes.activity import activity_bp as activity_blueprint
     app.register_blueprint(activity_blueprint)
 
