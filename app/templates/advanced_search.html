@@ -11,26 +11,26 @@
 <div class="row">
     <!-- Filter Panel (Left Sidebar) -->
     <div class="col-lg-3 col-md-4 mb-4">
-        <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">Filters</h5>
+        <div class="premium-card-large sticky-top" style="top: 80px;">
+            <div class="card-header bg-transparent border-bottom-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold text-white">Filters</h5>
                 <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted" onclick="resetFilters()">Clear</button>
             </div>
             <div class="card-body">
                 <form id="advancedSearchForm" onsubmit="event.preventDefault(); triggerSearch(true);">
                     <!-- Search Query -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-muted small">Keywords</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
-                            <input type="text" class="form-control bg-light border-start-0 ps-0" id="filter-query" placeholder="Search files & folders...">
+                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Keywords</label>
+                        <div class="input-group search-pill-modern mb-2">
+                            <span class="input-group-text border-0 bg-transparent text-muted"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" class="form-control border-0 shadow-none ps-0" id="filter-query" placeholder="Search files & folders...">
                         </div>
                     </div>
                     
                     <!-- Item Type -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-muted small">Item Type</label>
-                        <select class="form-select bg-light" id="filter-type">
+                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Item Type</label>
+                        <select class="form-select bg-dark text-white border-secondary" id="filter-type">
                             <option value="all">All Items</option>
                             <option value="files">Files Only</option>
                             <option value="folders">Folders Only</option>
@@ -39,7 +39,7 @@
 
                     <!-- Tags -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-muted small">Tags</label>
+                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Tags</label>
                         <div class="d-flex flex-wrap gap-2">
                             {% for tag in user_tags %}
                             <input type="checkbox" class="btn-check filter-tag" id="tag-{{ tag.id }}" value="{{ tag.id }}" data-tag-name="{{ tag.name }}" data-tag-color="{{ tag.color_hex }}">
@@ -60,31 +60,31 @@
 
                     <!-- File Extensions -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-muted small">File Type (Extensions)</label>
-                        <input type="text" class="form-control bg-light" id="filter-ext" placeholder="e.g. .pdf, .jpg, .docx">
+                        <label class="form-label fw-semibold text-white-50 small text-uppercase">File Type (Extensions)</label>
+                        <input type="text" class="form-control bg-dark text-white border-secondary" id="filter-ext" placeholder="e.g. .pdf, .jpg, .docx">
                         <div class="form-text">Comma separated</div>
                     </div>
 
                     <!-- Size Range -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-muted small">File Size Range (MB)</label>
+                        <label class="form-label fw-semibold text-white-50 small text-uppercase">File Size Range (MB)</label>
                         <div class="d-flex gap-2">
-                            <input type="number" class="form-control bg-light" id="filter-size-min" placeholder="Min" min="0">
-                            <input type="number" class="form-control bg-light" id="filter-size-max" placeholder="Max" min="0">
+                            <input type="number" class="form-control bg-dark text-white border-secondary" id="filter-size-min" placeholder="Min" min="0">
+                            <input type="number" class="form-control bg-dark text-white border-secondary" id="filter-size-max" placeholder="Max" min="0">
                         </div>
                     </div>
 
                     <!-- Date Range -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-muted small">Upload Date Range</label>
-                        <input type="date" class="form-control bg-light mb-2" id="filter-date-start" placeholder="From">
-                        <input type="date" class="form-control bg-light" id="filter-date-end" placeholder="To">
+                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Upload Date Range</label>
+                        <input type="date" class="form-control bg-dark text-white border-secondary mb-2" id="filter-date-start" placeholder="From">
+                        <input type="date" class="form-control bg-dark text-white border-secondary" id="filter-date-end" placeholder="To">
                     </div>
 
                     <!-- Sort -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-muted small">Sort By</label>
-                        <select class="form-select bg-light" id="filter-sort">
+                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Sort By</label>
+                        <select class="form-select bg-dark text-white border-secondary" id="filter-sort">
                             <option value="newest">Newest First</option>
                             <option value="oldest">Oldest First</option>
                             <option value="name_asc">Name (A-Z)</option>
@@ -123,7 +123,7 @@
             </div>
             
             <!-- Empty State -->
-            <div id="search-empty" class="text-center py-5 border rounded-4 bg-light d-none">
+            <div id="search-empty" class="text-center py-5 border rounded-4 bg-dark text-white border-secondary d-none">
                 <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
                 <h4 class="mt-3 text-muted">No results found</h4>
                 <p class="text-muted">Try adjusting your filters or search query.</p>

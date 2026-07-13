@@ -135,11 +135,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function uploadFile(file) {
-            // Update UI to show progress
-            uploadText.innerHTML = `Uploading <strong>${file.name}</strong>...`;
+            // Transform dropzone into preview mode
+            dropzone.style.display = 'none';
+            progressContainer.className = 'upload-progress-wrapper';
             progressContainer.style.display = 'block';
+            
+            // Build the card preview
+            let isImage = file.type.startsWith('image/');
+            let thumbHtml = isImage 
+                ? `<div class="saas-file-preview d-flex justify-content-center align-items-center bg-dark rounded-top-4 overflow-hidden" style="height: 160px;">
+                     <img id="preview-img" class="w-100 h-100 object-fit-cover" src="" alt="preview">
+                   </div>`
+                : `<div class="saas-file-preview d-flex justify-content-center align-items-center bg-dark rounded-top-4" style="height: 160px;">
+                     <i class="bi bi-file-earmark-text-fill text-secondary opacity-50" style="font-size: 4rem;"></i>
+                   </div>`;
+                   
+            uploadText.innerHTML = `
+                <div class="saas-file-card d-flex flex-column mb-3 text-start">
+                    ${thumbHtml}
+                    <div class="card-body p-3">
+                        <h6 class="fw-bolder text-white text-truncate mb-1">${file.name}</h6>
+                        <div class="text-white-50 small fw-medium">${(file.size / (1024*1024)).toFixed(2)} MB</div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-white fw-bold" id="upload-status-text">Uploading...</span>
+                    <span class="text-primary fw-bold" id="upload-percent">0%</span>
+                </div>
+            `;
+            
+            if (isImage) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('preview-img');
+                    if(img) img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+            
             progressBar.style.width = '0%';
-            progressBar.innerHTML = '0%';
+            progressBar.innerHTML = '';
             
             // Disable clicks
             dropzone.style.pointerEvents = 'none';
@@ -159,7 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (e.lengthComputable) {
                     const percentComplete = Math.round((e.loaded / e.total) * 100);
                     progressBar.style.width = percentComplete + '%';
-                    progressBar.innerHTML = percentComplete + '%';
+                    const percentText = document.getElementById('upload-percent');
+                    if (percentText) percentText.innerHTML = percentComplete + '%';
                 }
             });
             
@@ -167,8 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (xhr.status >= 200 && xhr.status < 400) {
                     // Success! Redirect or reload (the backend redirects to dashboard)
                     progressBar.classList.add('bg-success');
-                    progressBar.innerHTML = 'Complete!';
-                    uploadText.innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> Upload Successful! Redirecting...`;
+                    const statusText = document.getElementById('upload-status-text');
+                    const percentText = document.getElementById('upload-percent');
+                    if (statusText) statusText.innerHTML = `<i class="bi bi-check-circle-fill text-success me-2"></i>Upload Successful`;
+                    if (percentText) percentText.innerHTML = `100%`;
                     
                     // We must reload since the backend probably returned HTML or a redirect
                     // Wait a second for user to see success
@@ -178,16 +216,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     // Error
                     progressBar.classList.add('bg-danger');
-                    progressBar.innerHTML = 'Error';
-                    uploadText.innerHTML = `<span class="text-danger">Upload failed. File might be too large.</span>`;
+                    const statusText = document.getElementById('upload-status-text');
+                    if (statusText) statusText.innerHTML = `<i class="bi bi-x-circle-fill text-danger me-2"></i>Failed (File may be too large)`;
+                    dropzone.style.display = 'block';
                     dropzone.style.pointerEvents = 'auto';
                 }
             };
             
             xhr.onerror = function() {
                 progressBar.classList.add('bg-danger');
-                progressBar.innerHTML = 'Error';
-                uploadText.innerHTML = `<span class="text-danger">Network Error</span>`;
+                const statusText = document.getElementById('upload-status-text');
+                if (statusText) statusText.innerHTML = `<i class="bi bi-x-circle-fill text-danger me-2"></i>Network Error`;
+                dropzone.style.display = 'block';
                 dropzone.style.pointerEvents = 'auto';
             };
             
