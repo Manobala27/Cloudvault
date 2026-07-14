@@ -48,9 +48,6 @@ https://cloudvault-1-w43f.onrender.com
 - Application Hosted on Render
 - Database Hosted on Neon PostgreSQL
 
-## 📷 Screenshots
-
-(Add screenshots here)
 
 ## 👨‍💻 Author
 
