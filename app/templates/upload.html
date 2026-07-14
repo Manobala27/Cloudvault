@@ -2,58 +2,108 @@
 {% block title %}Upload File{% endblock %}
 {% block content %}
 <div class="row justify-content-center mb-5">
-    <div class="col-md-8 col-lg-7">
+    <div class="col-md-10 col-lg-8">
         
-        <div class="page-header mb-4">
-            <div class="d-flex align-items-center">
-                <a href="{{ url_for('files.dashboard', folder_id=request.args.get('folder_id')) }}" class="btn btn-light rounded-circle me-3 shadow-sm" style="padding: 0.5rem 0.8rem;">
-                    <i class="bi bi-arrow-left"></i>
-                </a>
-                <h2 class="text-dark fw-bolder mb-0" style="letter-spacing: -0.5px;"><i class="bi bi-cloud-upload-fill text-primary me-2"></i>Upload File</h2>
+        <!-- 1. Premium page header -->
+        <div class="d-flex align-items-center mb-4 mt-2">
+            <a href="{{ url_for('files.dashboard', folder_id=request.args.get('folder_id')) }}" class="btn btn-sm btn-light rounded-circle me-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-arrow-left fs-5"></i>
+            </a>
+            <div>
+                <h2 class="fw-bolder m-0 text-high" style="letter-spacing: -0.5px;"><i class="bi bi-cloud-upload-fill text-primary me-2"></i>Upload Files</h2>
+                <p class="text-white-50 mb-0 mt-1 small fw-medium">Securely upload and store your files in CloudVault</p>
             </div>
         </div>
 
-        <div class="premium-card-large">
-            <div>
-                
-                <form id="upload-form" action="{{ url_for('files.upload') }}" method="POST" enctype="multipart/form-data" data-redirect-url="{{ url_for('files.dashboard', folder_id=request.args.get('folder_id')) }}">
-                    {{ form.hidden_tag() }}
-                    
-                    {% set folder_id = request.args.get('folder_id') %}
-                    {% if folder_id %}
-                    <input type="hidden" name="folder_id" value="{{ folder_id }}">
-                    <div class="alert alert-info py-2 d-flex align-items-center rounded-3 mb-4">
-                        <i class="bi bi-folder-fill me-2 fs-5"></i>
-                        <span>Uploading to this folder</span>
-                    </div>
-                    {% endif %}
+        <form id="upload-form" action="{{ url_for('files.upload') }}" method="POST" enctype="multipart/form-data" data-redirect-url="{{ url_for('files.dashboard', folder_id=request.args.get('folder_id')) }}">
+            {{ form.hidden_tag() }}
+            {% set folder_id = request.args.get('folder_id') %}
+            {% if folder_id %}
+            <input type="hidden" name="folder_id" value="{{ folder_id }}">
+            <div class="alert bg-primary bg-opacity-10 text-primary border-0 py-3 d-flex align-items-center rounded-4 mb-4 fw-medium shadow-sm">
+                <i class="bi bi-folder-fill me-3 fs-4"></i>
+                <span class="fs-6">Uploading directly to selected folder</span>
+            </div>
+            {% endif %}
 
-                    <!-- Drag & Drop Zone -->
-                    <div id="upload-dropzone" class="upload-dropzone mb-4 shadow-sm" style="background-color: var(--cv-surface-alt);">
-                        <i class="bi bi-cloud-arrow-up-fill upload-icon"></i>
-                        <h4 class="fw-bold mb-2">Drag & Drop your file here</h4>
-                        <p class="text-muted mb-4">Or click to browse your computer</p>
-                        
-                        <!-- The actual file input is hidden but triggered by clicking the dropzone -->
-                        {{ form.file(class="d-none", id="file-input", required=True) }}
-                        <button type="button" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm fw-bold cv-hover-lift" onclick="document.getElementById('file-input').click()">
-                            Browse Files
-                        </button>
-                    </div>
-                    
-                    <p class="text-center text-muted small"><i class="bi bi-info-circle me-1"></i> Maximum file size: 10MB</p>
-
-                    <!-- Custom Progress Bar (Hidden by default) -->
-                    <div id="progress-container" class="mt-4" style="display: none;">
-                        <p id="upload-text" class="mb-2 text-center text-primary fw-semibold">Uploading...</p>
-                        <div class="progress rounded-pill shadow-sm" style="height: 20px;">
-                            <div id="upload-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary fw-bold" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            <!-- 2. Large centered upload card -->
+            <div class="saas-file-card cv-hover-lift mb-4" style="height: auto !important; border-radius: var(--cv-radius-xl);">
+                <div class="card-body p-4 p-md-5">
+                    <div id="upload-dropzone" class="cv-upload-zone" style="min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed rgba(14, 165, 233, 0.3); border-radius: var(--cv-radius-lg); background: rgba(15, 23, 42, 0.4); transition: all 0.3s ease;">
+                        <div class="position-relative z-1 text-center">
+                            <i class="bi bi-cloud-arrow-up cv-upload-icon text-primary mb-3" style="font-size: 5rem; display: block; line-height: 1; filter: drop-shadow(0 0 20px rgba(14, 165, 233, 0.3)); transition: transform 0.3s ease;"></i>
+                            <h3 class="fw-bold text-white mb-2">Drag & Drop your files here</h3>
+                            <p class="text-white-50 mb-4 fw-medium fs-6">Or click to browse your computer</p>
+                            
+                            {{ form.file(class="d-none", id="file-input", required=True) }}
+                            <button id="browse-btn" type="button" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-lg" style="font-size: 1.1rem;" onclick="console.log('7. Browse button clicked'); document.getElementById('file-input').click()">
+                                Browse Files
+                            </button>
+                            <script>
+                                console.log("5. Browse button found:", !!document.getElementById('browse-btn'));
+                            </script>
                         </div>
                     </div>
-                    
-                </form>
+                </div>
             </div>
-        </div>
+
+            <!-- 3. Information row -->
+            <div class="row g-3 mb-5">
+                <div class="col-6 col-md-3">
+                    <div class="saas-folder-card p-3 rounded-4 d-flex align-items-center gap-3" style="height: auto !important; border: 1px solid var(--cv-surface-border);">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;"><i class="bi bi-hdd-fill fs-5"></i></div>
+                        <div>
+                            <div class="small fw-bold text-white mb-0">Max Size</div>
+                            <div class="small text-white-50" style="font-size: 0.75rem;">10 MB per file</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="saas-folder-card p-3 rounded-4 d-flex align-items-center gap-3" style="height: auto !important; border: 1px solid var(--cv-surface-border);">
+                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;"><i class="bi bi-file-earmark-check-fill fs-5"></i></div>
+                        <div>
+                            <div class="small fw-bold text-white mb-0">Formats</div>
+                            <div class="small text-white-50" style="font-size: 0.75rem;">All types</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="saas-folder-card p-3 rounded-4 d-flex align-items-center gap-3" style="height: auto !important; border: 1px solid var(--cv-surface-border);">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;"><i class="bi bi-shield-lock-fill fs-5"></i></div>
+                        <div>
+                            <div class="small fw-bold text-white mb-0">Security</div>
+                            <div class="small text-white-50" style="font-size: 0.75rem;">Encrypted</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="saas-folder-card p-3 rounded-4 d-flex align-items-center gap-3" style="height: auto !important; border: 1px solid var(--cv-surface-border);">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;"><i class="bi bi-lightning-charge-fill fs-5"></i></div>
+                        <div>
+                            <div class="small fw-bold text-white mb-0">Speed</div>
+                            <div class="small text-white-50" style="font-size: 0.75rem;">Fast CDN</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Upload queue -->
+            <div id="upload-queue-container" class="mt-4" style="display: none;">
+                <h5 class="fw-bold text-white mb-3"><i class="bi bi-list-ul me-2 text-primary"></i>Upload Queue</h5>
+                <div id="upload-queue-list" class="d-flex flex-column gap-3">
+                    <!-- Queue items populated by JS -->
+                </div>
+            </div>
+
+            <!-- 5. Empty state -->
+            <div id="upload-empty-state" class="text-center py-5 my-3 bg-transparent border border-secondary rounded-4 border shadow-sm" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-3" style="width: 80px; height: 80px; background: rgba(255,255,255,0.03);">
+                    <i class="bi bi-inboxes text-white-50" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                </div>
+                <h5 class="text-white-50 fw-medium m-0">No uploads yet</h5>
+            </div>
+
+        </form>
     </div>
 </div>
 {% endblock %}

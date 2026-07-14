@@ -73,7 +73,15 @@ class S3Service:
             logger.info(f"Successfully uploaded {filename} to {self.bucket_name}")
             return True
         except Exception as e:
-            logger.error(f"Failed to upload {filename} to {self.bucket_name}: {str(e)}")
+            import traceback
+            print("========== S3 UPLOAD ERROR ==========", flush=True)
+            traceback.print_exc()
+            print("Exception:", repr(e), flush=True)
+            print("Bucket:", self.bucket_name, flush=True)
+            print("Filename:", filename, flush=True)
+            print("ContentType:", content_type, flush=True)
+            print("=====================================", flush=True)
+            logger.exception("S3 upload failed")
             return False
 
     def get_bucket_region(self):

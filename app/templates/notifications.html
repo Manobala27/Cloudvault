@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
     <div class="mb-3 mb-md-0">
-        <h2 class="text-dark"><i class="bi bi-bell-fill text-primary me-2"></i> Notifications</h2>
+        <h2 class="text-white"><i class="bi bi-bell-fill text-primary me-2"></i> Notifications</h2>
     </div>
     <div class="d-flex gap-2">
         <button onclick="markAllRead()" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold"><i class="bi bi-check2-all me-2"></i>Mark All Read</button>
@@ -36,7 +36,7 @@
                     <div class="flex-grow-1">
                         <div class="d-flex w-100 justify-content-between align-items-center">
                             <h6 class="mb-1 fw-bold">{{ notif.title }}</h6>
-                            <small class="text-muted" title="{{ notif.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}">
+                            <small class="text-white-50" title="{{ notif.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}">
                                 {% set diff = (now() - notif.created_at).total_seconds() %}
                                 {% if diff < 60 %} Just now
                                 {% elif diff < 3600 %} {{ (diff / 60)|int }}m ago
@@ -60,7 +60,7 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="p-5 text-center text-muted">
+                <div class="p-5 text-center text-white-50">
                     <i class="bi bi-bell-slash fs-1 mb-3 text-secondary"></i>
                     <h4>No notifications yet.</h4>
                     <p>You're all caught up!</p>

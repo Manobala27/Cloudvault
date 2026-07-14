@@ -17,58 +17,14 @@
     
     <!-- Render Folders -->
     {% for folder in folders %}
-    <div class="cv-card" data-search-name="{{ folder.name }}">
-        <div class="cv-card-icon">
-            <i class="bi bi-folder-fill text-warning" style="font-size: 3rem;"></i>
-        </div>
-        <a href="{{ url_for('files.dashboard', folder_id=folder.id) }}" class="cv-card-title">{{ folder.name }}</a>
-        <div class="cv-card-meta mb-2">
-            <span>{{ folder.files|selectattr('is_deleted', 'equalto', False)|list|length }} files</span>
-            <span>{{ folder.created_at.strftime('%Y-%m-%d') }}</span>
-        </div>
-        
-        <div class="mb-3">
-            {% for t in folder.tags %}
-            <span class="badge rounded-pill me-1" style="background-color: {{ t.color_hex }}; font-weight: normal; font-size: 0.75rem;">{{ t.name }}</span>
-            {% endfor %}
-        </div>
-        
-        <div class="cv-card-actions">
-            <a href="{{ url_for('files.dashboard', folder_id=folder.id) }}" class="btn btn-primary w-100">
-                <i class="bi bi-box-arrow-in-right"></i> Open Folder
-            </a>
-        </div>
-    </div>
+    {% set is_dashboard = False %}
+    {% include 'components/folder_card.html' %}
     {% endfor %}
 
     <!-- Render Files -->
     {% for f in files.items %}
-    <div class="cv-card" data-search-name="{{ f.original_filename }}">
-        <div class="cv-card-icon position-relative">
-            {% if f.original_filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
-                <img src="{{ f.presigned_url }}" alt="thumbnail">
-            {% else %}
-                <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>
-            {% endif %}
-        </div>
-        
-        <h6 class="cv-card-title">{{ f.original_filename }}</h6>
-        <div class="cv-card-meta mb-2">
-            <span>{{ f.file_size|format_size }}</span>
-            <span>{{ f.upload_date.strftime('%Y-%m-%d') }}</span>
-        </div>
-        
-        <div class="mb-3">
-            {% for t in f.tags %}
-            <span class="badge rounded-pill me-1" style="background-color: {{ t.color_hex }}; font-weight: normal; font-size: 0.75rem;">{{ t.name }}</span>
-            {% endfor %}
-        </div>
-        
-        <div class="cv-card-actions">
-            <a href="{{ url_for('files.preview', file_id=f.id) }}" class="btn btn-outline-info w-50" title="Preview"><i class="bi bi-eye"></i> Preview</a>
-            <a href="{{ url_for('files.download', file_id=f.id) }}" class="btn btn-primary w-50" title="Download"><i class="bi bi-download"></i> DL</a>
-        </div>
-    </div>
+    {% set is_dashboard = False %}
+    {% include 'components/file_card.html' %}
     {% endfor %}
 </div>
 

@@ -16,6 +16,14 @@ files = Blueprint('files', __name__)
 @login_required
 def upload():
     form = UploadForm()
+    
+    if request.method == 'POST':
+        print("request.files =", request.files, flush=True)
+        print("request.form =", request.form, flush=True)
+        print("form.errors =", form.errors, flush=True)
+        
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
     if form.validate_on_submit():
         file_obj = form.file.data
         original_filename = secure_filename(file_obj.filename)
@@ -26,6 +34,11 @@ def upload():
         file_obj.seek(0, os.SEEK_SET) # Reset pointer
         
         if file_size > 10 * 1024 * 1024:
+            if is_ajax:
+                return jsonify({
+                    "success": False,
+                    "errors": {"file": ["File size exceeds the 10MB limit."]}
+                }), 400
             flash("File size exceeds the 10MB limit.", "danger")
             return redirect(url_for('files.upload'))
 
@@ -74,8 +87,10 @@ def upload():
                 log = ActivityLog(user_id=current_user.id, action='VERSION_CREATED', file_name=f"{original_filename} (V{max_version+1})", ip_address=request.remote_addr)
                 db.session.add(log)
                 db.session.commit()
-                notification_service.create_notification(current_user.id, "Version Created", f"New version of {original_filename} uploaded.", "VERSION_CREATED", "bi-cloud-arrow-up")
-                flash(f"New version of '{original_filename}' uploaded successfully!", "success")
+                
+                if not is_ajax:
+                    notification_service.create_notification(current_user.id, "Version Created", f"New version of {original_filename} uploaded.", "VERSION_CREATED", "bi-cloud-arrow-up")
+                    flash(f"New version of '{original_filename}' uploaded successfully!", "success")
             else:
                 # Create new file and version 1
                 new_file = File(
@@ -101,106 +116,131 @@ def upload():
                 log = ActivityLog(user_id=current_user.id, action='UPLOAD', file_name=original_filename, ip_address=request.remote_addr)
                 db.session.add(log)
                 db.session.commit()
-                notification_service.create_notification(current_user.id, "Upload Success", f"File '{original_filename}' uploaded successfully.", "UPLOAD_SUCCESS", "bi-check-circle")
-                flash(f"File '{original_filename}' uploaded successfully!", "success")
+                
+                if not is_ajax:
+                    notification_service.create_notification(current_user.id, "Upload Success", f"File '{original_filename}' uploaded successfully.", "UPLOAD_SUCCESS", "bi-check-circle")
+                    flash(f"File '{original_filename}' uploaded successfully!", "success")
+            
+            if is_ajax:
+                return jsonify({
+                    "success": True,
+                    "redirect": url_for("files.dashboard")
+                })
             
             return redirect(url_for('files.dashboard'))
         else:
+            if is_ajax:
+                return jsonify({
+                    "success": False,
+                    "message": "Failed to upload file to S3."
+                }), 500
+            
             notification_service.create_notification(current_user.id, "Upload Failed", "Failed to upload file to S3.", "UPLOAD_FAILED", "bi-x-circle")
             flash("Failed to upload file to S3. Please try again.", "danger")
             
+    elif request.method == 'POST' and is_ajax:
+        return jsonify({
+            "success": False,
+            "errors": form.errors
+        }), 400
+
     return render_template('upload.html', title='Upload File', form=form)
 
 @files.route("/dashboard")
 @login_required
 def dashboard():
-    page = request.args.get('page', 1, type=int)
-    search_query = request.args.get('search', '')
-    sort_by = request.args.get('sort', 'newest')
-    folder_id_str = request.args.get('folder_id')
-    
-    current_folder = None
-    folder_id = None
-    if folder_id_str and folder_id_str.isdigit():
-        folder_id = int(folder_id_str)
-        current_folder = Folder.query.get_or_404(folder_id)
-        if current_folder.owner != current_user:
-            flash("You don't have permission to view this folder.", "danger")
-            return redirect(url_for('files.dashboard'))
+    print("ENTER dashboard()", flush=True)
+    try:
+        page = request.args.get('page', 1, type=int)
+        search_query = request.args.get('search', '')
+        sort_by = request.args.get('sort', 'newest')
+        folder_id_str = request.args.get('folder_id')
+        
+        current_folder = None
+        folder_id = None
+        if folder_id_str and folder_id_str.isdigit():
+            folder_id = int(folder_id_str)
+            current_folder = Folder.query.get_or_404(folder_id)
+            if current_folder.owner != current_user:
+                flash("You don't have permission to view this folder.", "danger")
+                return redirect(url_for('files.dashboard'))
 
-    from sqlalchemy.orm import joinedload
-    
-    # Base query for current user's files and folders
-    file_query = File.query.options(joinedload(File.tags)).filter_by(owner=current_user, is_deleted=False)
-    folder_query = Folder.query.options(joinedload(Folder.tags)).filter_by(owner=current_user, is_deleted=False)
+        from sqlalchemy.orm import joinedload
+        
+        # Base query for current user's files and folders
+        file_query = File.query.options(joinedload(File.tags)).filter_by(owner=current_user, is_deleted=False)
+        folder_query = Folder.query.options(joinedload(Folder.tags)).filter_by(owner=current_user, is_deleted=False)
 
-    if search_query:
-        file_query = file_query.filter(File.original_filename.ilike(f'%{search_query}%'))
-        folder_query = folder_query.filter(Folder.name.ilike(f'%{search_query}%'))
-        # When searching, ignore folder hierarchy to show all matches
-    else:
-        file_query = file_query.filter_by(folder_id=folder_id)
-        folder_query = folder_query.filter_by(parent_id=folder_id)
+        if search_query:
+            file_query = file_query.filter(File.original_filename.ilike(f'%{search_query}%'))
+            folder_query = folder_query.filter(Folder.name.ilike(f'%{search_query}%'))
+            # When searching, ignore folder hierarchy to show all matches
+        else:
+            file_query = file_query.filter_by(folder_id=folder_id)
+            folder_query = folder_query.filter_by(parent_id=folder_id)
 
-    # Search logic
-    if search_query:
-        query = query.filter(File.original_filename.ilike(f'%{search_query}%'))
+        # Sorting logic
+        if sort_by == 'oldest':
+            file_query = file_query.order_by(File.upload_date.asc())
+            folder_query = folder_query.order_by(Folder.created_at.asc())
+        elif sort_by == 'name_asc':
+            file_query = file_query.order_by(File.original_filename.asc())
+            folder_query = folder_query.order_by(Folder.name.asc())
+        elif sort_by == 'name_desc':
+            file_query = file_query.order_by(File.original_filename.desc())
+            folder_query = folder_query.order_by(Folder.name.desc())
+        else:
+            file_query = file_query.order_by(File.upload_date.desc()) # default 'newest'
+            folder_query = folder_query.order_by(Folder.created_at.desc())
 
-    # Sorting logic
-    if sort_by == 'oldest':
-        file_query = file_query.order_by(File.upload_date.asc())
-        folder_query = folder_query.order_by(Folder.created_at.asc())
-    elif sort_by == 'name_asc':
-        file_query = file_query.order_by(File.original_filename.asc())
-        folder_query = folder_query.order_by(Folder.name.asc())
-    elif sort_by == 'name_desc':
-        file_query = file_query.order_by(File.original_filename.desc())
-        folder_query = folder_query.order_by(Folder.name.desc())
-    else:
-        file_query = file_query.order_by(File.upload_date.desc()) # default 'newest'
-        folder_query = folder_query.order_by(Folder.created_at.desc())
+        # We paginate files, but typically show all folders for the current view.
+        # To keep UI simple, we'll just fetch all subfolders for this page.
+        folders = folder_query.all()
+        files_paginated = file_query.paginate(page=page, per_page=10)
 
-    # We paginate files, but typically show all folders for the current view.
-    # To keep UI simple, we'll just fetch all subfolders for this page.
-    folders = folder_query.all()
-    files_paginated = file_query.paginate(page=page, per_page=10)
+        # Calculate stats
+        all_files = File.query.filter_by(owner=current_user).all()
+        total_files = len(all_files)
+        
+        # Calculate total size including all historical versions
+        from app.models import FileVersion
+        all_versions = FileVersion.query.filter_by(uploaded_by=current_user.id).all()
+        total_size = sum(v.file_size for v in all_versions)
 
-    # Calculate stats
-    all_files = File.query.filter_by(owner=current_user).all()
-    total_files = len(all_files)
-    
-    # Calculate total size including all historical versions
-    from app.models import FileVersion
-    all_versions = FileVersion.query.filter_by(uploaded_by=current_user.id).all()
-    total_size = sum(v.file_size for v in all_versions)
+        # Generate presigned URLs for preview/download for current page items
+        for f in files_paginated.items:
+            f.presigned_url = s3_service.generate_presigned_url(f.filename)
 
-    # Generate presigned URLs for preview/download for current page items
-    for f in files_paginated.items:
-        f.presigned_url = s3_service.generate_presigned_url(f.filename)
-
-    # Breadcrumbs
-    breadcrumbs = []
-    if current_folder:
-        curr = current_folder
-        while curr:
-            breadcrumbs.insert(0, curr)
-            curr = curr.parent
-            
-    # Pre-fetch all tags for this user so we can render them in the assign modal
-    from app.models import Tag
-    user_tags = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.name.asc()).all()
-    
-    return render_template('dashboard.html',
-                           title='Dashboard',
-                           files=files_paginated,
-                           folders=folders,
-                           current_folder=current_folder,
-                           breadcrumbs=breadcrumbs,
-                           search_query=search_query,
-                           sort_by=sort_by,
-                           total_files=total_files,
-                           total_size=total_size,
-                           user_tags=user_tags)
+        # Breadcrumbs
+        breadcrumbs = []
+        if current_folder:
+            curr = current_folder
+            while curr:
+                breadcrumbs.insert(0, curr)
+                curr = curr.parent
+                
+        # Pre-fetch all tags for this user so we can render them in the assign modal
+        from app.models import Tag
+        user_tags = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.name.asc()).all()
+        
+        print("EXIT dashboard()", flush=True)
+        return render_template('dashboard.html',
+                               title='Dashboard',
+                               files=files_paginated,
+                               folders=folders,
+                               current_folder=current_folder,
+                               breadcrumbs=breadcrumbs,
+                               search_query=search_query,
+                               sort_by=sort_by,
+                               total_files=total_files,
+                               total_size=total_size,
+                               user_tags=user_tags)
+    except Exception:
+        import traceback
+        print("\n========== DASHBOARD ERROR ==========", flush=True)
+        traceback.print_exc()
+        print("=====================================\n", flush=True)
+        raise
 
 @files.route("/download/<int:file_id>")
 @login_required

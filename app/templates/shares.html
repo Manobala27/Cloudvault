@@ -2,7 +2,7 @@
 {% block title %}Shared Files{% endblock %}
 {% block content %}
 <div class="page-header">
-    <h2 class="text-dark"><i class="bi bi-link-45deg text-success me-2"></i> Shared Files</h2>
+    <h2 class="text-white"><i class="bi bi-link-45deg text-success me-2"></i> Shared Files</h2>
 </div>
 
 <div class="table-responsive mb-4">
@@ -20,11 +20,11 @@
                 <tbody>
                     {% for share in shares %}
                     <tr>
-                        <td class="ps-4 fw-semibold text-dark">
+                        <td class="ps-4 fw-semibold text-white">
                             <i class="bi bi-file-earmark-text text-secondary me-2"></i>
                             {{ share.file.original_filename }}
                         </td>
-                        <td class="text-muted small">
+                        <td class="text-white-50 small">
                             {{ share.created_at.strftime('%Y-%m-%d %H:%M') }}
                         </td>
                         <td>
@@ -35,7 +35,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <div class="d-flex flex-column gap-1 small text-muted">
+                            <div class="d-flex flex-column gap-1 small text-white-50">
                                 <div><i class="bi bi-key{% if share.password_hash %}-fill text-warning{% endif %}"></i> {{ 'Password Protected' if share.password_hash else 'No Password' }}</div>
                                 <div><i class="bi bi-clock"></i> {{ share.expires_at.strftime('%Y-%m-%d') if share.expires_at else 'Never Expires' }}</div>
                             </div>
@@ -43,13 +43,13 @@
                         <td>
                             <div class="small">
                                 <span class="fw-bold">{{ share.download_count }}</span>
-                                <span class="text-muted">/ {{ share.download_limit if share.download_limit else '∞' }}</span>
+                                <span class="text-white-50">/ {{ share.download_limit if share.download_limit else '∞' }}</span>
                             </div>
                         </td>
                         <td class="text-end pe-4">
                             {% if share.is_active %}
                             <div class="input-group input-group-sm mb-2" style="max-width: 250px; margin-left: auto;">
-                                <input type="text" class="form-control text-muted" value="{{ url_for('files.shared_file', share_token=share.share_token, _external=True) }}" readonly id="shareLink{{ share.id }}">
+                                <input type="text" class="form-control text-white-50" value="{{ url_for('files.shared_file', share_token=share.share_token, _external=True) }}" readonly id="shareLink{{ share.id }}">
                                 <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard(document.getElementById('shareLink{{ share.id }}').value)"><i class="bi bi-clipboard"></i></button>
                             </div>
                             <form action="{{ url_for('files.revoke_specific_share', share_id=share.id) }}" method="POST" class="d-inline">
@@ -61,10 +61,14 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
-                            <i class="bi bi-link-45deg" style="font-size: 3rem;"></i>
-                            <h5 class="mt-3">No Shared Files</h5>
-                            <p>You haven't shared any files yet.</p>
+                        <td colspan="6" class="text-center py-5 my-5 bg-transparent border-0 stagger-fade-section">
+                            <div class="mb-4 d-flex justify-content-center">
+                                <div class="d-inline-flex justify-content-center align-items-center rounded-circle" style="width: 120px; height: 120px; background: rgba(16, 185, 129, 0.1);">
+                                    <i class="bi bi-link-45deg text-success" style="font-size: 4rem;"></i>
+                                </div>
+                            </div>
+                            <h3 class="fw-bold text-high mb-2">No Shared Files</h3>
+                            <p class="text-low mb-4">You haven't shared any files yet. Generate public links for your files to see them here.</p>
                         </td>
                     </tr>
                     {% endfor %}

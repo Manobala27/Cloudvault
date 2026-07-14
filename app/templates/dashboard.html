@@ -16,37 +16,37 @@
 <!-- Dashboard Header & Quick Actions -->
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-5">
     <div class="mb-3 mb-md-0">
-        <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Welcome to CloudVault</h2>
-        <p class="text-muted mb-4">Overview of your workspace and recent files.</p>
+        <h2 class="fw-bolder mb-1 text-high" style="letter-spacing: -0.5px;">Welcome to CloudVault</h2>
+        <p class="text-med mb-4">Overview of your workspace and recent files.</p>
         
         <div class="d-flex gap-2 flex-wrap">
-            <button type="button" class="btn btn-light rounded-pill shadow-sm px-4 py-2 fw-semibold btn-hover-lift" data-bs-toggle="modal" data-bs-target="#createFolderModal">
-                <i class="bi bi-folder-plus me-2 text-primary fs-5"></i> New Folder
+            <button type="button" class="dash-action-btn dash-action-btn-secondary" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                <i class="bi bi-folder-plus text-primary"></i> New Folder
             </button>
-            <a href="{{ url_for('files.upload', folder_id=current_folder.id if current_folder else '') }}" class="btn btn-dark rounded-pill shadow-sm px-4 py-2 fw-semibold btn-hover-lift">
-                <i class="bi bi-cloud-upload me-2 text-white fs-5"></i> Upload
+            <a href="{{ url_for('files.upload', folder_id=current_folder.id if current_folder else '') }}" class="dash-action-btn dash-action-btn-primary text-decoration-none">
+                <i class="bi bi-cloud-upload"></i> Upload
             </a>
-            <a href="{{ url_for('files.dashboard', search='shared:') }}" class="btn btn-light rounded-pill shadow-sm px-4 py-2 fw-semibold text-muted btn-hover-lift">
-                <i class="bi bi-share me-2 text-success fs-5"></i> Shared
+            <a href="{{ url_for('files.dashboard', search='shared:') }}" class="dash-action-btn dash-action-btn-secondary text-decoration-none">
+                <i class="bi bi-share text-success"></i> Shared
             </a>
-            <a href="{{ url_for('files.dashboard', search='is:favorite') }}" class="btn btn-light rounded-pill shadow-sm px-4 py-2 fw-semibold text-muted btn-hover-lift">
-                <i class="bi bi-star me-2 text-warning fs-5"></i> Favorites
+            <a href="{{ url_for('files.dashboard', search='is:favorite') }}" class="dash-action-btn dash-action-btn-secondary text-decoration-none">
+                <i class="bi bi-star text-warning"></i> Favorites
             </a>
         </div>
     </div>
 </div>
 
 <!-- Storage Hero & Stats -->
-<div class="row g-4 mb-5 pb-4">
+<div class="row g-4 mb-4 stagger-fade-section align-items-stretch">
     <div class="col-lg-7">
-        <div class="premium-storage-banner h-100 mb-0 d-flex flex-column justify-content-center p-4 p-md-5 rounded-4 position-relative overflow-hidden" style="background-color: #0f172a; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <div class="premium-storage-banner h-100 mb-0 d-flex flex-column justify-content-center p-4 rounded-4 position-relative overflow-hidden" style="background-color: #0f172a; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
             
             <div class="d-flex justify-content-between align-items-center mb-4 position-relative z-2">
                 <h4 class="mb-0 fw-bold text-white"><i class="bi bi-hdd-network me-2"></i> Storage Usage</h4>
-                <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold shadow-sm">Premium Plan</span>
+                <span class="badge bg-transparent border border-secondary text-primary rounded-pill px-3 py-2 fw-bold shadow-sm">Premium Plan</span>
             </div>
-            <div class="progress mb-3 rounded-pill position-relative z-2" style="height: 12px; background-color: rgba(255,255,255,0.2); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                <div class="progress-bar progress-bar-animated progress-bar-striped" role="progressbar" style="width: {{ used_percent }}%; background-color: #ffffff;" aria-valuenow="{{ used_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+            <div class="progress mb-4 rounded-pill position-relative z-2" style="height: 14px; background-color: rgba(255,255,255,0.15); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
+                <div class="progress-bar progress-bar-striped progress-bar-animated cv-animate-progress" role="progressbar" style="width: 0%; background-color: #ffffff;" data-target="{{ used_percent }}" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
             <div class="d-flex justify-content-between text-white-50 fw-semibold position-relative z-2">
                 <span class="text-white">{{ total_size|format_size }} Used</span>
@@ -59,29 +59,29 @@
             <div class="col-6">
                 <div class="stat-card-premium h-100 d-flex flex-column align-items-start justify-content-center p-4 cv-hover-lift">
                     <div class="stat-icon primary mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary bg-primary bg-opacity-10" style="width: 48px; height: 48px; font-size: 1.5rem;"><i class="bi bi-file-earmark-text-fill"></i></div>
-                    <span class="stat-value fs-3 fw-bold text-dark">{{ total_files_count }}</span>
-                    <span class="stat-label text-muted mt-1 fw-medium">Total Files</span>
+                    <span class="stat-value fs-3 fw-bold text-high cv-count-up" data-target="{{ total_files_count }}">0</span>
+                    <span class="stat-label text-low mt-1 fw-medium">Total Files</span>
                 </div>
             </div>
             <div class="col-6">
                 <div class="stat-card-premium h-100 d-flex flex-column align-items-start justify-content-center p-4 cv-hover-lift">
                     <div class="stat-icon success mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-success bg-success bg-opacity-10" style="width: 48px; height: 48px; font-size: 1.5rem;"><i class="bi bi-folder-fill"></i></div>
-                    <span class="stat-value fs-3 fw-bold text-dark">{{ total_folders_count }}</span>
-                    <span class="stat-label text-muted mt-1 fw-medium">Folders</span>
+                    <span class="stat-value fs-3 fw-bold text-high cv-count-up" data-target="{{ total_folders_count }}">0</span>
+                    <span class="stat-label text-low mt-1 fw-medium">Folders</span>
                 </div>
             </div>
             <div class="col-6">
                 <div class="stat-card-premium h-100 d-flex flex-column align-items-start justify-content-center p-4 cv-hover-lift">
                     <div class="stat-icon warning mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-warning bg-warning bg-opacity-10" style="width: 48px; height: 48px; font-size: 1.5rem;"><i class="bi bi-star-fill"></i></div>
-                    <span class="stat-value fs-3 fw-bold text-dark">{{ fav_files_count + fav_folders_count }}</span>
-                    <span class="stat-label text-muted mt-1 fw-medium">Favorites</span>
+                    <span class="stat-value fs-3 fw-bold text-high cv-count-up" data-target="{{ fav_files_count + fav_folders_count }}">0</span>
+                    <span class="stat-label text-low mt-1 fw-medium">Favorites</span>
                 </div>
             </div>
             <div class="col-6">
                 <div class="stat-card-premium h-100 d-flex flex-column align-items-start justify-content-center p-4 cv-hover-lift">
                     <div class="stat-icon info mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-info bg-info bg-opacity-10" style="width: 48px; height: 48px; font-size: 1.5rem;"><i class="bi bi-link-45deg"></i></div>
-                    <span class="stat-value fs-3 fw-bold text-dark">{{ shared_files_count }}</span>
-                    <span class="stat-label text-muted mt-1 fw-medium">Shared</span>
+                    <span class="stat-value fs-3 fw-bold text-high cv-count-up" data-target="{{ shared_files_count }}">0</span>
+                    <span class="stat-label text-low mt-1 fw-medium">Shared</span>
                 </div>
             </div>
         </div>
@@ -89,46 +89,48 @@
 </div>
 
 <!-- Controls & Breadcrumbs -->
-<div class="glass-search-container p-3 rounded-4 mb-4 border" style="background: var(--cv-surface-alt); box-shadow: var(--cv-shadow-xs);">
+<div class="glass-search-container p-3 rounded-4 mb-4 border-0 stagger-fade-section" style="background: var(--cv-surface-alt); box-shadow: var(--cv-shadow-xs);">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb mb-0 fs-6 fw-medium">
             <li class="breadcrumb-item"><a href="{{ url_for('files.dashboard') }}" class="text-decoration-none text-primary"><i class="bi bi-house-door-fill me-1"></i> Home</a></li>
             {% for b in breadcrumbs %}
                 {% if loop.last %}
-                    <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">{{ b.name }}</li>
+                    <li class="breadcrumb-item active text-high fw-bold" aria-current="page">{{ b.name }}</li>
                 {% else %}
-                    <li class="breadcrumb-item"><a href="{{ url_for('files.dashboard', folder_id=b.id) }}" class="text-decoration-none text-muted">{{ b.name }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('files.dashboard', folder_id=b.id) }}" class="text-decoration-none text-low">{{ b.name }}</a></li>
                 {% endif %}
             {% endfor %}
           </ol>
         </nav>
         
-        <div class="d-flex gap-2 w-100 align-items-center justify-content-lg-center mx-lg-auto" style="max-width: 50%;">
+        <div class="d-flex flex-wrap gap-2 flex-grow-1 align-items-center justify-content-lg-center mx-lg-auto">
             <div class="input-group search-pill flex-grow-1">
-                <span class="input-group-text bg-white border-0 text-muted ps-3 rounded-start-pill"><i class="bi bi-search"></i></span>
-                <input class="form-control border-0 shadow-none bg-white py-2" type="text" id="instant-search" placeholder="Quick find...">
-                <a href="{{ url_for('search.advanced_search') }}" class="btn btn-light border-0 text-muted rounded-end-pill pe-3 d-flex align-items-center bg-white"><i class="bi bi-sliders me-1"></i></a>
+                <span class="input-group-text bg-transparent border-0 pe-2"><i class="bi bi-search text-secondary"></i></span>
+                <input class="form-control border-0 shadow-none bg-transparent border border-secondary py-2" type="text" id="instant-search" placeholder="Quick find..." style="min-width: 0;">
+                <a href="{{ url_for('search.advanced_search') }}" class="btn btn-light border-0 text-low rounded-end-pill pe-3 d-flex align-items-center bg-transparent border border-secondary"><i class="bi bi-sliders me-1"></i></a>
             </div>
-            <form method="GET" action="{{ url_for('files.dashboard') }}" class="d-flex gap-2">
+            <form method="GET" action="{{ url_for('files.dashboard') }}" class="d-flex flex-wrap gap-2">
                 {% if current_folder %}
                 <input type="hidden" name="folder_id" value="{{ current_folder.id }}">
                 {% endif %}
                 
                 {% if user_tags %}
-                <select class="form-select border-0 shadow-sm rounded-pill bg-white py-2 fw-medium text-muted" onchange="if(this.value) window.location.href=this.value;" style="min-width: 120px;">
-                    <option value="">All Tags</option>
+                <select class="form-select border-0 shadow-sm rounded-pill bg-transparent border border-secondary py-2 fw-medium text-low" onchange="if(this.value) window.location.href=this.value;" style="min-width: 120px;" data-bs-theme="dark">
+                    <option class="bg-dark text-white" value="">All Tags</option>
                     {% for t in user_tags %}
-                    <option value="{{ url_for('tags.view_tag', tag_id=t.id) }}">{{ t.name }}</option>
+                    <option class="bg-dark text-white" value="{{ url_for('tags.view_tag', tag_id=t.id) }}">{{ t.name }}</option>
                     {% endfor %}
                 </select>
                 {% endif %}
                 
-                <select class="form-select border-0 shadow-sm rounded-pill bg-white py-2 fw-medium text-muted" name="sort" onchange="this.form.submit()" style="min-width: 130px;">
-                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Recent First</option>
-                    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
-                    <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
-                    <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                <select class="form-select border-0 shadow-sm rounded-pill bg-transparent border border-secondary py-2 fw-medium text-low w-auto" name="sort" onchange="this.form.submit()" data-bs-theme="dark">
+                    <option class="bg-dark text-white" value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Recent Files</option>
+                    <option class="bg-dark text-white" value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    <option class="bg-dark text-white" value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                    <option class="bg-dark text-white" value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                    <option class="bg-dark text-white" value="largest" {% if sort_by == 'largest' %}selected{% endif %}>Largest</option>
+                    <option class="bg-dark text-white" value="smallest" {% if sort_by == 'smallest' %}selected{% endif %}>Smallest</option>
                 </select>
             </form>
         </div>
@@ -137,130 +139,43 @@
 
 {% if folders %}
 <!-- Folders Section -->
-<div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-    <h4 class="fw-bold m-0 text-dark" style="letter-spacing: -0.5px;"><i class="bi bi-folder2-open me-2 text-primary"></i> Folders</h4>
+<div class="d-flex justify-content-between align-items-center mb-3 mt-4 stagger-fade-section">
+    <h4 class="fw-bold m-0 text-high" style="letter-spacing: -0.5px;"><i class="bi bi-folder2-open me-2 text-primary"></i> Folders</h4>
 </div>
-<div class="row g-4 mb-4">
+<div class="row g-4 mb-4 stagger-fade-section">
     {% for folder in folders %}
-    <div class="col-12 col-sm-6 col-md-4 col-xl-3 cv-card-wrapper" data-search-name="{{ folder.name }}">
-        <div class="saas-folder-card h-100 cv-hover-lift">
-            <div class="card-body p-4 position-relative">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="folder-icon-wrapper">
-                        <i class="bi bi-folder-fill text-warning" style="font-size: 2.5rem;"></i>
-                    </div>
-                    <div class="dropdown z-3">
-                        <button class="btn btn-sm btn-light rounded-circle border shadow-sm" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><button class="dropdown-item btn-favorite-folder" data-folder-id="{{ folder.id }}"><i class="bi {% if folder.is_favorite %}bi-star-fill text-warning{% else %}bi-star{% endif %} me-2"></i> Favorite</button></li>
-                            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#tagFolderModal{{ folder.id }}"><i class="bi bi-tags me-2"></i> Tags</button></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteFolderModal{{ folder.id }}"><i class="bi bi-trash me-2"></i> Delete</button></li>
-                        </ul>
-                    </div>
-                </div>
-                <a href="{{ url_for('files.dashboard', folder_id=folder.id) }}" class="fw-bold text-dark text-decoration-none stretched-link d-block text-truncate fs-5 mb-1">{{ folder.name }}</a>
-                <div class="text-muted small fw-medium d-flex justify-content-between align-items-center">
-                    <span>{{ folder.files|selectattr('is_deleted', 'equalto', False)|list|length }} items</span>
-                    <span>{{ folder.created_at.strftime('%b %d') }}</span>
-                </div>
-                <div class="mt-3 folder-tags-container-{{ folder.id }} position-relative z-3">
-                    {% for t in folder.tags %}
-                    <span class="badge rounded-pill me-1" style="background-color: {{ t.color_hex }}; font-weight: 500;">{{ t.name }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
+    {% set is_dashboard = True %}
+    {% include 'components/folder_card.html' %}
     {% endfor %}
 </div>
 {% endif %}
 
 {% if files.items %}
 <!-- Files Section -->
-<div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-    <h2 class="fw-bolder m-0 text-dark" style="letter-spacing: -0.5px;"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i>Recent Files</h2>
+<div class="d-flex justify-content-between align-items-center mb-3 mt-4 stagger-fade-section">
+    <h4 class="fw-bold m-0 text-high" style="letter-spacing: -0.5px;"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Recent Files</h4>
 </div>
-<div class="row g-4 mb-4">
+<div class="row g-4 mb-4 stagger-fade-section">
     {% for f in files.items %}
-    <div class="col-12 col-sm-6 col-md-4 col-xl-3 cv-card-wrapper" data-search-name="{{ f.original_filename }}">
-        <div class="saas-file-card h-100 d-flex flex-column cv-hover-lift">
-            <div class="saas-file-preview d-flex justify-content-center align-items-center position-relative">
-                {% if f.original_filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
-                    <img src="{{ f.presigned_url }}" alt="thumbnail" class="w-100 h-100 object-fit-cover">
-                {% else %}
-                    <i class="bi bi-file-earmark-text-fill text-secondary opacity-50" style="font-size: 4rem;"></i>
-                {% endif %}
-                
-                <!-- Overlay Badges -->
-                <div class="position-absolute top-0 start-0 p-2 d-flex flex-column gap-1 w-100">
-                    <div class="d-flex justify-content-between w-100">
-                        <div class="d-flex gap-1">
-                            {% set active_share = f.shares|selectattr('is_active', 'equalto', True)|first %}
-                            {% if active_share %}
-                            <span class="badge bg-white text-success shadow-sm rounded-pill"><i class="bi bi-link-45deg"></i> Shared</span>
-                            {% endif %}
-                            {% if f.versions|length > 0 %}
-                            {% set max_ver = f.versions|map(attribute='version_number')|max %}
-                            <span class="badge bg-white text-dark shadow-sm rounded-pill">V{{ max_ver }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Hover Action -->
-                <a href="{{ url_for('files.preview', file_id=f.id) }}" class="saas-preview-overlay d-flex justify-content-center align-items-center text-white text-decoration-none stretched-link">
-                    <div class="bg-dark bg-opacity-75 rounded-circle p-3 d-flex shadow-lg hover-scale">
-                        <i class="bi bi-eye fs-4"></i>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="card-body p-3 d-flex flex-column flex-grow-1 rounded-bottom-4">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                    <h6 class="fw-bolder text-white text-truncate mb-0 pe-2" title="{{ f.original_filename }}">{{ f.original_filename }}</h6>
-                    <div class="dropdown position-relative z-3 cv-card-actions" style="opacity: 0; transition: opacity 0.2s;">
-                        <button class="btn btn-sm text-white-50 p-0 border-0" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical fs-5"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item fw-medium" href="{{ url_for('files.download', file_id=f.id) }}"><i class="bi bi-download me-2 text-primary"></i> Download</a></li>
-                            <li><button class="dropdown-item fw-medium" data-bs-toggle="modal" data-bs-target="#shareModal{{ f.id }}"><i class="bi bi-share me-2 text-success"></i> Share</button></li>
-                            <li><button class="dropdown-item fw-medium btn-favorite-file" data-file-id="{{ f.id }}"><i class="bi {% if f.is_favorite %}bi-star-fill text-warning{% else %}bi-star text-muted{% endif %} me-2"></i> Favorite</button></li>
-                            <li><button class="dropdown-item fw-medium" data-bs-toggle="modal" data-bs-target="#tagFileModal{{ f.id }}"><i class="bi bi-tags me-2 text-secondary"></i> Tags</button></li>
-                            <li><button class="dropdown-item fw-medium" data-bs-toggle="modal" data-bs-target="#versionModal{{ f.id }}"><i class="bi bi-clock-history me-2 text-info"></i> Versions</button></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><button class="dropdown-item fw-medium text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ f.id }}"><i class="bi bi-trash me-2"></i> Delete</button></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between text-white-50 small fw-medium mb-2">
-                    <span>{{ f.file_size|format_size }}</span>
-                    <span>{{ f.upload_date.strftime('%b %d, %Y') }}</span>
-                </div>
-                
-            </div>
-        </div>
-    </div>
+    {% set is_dashboard = True %}
+    {% include 'components/file_card.html' %}
     {% endfor %}
 </div>
 {% endif %}
 
 <!-- Empty State -->
 {% if not folders and not files.items %}
-<div class="text-center py-5 my-5 bg-white rounded-4 border shadow-sm">
+<div class="text-center py-5 my-5 bg-transparent border border-secondary rounded-4 border shadow-sm stagger-fade-section">
     <div class="mb-4">
-        <div class="d-inline-flex justify-content-center align-items-center rounded-circle bg-light" style="width: 120px; height: 120px;">
-            <i class="bi bi-cloud-plus text-primary" style="font-size: 4rem;"></i>
+        <div class="d-inline-flex justify-content-center align-items-center rounded-circle" style="width: 120px; height: 120px; background: rgba(14, 165, 233, 0.1);">
+            <i class="bi bi-cloud-upload text-primary" style="font-size: 4rem;"></i>
         </div>
     </div>
-    <h3 class="fw-bold text-dark mb-2">Your storage is empty</h3>
-    <p class="text-muted fs-5 mb-4">Start by creating a folder or uploading your first file.</p>
-    <div class="d-flex justify-content-center gap-3">
-        <button class="btn btn-outline-secondary rounded-pill px-4 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#createFolderModal">New Folder</button>
-        <a href="{{ url_for('files.upload', folder_id=current_folder.id if current_folder else '') }}" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">Upload File</a>
+    <h3 class="fw-bold text-high mb-2">Your workspace is empty</h3>
+    <p class="text-low mb-4">Upload your first file or create a folder to get started.</p>
+    <div class="d-flex flex-wrap gap-3 mt-3 mt-md-0 justify-content-center">
+        <button class="btn btn-outline-secondary px-4 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#createFolderModal"><i class="bi bi-folder-plus me-2"></i>New Folder</button>
+        <a href="{{ url_for('files.upload', folder_id=current_folder.id if current_folder else '') }}" class="btn btn-primary px-4 fw-semibold shadow-sm"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Upload File</a>
     </div>
 </div>
 {% endif %}
@@ -359,7 +274,7 @@
                     {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center text-muted my-3">
+                    <div class="text-center text-low my-3">
                         <i class="bi bi-tags fs-1"></i>
                         <p class="mt-2">You don't have any tags yet.</p>
                         <a href="{{ url_for('tags.manage_tags') }}" class="btn btn-primary btn-sm rounded-pill">Create Tags</a>
@@ -391,13 +306,13 @@
                         <i class="bi bi-check-circle-fill me-2 fs-4"></i>
                         <div>This file is being shared publicly.</div>
                     </div>
-                    <label class="form-label fw-bold">Public Link <span class="text-muted fw-normal">(Expires {{ active_share.expires_at.strftime('%Y-%m-%d') if active_share.expires_at else 'N/A' }})</span></label>
+                    <label class="form-label fw-bold">Public Link <span class="text-low fw-normal">(Expires {{ active_share.expires_at.strftime('%Y-%m-%d') if active_share.expires_at else 'N/A' }})</span></label>
                     <div class="input-group mb-4">
                         <input type="text" class="form-control" value="{{ url_for('files.shared_file', share_token=active_share.share_token, _external=True) }}" readonly id="shareLink{{ f.id }}">
                         <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard(document.getElementById('shareLink{{ f.id }}').value)"><i class="bi bi-clipboard"></i> Copy</button>
                     </div>
                     
-                    <div class="row text-muted small mb-4">
+                    <div class="row text-low small mb-4">
                         <div class="col-6"><i class="bi bi-download"></i> DL Limit: {{ active_share.download_limit if active_share.download_limit else 'Unlimited' }}</div>
                         <div class="col-6"><i class="bi bi-key"></i> Password: {{ 'Yes' if active_share.password_hash else 'No' }}</div>
                     </div>
@@ -411,20 +326,20 @@
                     <div class="text-center mb-4">
                         <i class="bi bi-globe2 text-primary" style="font-size: 3rem;"></i>
                         <h5 class="mt-3">Generate Public Link</h5>
-                        <p class="text-muted mb-0">Create a secure link to share this file with anyone.</p>
+                        <p class="text-low mb-0">Create a secure link to share this file with anyone.</p>
                     </div>
                     <form action="{{ url_for('files.toggle_share', file_id=f.id) }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="share_action" value="create">
                         
                         <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Password Protection (Optional)</label>
+                            <label class="form-label text-low small fw-bold">Password Protection (Optional)</label>
                             <input type="password" name="share_password" class="form-control" placeholder="Leave blank for no password">
                         </div>
                         
                         <div class="row">
                             <div class="col-6 mb-3">
-                                <label class="form-label text-muted small fw-bold">Expiration</label>
+                                <label class="form-label text-low small fw-bold">Expiration</label>
                                 <select name="share_expiry" class="form-select">
                                     <option value="1">1 Day</option>
                                     <option value="7" selected>7 Days</option>
@@ -433,7 +348,7 @@
                                 </select>
                             </div>
                             <div class="col-6 mb-4">
-                                <label class="form-label text-muted small fw-bold">Download Limit</label>
+                                <label class="form-label text-low small fw-bold">Download Limit</label>
                                 <select name="share_limit" class="form-select">
                                     <option value="unlimited">Unlimited</option>
                                     <option value="1">1 Download</option>
@@ -546,7 +461,7 @@
                     {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center text-muted my-3">
+                    <div class="text-center text-low my-3">
                         <i class="bi bi-tags fs-1"></i>
                         <p class="mt-2">You don't have any tags yet.</p>
                         <a href="{{ url_for('tags.manage_tags') }}" class="btn btn-primary btn-sm rounded-pill">Create Tags</a>
@@ -554,12 +469,17 @@
                 {% endif %}
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Done</button>
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+    <div id="statusToast" class="toast align-items-center text-white bg-dark border-secondary" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="statusToastBody">
+                Message
             </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto shadow-none" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
-{% endfor %}
 
 <script>
 function copyToClipboard(url) {
@@ -568,10 +488,11 @@ function copyToClipboard(url) {
         event.target.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
         event.target.classList.remove('btn-outline-secondary');
         event.target.classList.add('btn-success');
+        
         setTimeout(() => {
             event.target.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
-            event.target.classList.add('btn-outline-secondary');
             event.target.classList.remove('btn-success');
+            event.target.classList.add('btn-outline-secondary');
         }, 2000);
     }, function(err) {
         console.error('Could not copy text: ', err);
@@ -582,12 +503,28 @@ function copyToClipboard(url) {
 document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = "{{ csrf_token() }}";
 
+    function showToast(message) {
+        const toastEl = document.getElementById('statusToast');
+        if (!toastEl) return;
+        const toastBody = document.getElementById('statusToastBody');
+        toastBody.innerText = message;
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        toast.show();
+    }
+
     // Toggle File Favorite
     document.querySelectorAll('.btn-favorite-file').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             const fileId = this.getAttribute('data-file-id');
-            const icon = this.querySelector('i');
+            const matchingBtns = document.querySelectorAll(`.btn-favorite-file[data-file-id="${fileId}"]`);
+            
+            matchingBtns.forEach(b => {
+                b.disabled = true;
+                const icon = b.querySelector('i');
+                if (!b.dataset.originalClass) b.dataset.originalClass = icon.className;
+                icon.className = 'bi bi-arrow-repeat spinner-border spinner-border-sm';
+            });
             
             fetch(`/favorite/file/${fileId}`, {
                 method: 'POST',
@@ -599,18 +536,40 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    if(data.is_favorite) {
-                        icon.classList.remove('bi-star');
-                        icon.classList.add('bi-star-fill');
-                    } else {
-                        icon.classList.remove('bi-star-fill');
-                        icon.classList.add('bi-star');
-                    }
+                    matchingBtns.forEach(b => {
+                        b.disabled = false;
+                        const icon = b.querySelector('i');
+                        const textSpan = b.querySelector('#preview-fav-text');
+                        
+                        if(data.is_favorite) {
+                            icon.className = 'bi bi-heart-fill text-danger heart-pop';
+                            b.dataset.originalClass = icon.className;
+                            if (textSpan) textSpan.innerText = "Remove Favorite";
+                        } else {
+                            icon.className = 'bi bi-heart';
+                            b.dataset.originalClass = icon.className;
+                            if (textSpan) textSpan.innerText = "Add to Favorites";
+                        }
+                    });
+                    showToast(data.is_favorite ? "Added to Favorites" : "Removed from Favorites");
                 } else {
-                    console.error("Failed to toggle favorite");
+                    matchingBtns.forEach(b => {
+                        b.disabled = false;
+                        const icon = b.querySelector('i');
+                        if (b.dataset.originalClass) icon.className = b.dataset.originalClass;
+                    });
+                    showToast("Failed to update favorite status");
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                matchingBtns.forEach(b => {
+                    b.disabled = false;
+                    const icon = b.querySelector('i');
+                    if (b.dataset.originalClass) icon.className = b.dataset.originalClass;
+                });
+                showToast("An error occurred");
+            });
         });
     });
 
@@ -619,7 +578,14 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             const folderId = this.getAttribute('data-folder-id');
-            const icon = this.querySelector('i');
+            const matchingBtns = document.querySelectorAll(`.btn-favorite-folder[data-folder-id="${folderId}"]`);
+            
+            matchingBtns.forEach(b => {
+                b.disabled = true;
+                const icon = b.querySelector('i');
+                if (!b.dataset.originalClass) b.dataset.originalClass = icon.className;
+                icon.className = 'bi bi-arrow-repeat spinner-border spinner-border-sm';
+            });
             
             fetch(`/favorite/folder/${folderId}`, {
                 method: 'POST',
@@ -631,16 +597,36 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    if(data.is_favorite) {
-                        icon.classList.remove('bi-star');
-                        icon.classList.add('bi-star-fill');
-                    } else {
-                        icon.classList.remove('bi-star-fill');
-                        icon.classList.add('bi-star');
-                    }
+                    matchingBtns.forEach(b => {
+                        b.disabled = false;
+                        const icon = b.querySelector('i');
+                        if(data.is_favorite) {
+                            icon.className = 'bi bi-star-fill text-warning';
+                            b.dataset.originalClass = icon.className;
+                        } else {
+                            icon.className = 'bi bi-star';
+                            b.dataset.originalClass = icon.className;
+                        }
+                    });
+                    showToast(data.is_favorite ? "Added to Favorites" : "Removed from Favorites");
+                } else {
+                    matchingBtns.forEach(b => {
+                        b.disabled = false;
+                        const icon = b.querySelector('i');
+                        if (b.dataset.originalClass) icon.className = b.dataset.originalClass;
+                    });
+                    showToast("Failed to update favorite status");
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                matchingBtns.forEach(b => {
+                    b.disabled = false;
+                    const icon = b.querySelector('i');
+                    if (b.dataset.originalClass) icon.className = b.dataset.originalClass;
+                });
+                showToast("An error occurred");
+            });
         });
     });
 

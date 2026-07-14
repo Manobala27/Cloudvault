@@ -1,6 +1,12 @@
 // Main JavaScript for CloudVault
+console.log("1. main.js loaded");
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("2. DOMContentLoaded fired");
+    
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     
     // 1. Dark Mode Toggle
     const themeToggleBtn = document.getElementById('theme-toggle');
@@ -74,11 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropzone = document.getElementById('upload-dropzone');
     const fileInput = document.getElementById('file-input');
     const uploadForm = document.getElementById('upload-form');
-    const progressContainer = document.getElementById('progress-container');
-    const progressBar = document.getElementById('upload-progress-bar');
-    const uploadText = document.getElementById('upload-text');
+    
+    console.log("3. uploadForm found:", !!uploadForm);
+    console.log("4. fileInput found:", !!fileInput);
 
     if (dropzone && fileInput && uploadForm) {
+        console.log("6. change listener attached to fileInput");
         
         // Prevent default drag behaviors
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -103,10 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
             fileInput.click();
         });
         
-        fileInput.addEventListener('change', () => {
-            if(fileInput.files.length > 0) {
-                handleFiles(fileInput.files);
-            }
+        fileInput.addEventListener('change', function() {
+            console.log("8. file input change event fired! Files:", this.files);
+            handleFiles(this.files);
         });
 
         function preventDefaults (e) {
@@ -129,109 +135,189 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function handleFiles(files) {
+            console.log("9. handleFiles() entered with files:", files);
             if (files.length > 0) {
                 uploadFile(files[0]);
             }
         }
 
         function uploadFile(file) {
-            // Transform dropzone into preview mode
-            dropzone.style.display = 'none';
-            progressContainer.className = 'upload-progress-wrapper';
-            progressContainer.style.display = 'block';
+            console.log("uploadFile entered BEFORE");
+            console.log("10. uploadFile() entered for file:", file.name);
+            console.log("uploadFile entered AFTER");
+            const queueContainer = document.getElementById('upload-queue-container');
+            const queueList = document.getElementById('upload-queue-list');
+            const emptyState = document.getElementById('upload-empty-state');
             
-            // Build the card preview
-            let isImage = file.type.startsWith('image/');
-            let thumbHtml = isImage 
-                ? `<div class="saas-file-preview d-flex justify-content-center align-items-center bg-dark rounded-top-4 overflow-hidden" style="height: 160px;">
-                     <img id="preview-img" class="w-100 h-100 object-fit-cover" src="" alt="preview">
-                   </div>`
-                : `<div class="saas-file-preview d-flex justify-content-center align-items-center bg-dark rounded-top-4" style="height: 160px;">
-                     <i class="bi bi-file-earmark-text-fill text-secondary opacity-50" style="font-size: 4rem;"></i>
-                   </div>`;
-                   
-            uploadText.innerHTML = `
-                <div class="saas-file-card d-flex flex-column mb-3 text-start">
-                    ${thumbHtml}
-                    <div class="card-body p-3">
-                        <h6 class="fw-bolder text-white text-truncate mb-1">${file.name}</h6>
-                        <div class="text-white-50 small fw-medium">${(file.size / (1024*1024)).toFixed(2)} MB</div>
+            // Show queue, hide empty state
+            if(queueContainer) queueContainer.style.display = 'block';
+            if(emptyState) emptyState.style.display = 'none';
+            
+            const fileId = 'upload-' + Math.random().toString(36).substr(2, 9);
+            const isImage = file.type.startsWith('image/');
+            const iconHtml = isImage 
+                ? `<i class="bi bi-image text-primary fs-3"></i>`
+                : `<i class="bi bi-file-earmark-text-fill text-secondary fs-3"></i>`;
+                
+            const queueItemHtml = `
+                <div id="${fileId}" class="saas-folder-card p-3 rounded-4 d-flex flex-column gap-2" style="height: auto !important; border: 1px solid var(--cv-surface-border);">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3 overflow-hidden">
+                            <div class="bg-dark rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                                ${iconHtml}
+                            </div>
+                            <div class="text-truncate">
+                                <h6 class="text-white mb-1 fw-bold text-truncate" title="${file.name}">${file.name}</h6>
+                                <div class="small text-white-50 d-flex gap-2">
+                                    <span>${(file.size / (1024*1024)).toFixed(2)} MB</span>
+                                    <span class="text-white-50">&bull;</span>
+                                    <span id="status-${fileId}" class="text-info fw-medium">Uploading...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 flex-shrink-0">
+                            <span id="percent-${fileId}" class="text-white fw-bold">0%</span>
+                            <button type="button" class="btn btn-sm btn-outline-danger rounded-circle p-1" style="width: 32px; height: 32px;" title="Cancel Upload" id="cancel-${fileId}">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-white fw-bold" id="upload-status-text">Uploading...</span>
-                    <span class="text-primary fw-bold" id="upload-percent">0%</span>
+                    <div class="progress rounded-pill bg-dark mt-2" style="height: 6px;">
+                        <div id="progress-${fileId}" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%;"></div>
+                    </div>
                 </div>
             `;
             
-            if (isImage) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.getElementById('preview-img');
-                    if(img) img.src = e.target.result;
-                }
-                reader.readAsDataURL(file);
+            if (queueList) {
+                queueList.insertAdjacentHTML('afterbegin', queueItemHtml);
+                console.log("11. queue HTML inserted into queueList");
+            } else {
+                console.log("FAILED: queueList is null, cannot insert HTML");
             }
+            console.log("queue created AFTER");
             
-            progressBar.style.width = '0%';
-            progressBar.innerHTML = '';
+            const progressBar = document.getElementById(`progress-${fileId}`);
+            const percentText = document.getElementById(`percent-${fileId}`);
+            const statusText = document.getElementById(`status-${fileId}`);
+            const cancelBtn = document.getElementById(`cancel-${fileId}`);
             
-            // Disable clicks
-            dropzone.style.pointerEvents = 'none';
+            if (!uploadForm) return; // Prevent upload if form is missing
             
+            console.log("FormData created BEFORE");
             const url = uploadForm.action;
             const formData = new FormData(uploadForm);
-            
-            // Replace the file in formData (in case it was dropped instead of clicked)
             formData.set('file', file);
+            console.log("12. FormData created");
+            console.log("FormData created AFTER");
             
+            console.log("xhr created BEFORE");
             const xhr = new XMLHttpRequest();
+            console.log("13. xhr created");
+            console.log("xhr created AFTER");
             
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    xhr.abort();
+                    if (progressBar) progressBar.classList.replace('bg-primary', 'bg-danger');
+                    if (statusText) {
+                        statusText.className = 'text-danger fw-medium';
+                        statusText.innerHTML = 'Cancelled';
+                    }
+                    cancelBtn.style.display = 'none';
+                });
+            }
+            
+            console.log("xhr.open BEFORE");
             xhr.open('POST', url, true);
+            console.log("14. xhr.open called");
+            console.log("xhr.open AFTER");
             
-            // Update progress bar
+            console.log("xhr headers set BEFORE");
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            console.log("xhr headers set AFTER");
+            
+            let startTime = Date.now();
+            let lastLoaded = 0;
+            
             xhr.upload.addEventListener("progress", function (e) {
                 if (e.lengthComputable) {
                     const percentComplete = Math.round((e.loaded / e.total) * 100);
-                    progressBar.style.width = percentComplete + '%';
-                    const percentText = document.getElementById('upload-percent');
+                    if (progressBar) progressBar.style.width = percentComplete + '%';
                     if (percentText) percentText.innerHTML = percentComplete + '%';
+                    
+                    const currentTime = Date.now();
+                    if (currentTime - startTime > 1000) {
+                        const bytesPerSec = (e.loaded - lastLoaded) / ((currentTime - startTime) / 1000);
+                        const mbPerSec = (bytesPerSec / (1024 * 1024)).toFixed(1);
+                        if (statusText && statusText.innerHTML !== 'Cancelled') {
+                            statusText.innerHTML = `Uploading (${mbPerSec} MB/s)`;
+                        }
+                        startTime = currentTime;
+                        lastLoaded = e.loaded;
+                    }
                 }
             });
             
             xhr.onload = function() {
+                console.log("xhr.onload BEFORE");
+                if (cancelBtn) cancelBtn.style.display = 'none';
                 if (xhr.status >= 200 && xhr.status < 400) {
-                    // Success! Redirect or reload (the backend redirects to dashboard)
-                    progressBar.classList.add('bg-success');
-                    const statusText = document.getElementById('upload-status-text');
-                    const percentText = document.getElementById('upload-percent');
-                    if (statusText) statusText.innerHTML = `<i class="bi bi-check-circle-fill text-success me-2"></i>Upload Successful`;
-                    if (percentText) percentText.innerHTML = `100%`;
-                    
-                    // We must reload since the backend probably returned HTML or a redirect
-                    // Wait a second for user to see success
-                    setTimeout(() => {
-                        window.location.href = uploadForm.dataset.redirectUrl || '/dashboard';
-                    }, 800);
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success === true) {
+                            if (progressBar) {
+                                progressBar.classList.replace('bg-primary', 'bg-success');
+                                progressBar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+                            }
+                            if (statusText) {
+                                statusText.className = 'text-success fw-bold';
+                                statusText.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>Completed`;
+                            }
+                            if (percentText) percentText.innerHTML = `100%`;
+                            
+                            setTimeout(() => {
+                                window.location.href = response.redirect || uploadForm.dataset.redirectUrl || '/dashboard';
+                            }, 1000);
+                        } else {
+                            throw new Error(response.message || 'Upload failed');
+                        }
+                    } catch (e) {
+                        if (progressBar) progressBar.classList.replace('bg-primary', 'bg-danger');
+                        if (statusText) {
+                            statusText.className = 'text-danger fw-bold';
+                            statusText.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i>Failed`;
+                        }
+                    }
                 } else {
-                    // Error
-                    progressBar.classList.add('bg-danger');
-                    const statusText = document.getElementById('upload-status-text');
-                    if (statusText) statusText.innerHTML = `<i class="bi bi-x-circle-fill text-danger me-2"></i>Failed (File may be too large)`;
-                    dropzone.style.display = 'block';
-                    dropzone.style.pointerEvents = 'auto';
+                    if (progressBar) progressBar.classList.replace('bg-primary', 'bg-danger');
+                    if (statusText) {
+                        statusText.className = 'text-danger fw-bold';
+                        statusText.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i>Failed`;
+                    }
                 }
+                console.log("xhr.onload AFTER");
             };
             
             xhr.onerror = function() {
-                progressBar.classList.add('bg-danger');
-                const statusText = document.getElementById('upload-status-text');
-                if (statusText) statusText.innerHTML = `<i class="bi bi-x-circle-fill text-danger me-2"></i>Network Error`;
-                dropzone.style.display = 'block';
-                dropzone.style.pointerEvents = 'auto';
+                console.log("xhr.onerror BEFORE");
+                if (progressBar) progressBar.classList.replace('bg-primary', 'bg-danger');
+                if (statusText) {
+                    statusText.className = 'text-danger fw-bold';
+                    statusText.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i>Network Error`;
+                }
+                console.log("xhr.onerror AFTER");
             };
             
+            xhr.onabort = function() {
+                console.log("xhr.onabort BEFORE");
+                console.log("Upload aborted by user or script");
+                console.log("xhr.onabort AFTER");
+            };
+            
+            console.log("xhr.send called BEFORE");
+            console.log("15. xhr.send called");
             xhr.send(formData);
+            console.log("xhr.send called AFTER");
         }
     }
 });

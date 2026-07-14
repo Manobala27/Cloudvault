@@ -3,34 +3,34 @@
 {% block content %}
 
 <!-- Header -->
-<div class="page-header">
-    <h2 class="text-dark"><i class="bi bi-search text-primary me-2"></i> Advanced Search</h2>
+<div class="page-header mb-4">
+    <h2 class="fw-bolder text-high m-0" style="letter-spacing: -0.5px;"><i class="bi bi-search text-primary me-2"></i> Advanced Search</h2>
 </div>
 
 <!-- Main Search Layout -->
 <div class="row">
     <!-- Filter Panel (Left Sidebar) -->
-    <div class="col-lg-3 col-md-4 mb-4">
-        <div class="premium-card-large sticky-top" style="top: 80px;">
+    <div class="col-lg-3 col-md-4 mb-4 pe-lg-4">
+        <div class="saas-file-card sticky-top cv-hover-lift" style="top: 80px; height: auto !important; padding: 1.5rem;">
             <div class="card-header bg-transparent border-bottom-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold text-white">Filters</h5>
+                <h5 class="mb-0 fw-bold text-high">Filters</h5>
                 <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted" onclick="resetFilters()">Clear</button>
             </div>
             <div class="card-body">
                 <form id="advancedSearchForm" onsubmit="event.preventDefault(); triggerSearch(true);">
                     <!-- Search Query -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Keywords</label>
+                        <label class="form-label fw-semibold text-low small text-uppercase">Keywords</label>
                         <div class="input-group search-pill-modern mb-2">
                             <span class="input-group-text border-0 bg-transparent text-muted"><i class="bi bi-search text-muted"></i></span>
-                            <input type="text" class="form-control border-0 shadow-none ps-0" id="filter-query" placeholder="Search files & folders...">
+                            <input type="text" class="form-control form-themed border-0 shadow-none ps-0" id="filter-query" placeholder="Search files & folders...">
                         </div>
                     </div>
                     
                     <!-- Item Type -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Item Type</label>
-                        <select class="form-select bg-dark text-white border-secondary" id="filter-type">
+                        <label class="form-label fw-semibold text-low small text-uppercase">Item Type</label>
+                        <select class="form-select form-themed" id="filter-type">
                             <option value="all">All Items</option>
                             <option value="files">Files Only</option>
                             <option value="folders">Folders Only</option>
@@ -39,7 +39,7 @@
 
                     <!-- Tags -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Tags</label>
+                        <label class="form-label fw-semibold text-low small text-uppercase">Tags</label>
                         <div class="d-flex flex-wrap gap-2">
                             {% for tag in user_tags %}
                             <input type="checkbox" class="btn-check filter-tag" id="tag-{{ tag.id }}" value="{{ tag.id }}" data-tag-name="{{ tag.name }}" data-tag-color="{{ tag.color_hex }}">
@@ -52,39 +52,39 @@
 
                     <!-- Favorites -->
                     <div class="mb-4">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="filter-favorite">
-                            <label class="form-check-label fw-semibold text-muted small" for="filter-favorite">Favorites Only</label>
+                        <div class="form-check form-switch d-flex align-items-center gap-2 ps-0">
+                            <input class="form-check-input ms-0 mt-0" type="checkbox" id="filter-favorite" style="width: 2.5em; height: 1.25em; cursor: pointer;">
+                            <label class="form-check-label fw-bold text-low small text-uppercase" for="filter-favorite" style="letter-spacing: 0.5px; cursor: pointer;">Favorites Only</label>
                         </div>
                     </div>
 
                     <!-- File Extensions -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white-50 small text-uppercase">File Type (Extensions)</label>
-                        <input type="text" class="form-control bg-dark text-white border-secondary" id="filter-ext" placeholder="e.g. .pdf, .jpg, .docx">
-                        <div class="form-text">Comma separated</div>
+                        <label class="form-label fw-bold text-low small text-uppercase" style="letter-spacing: 0.5px;">File Type (Extensions)</label>
+                        <input type="text" class="form-control form-themed shadow-none rounded-pill px-3" id="filter-ext" placeholder="e.g. .pdf, .jpg, .docx">
+                        <div class="form-text text-low small mt-2"><i class="bi bi-info-circle me-1"></i>Comma separated</div>
                     </div>
 
                     <!-- Size Range -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white-50 small text-uppercase">File Size Range (MB)</label>
+                        <label class="form-label fw-bold text-low small text-uppercase" style="letter-spacing: 0.5px;">File Size Range (MB)</label>
                         <div class="d-flex gap-2">
-                            <input type="number" class="form-control bg-dark text-white border-secondary" id="filter-size-min" placeholder="Min" min="0">
-                            <input type="number" class="form-control bg-dark text-white border-secondary" id="filter-size-max" placeholder="Max" min="0">
+                            <input type="number" class="form-control form-themed shadow-none rounded-pill px-3 text-center" id="filter-size-min" placeholder="Min" min="0">
+                            <input type="number" class="form-control form-themed shadow-none rounded-pill px-3 text-center" id="filter-size-max" placeholder="Max" min="0">
                         </div>
                     </div>
 
                     <!-- Date Range -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Upload Date Range</label>
-                        <input type="date" class="form-control bg-dark text-white border-secondary mb-2" id="filter-date-start" placeholder="From">
-                        <input type="date" class="form-control bg-dark text-white border-secondary" id="filter-date-end" placeholder="To">
+                        <label class="form-label fw-bold text-low small text-uppercase" style="letter-spacing: 0.5px;">Upload Date Range</label>
+                        <input type="date" class="form-control form-themed shadow-none rounded-pill px-3 mb-2" id="filter-date-start" placeholder="From">
+                        <input type="date" class="form-control form-themed shadow-none rounded-pill px-3" id="filter-date-end" placeholder="To">
                     </div>
 
                     <!-- Sort -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white-50 small text-uppercase">Sort By</label>
-                        <select class="form-select bg-dark text-white border-secondary" id="filter-sort">
+                        <label class="form-label fw-bold text-low small text-uppercase" style="letter-spacing: 0.5px;">Sort By</label>
+                        <select class="form-select form-themed shadow-none rounded-pill px-3" id="filter-sort">
                             <option value="newest">Newest First</option>
                             <option value="oldest">Oldest First</option>
                             <option value="name_asc">Name (A-Z)</option>
@@ -92,7 +92,7 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill">Apply Filters</button>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill shadow-sm">Apply Filters</button>
                 </form>
             </div>
         </div>
@@ -116,23 +116,40 @@
         </div>
 
         <!-- Results Grid -->
-        <div id="search-results-container">
-            <h5 class="fw-bold mb-3 d-none" id="results-count">Found 0 items</h5>
-            <div class="row g-3" id="search-results-grid">
-                <!-- Results rendered via JS -->
+        <div id="search-results-container" class="mt-2 mt-lg-0">
+            <h5 class="fw-bold text-high mb-4 d-none" id="results-count">Found 0 items</h5>
+            <div class="row g-4" id="search-results-grid">
+                <!-- Rendered via JS -->
             </div>
             
             <!-- Empty State -->
-            <div id="search-empty" class="text-center py-5 border rounded-4 bg-dark text-white border-secondary d-none">
-                <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
-                <h4 class="mt-3 text-muted">No results found</h4>
-                <p class="text-muted">Try adjusting your filters or search query.</p>
-                <button type="button" class="btn btn-outline-primary mt-3 rounded-pill px-4" onclick="resetFilters()">Clear All Filters</button>
+            <div id="search-empty" class="text-center py-5 my-5 border border-secondary rounded-4 bg-transparent shadow-sm stagger-fade-section d-none">
+                <div class="mb-4 d-flex justify-content-center">
+                    <div class="d-inline-flex justify-content-center align-items-center rounded-circle" style="width: 120px; height: 120px; background: rgba(14, 165, 233, 0.1);">
+                        <i class="bi bi-search text-primary" style="font-size: 4rem;"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-high mb-2">No results found</h3>
+                <p class="text-low mb-4">Try adjusting your filters or search query to find what you're looking for.</p>
+                <button type="button" class="btn btn-primary px-4 fw-semibold shadow-sm" onclick="resetFilters()"><i class="bi bi-arrow-counterclockwise me-2"></i>Clear All Filters</button>
             </div>
         </div>
 
     </div>
 </div>
+
+<!-- Reusable Templates for JS -->
+<template id="folder-card-template">
+    {% set is_dashboard = False %}
+    {% set folder = None %}
+    {% include 'components/folder_card.html' %}
+</template>
+
+<template id="file-card-template">
+    {% set is_dashboard = False %}
+    {% set f = None %}
+    {% include 'components/file_card.html' %}
+</template>
 
 <script>
     const csrfToken = "{{ csrf_token() }}";
@@ -239,82 +256,86 @@
             
             // Render Folders
             data.folders.forEach(folder => {
-                let tagsHtml = folder.tags.map(t => `<span class="badge rounded-pill me-1" style="background-color: ${t.color_hex}; font-weight: normal; font-size: 0.75rem;">${t.name}</span>`).join('');
+                const tmpl = document.getElementById('folder-card-template').content.cloneNode(true);
                 
-                const card = `
-                <div class="col-12 col-sm-6 col-md-4 col-xl-3 cv-card-wrapper">
-                    <div class="saas-folder-card h-100 cv-hover-lift">
-                        <div class="card-body p-3 rounded-bottom-4 d-flex flex-column h-100">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-folder-fill text-warning" style="font-size: 2.5rem;"></i>
-                                <h6 class="ms-3 mb-0 fw-bold text-white text-truncate"><a href="${folder.url}" class="text-white text-decoration-none">${folder.name}</a></h6>
-                            </div>
-                            <div class="text-white-50 small fw-medium d-flex justify-content-between align-items-center mb-2">
-                                <span>${folder.files_count} files</span>
-                                <span>${folder.created_at}</span>
-                            </div>
-                            <div class="mb-3">${tagsHtml}</div>
-                            <div class="mt-auto">
-                                <a href="${folder.url}" class="btn btn-light w-100 fw-bold">Open</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `;
-                resultsGrid.insertAdjacentHTML('beforeend', card);
+                tmpl.querySelector('.cv-card-wrapper').setAttribute('data-search-name', folder.name);
+                
+                const nameLink = tmpl.querySelector('.cv-folder-name');
+                nameLink.textContent = folder.name;
+                nameLink.href = folder.url;
+                
+                const thumbLink = tmpl.querySelector('.cv-folder-link');
+                if (thumbLink) thumbLink.href = folder.url;
+                
+                tmpl.querySelector('.cv-folder-count').textContent = folder.files_count + ' items';
+                tmpl.querySelector('.cv-folder-date').textContent = folder.created_at;
+                
+                const favBtn = tmpl.querySelector('.cv-btn-fav');
+                if (favBtn) {
+                    favBtn.setAttribute('data-folder-id', folder.id);
+                    favBtn.innerHTML = `<i class="bi ${folder.is_favorite ? 'bi-star-fill text-warning' : 'bi-star'} fs-5"></i>`;
+                }
+
+                
+                const tagsContainer = tmpl.querySelector('.cv-folder-tags');
+                folder.tags.forEach(t => {
+                    tagsContainer.insertAdjacentHTML('beforeend', `<span class="badge rounded-pill me-1" style="background-color: ${t.color_hex}; font-weight: 500;">${t.name}</span>`);
+                });
+                
+                resultsGrid.appendChild(tmpl);
             });
             
             // Render Files
             data.files.forEach(file => {
-                let tagsHtml = file.tags.map(t => `<span class="badge rounded-pill me-1" style="background-color: ${t.color_hex}; font-weight: normal; font-size: 0.75rem;">${t.name}</span>`).join('');
-                let thumbHtml = file.filename.match(/\.(jpeg|jpg|gif|png)$/i) 
-                    ? `<img src="${file.preview_url}" alt="thumbnail">`
-                    : `<i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>`;
+                const tmpl = document.getElementById('file-card-template').content.cloneNode(true);
                 
-                const card = `
-                <div class="col-12 col-sm-6 col-md-4 col-xl-3 cv-card-wrapper">
-                    <div class="saas-file-card h-100 d-flex flex-column cv-hover-lift">
-                        <div class="saas-file-preview d-flex justify-content-center align-items-center position-relative">
-                            ${thumbHtml.includes('img') ? thumbHtml.replace('alt="thumbnail"', 'alt="thumbnail" class="w-100 h-100 object-fit-cover"') : thumbHtml.replace('style="font-size: 3rem;"', 'style="font-size: 4rem; opacity: 0.5;"')}
-                            
-                            <div class="position-absolute top-0 start-0 p-2 d-flex flex-column gap-1 w-100">
-                                <div class="d-flex justify-content-between w-100">
-                                    <div class="d-flex gap-1">
-                                        ${file.has_active_share ? '<span class="badge bg-white text-success shadow-sm rounded-pill"><i class="bi bi-link-45deg"></i> Shared</span>' : ''}
-                                        ${file.version > 0 ? `<span class="badge bg-white text-dark shadow-sm rounded-pill">V${file.version}</span>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <a href="/preview/${file.id}" class="saas-preview-overlay d-flex justify-content-center align-items-center text-white text-decoration-none stretched-link">
-                                <div class="bg-dark bg-opacity-75 rounded-circle p-3 d-flex shadow-lg hover-scale">
-                                    <i class="bi bi-eye fs-4"></i>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="card-body p-3 d-flex flex-column flex-grow-1 rounded-bottom-4">
-                            <h6 class="fw-bold text-white text-truncate mb-1 pe-2">${file.filename}</h6>
-                            <div class="d-flex justify-content-between text-white-50 small fw-medium mb-2">
-                                <span>${formatSize(file.size)}</span>
-                                <span>${file.upload_date}</span>
-                            </div>
-                            <div class="mt-auto position-relative z-3">
-                                <div class="mb-2">${tagsHtml}</div>
-                                <div class="d-flex gap-2">
-                                    <a href="${file.download_url}" class="btn btn-primary btn-sm flex-grow-1 shadow-sm"><i class="bi bi-download"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `;
-                resultsGrid.insertAdjacentHTML('beforeend', card);
+                tmpl.querySelector('.cv-card-wrapper').setAttribute('data-search-name', file.filename);
+                
+                const nameElem = tmpl.querySelector('.cv-file-name');
+                nameElem.textContent = file.filename;
+                nameElem.title = file.filename;
+                
+                tmpl.querySelector('.cv-file-size').textContent = formatSize(file.size);
+                tmpl.querySelector('.cv-file-date').textContent = file.upload_date;
+                
+                const isImage = file.filename.match(/\.(jpeg|jpg|gif|png)$/i);
+                if (isImage) {
+                    const img = tmpl.querySelector('.cv-file-img');
+                    img.src = file.preview_url;
+                    img.classList.remove('d-none');
+                } else {
+                    tmpl.querySelector('.cv-file-icon').classList.remove('d-none');
+                }
+                
+                if (file.has_active_share) {
+                    tmpl.querySelector('.cv-share-badge').classList.remove('d-none');
+                }
+                
+                if (file.version > 1) {
+                    const verBadge = tmpl.querySelector('.cv-version-badge');
+                    verBadge.textContent = 'V' + file.version;
+                    verBadge.classList.remove('d-none');
+                }
+                
+                tmpl.querySelector('.cv-file-link').href = '/preview/' + file.id;
+                tmpl.querySelector('.cv-btn-dl').href = file.download_url;
+                
+                const favBtn = tmpl.querySelector('.cv-btn-fav');
+                favBtn.setAttribute('data-file-id', file.id);
+                favBtn.innerHTML = `<i class="bi ${file.is_favorite ? 'bi-star-fill text-warning' : 'bi-star'} fs-5"></i>`;
+                
+                const tagsContainer = tmpl.querySelector('.cv-file-tags');
+                file.tags.forEach(t => {
+                    tagsContainer.insertAdjacentHTML('beforeend', `<span class="badge rounded-pill me-1" style="background-color: ${t.color_hex}; font-weight: 500;">${t.name}</span>`);
+                });
+                
+                resultsGrid.appendChild(tmpl);
             });
         })
         .catch(err => {
             console.error('Search failed', err);
             loadingState.classList.add('d-none');
-            emptyState.innerHTML = `<h4 class="text-danger"><i class="bi bi-exclamation-triangle"></i> Error</h4><p>Failed to retrieve search results.</p>`;
+            emptyState.innerHTML = `<h4 class="text-danger"><i class="bi bi-exclamation-triangle"></i> Error</h4><p class="text-low">Failed to retrieve search results.</p>`;
             emptyState.classList.remove('d-none');
         });
     }

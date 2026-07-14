@@ -3,101 +3,53 @@
 {% block content %}
 
 <!-- Header & Controls -->
-<div class="page-header flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-    <h2 class="text-dark mb-0"><i class="bi bi-star-fill text-warning me-2"></i>Favorites</h2>
+<div class="page-header mb-4 flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <h2 class="text-high fw-bolder m-0" style="letter-spacing: -0.5px;"><i class="bi bi-star-fill text-warning me-2"></i>Favorites</h2>
     
     <div class="d-flex gap-2 w-100" style="max-width: 500px;">
         <div class="input-group">
-            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
-            <input class="form-control border-start-0 ps-0 shadow-none" type="text" id="instant-search" placeholder="Search favorites...">
+            <span class="input-group-text bg-transparent border-secondary text-white-50 rounded-start-pill ps-3"><i class="bi bi-search"></i></span>
+            <input class="form-control bg-transparent border-secondary border-start-0 shadow-none text-white rounded-end-pill pe-3" type="text" id="instant-search" placeholder="Search favorites...">
         </div>
         <form method="GET" action="{{ url_for('files.favorites') }}" class="d-flex">
-            <select class="form-select shadow-none" name="sort" onchange="this.form.submit()" style="min-width: 160px;">
-                <option value="recently_favorited" {% if sort_by == 'recently_favorited' %}selected{% endif %}>Recently Favorited</option>
-                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Upload</option>
-                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest Upload</option>
-                <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
-                <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+            <select class="form-select bg-transparent border-secondary text-white shadow-none rounded-pill px-3" name="sort" onchange="this.form.submit()" style="min-width: 160px;">
+                <option value="recently_favorited" class="text-dark" {% if sort_by == 'recently_favorited' %}selected{% endif %}>Recently Favorited</option>
+                <option value="newest" class="text-dark" {% if sort_by == 'newest' %}selected{% endif %}>Newest Upload</option>
+                <option value="oldest" class="text-dark" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest Upload</option>
+                <option value="name_asc" class="text-dark" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                <option value="name_desc" class="text-dark" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
             </select>
         </form>
     </div>
 </div>
 
 <!-- Favorites Grid -->
-<div class="row g-3 mb-5">
+<div class="row g-4 mb-5">
     
     <!-- Render Folders -->
     {% for folder in folders %}
-    <div class="col-12 col-sm-6 col-md-4 col-xl-3 cv-card-wrapper" data-search-name="{{ folder.name }}">
-        <div class="saas-folder-card h-100 cv-hover-lift">
-            <div class="card-body p-4 d-flex flex-column">
-                <div class="d-flex align-items-center mb-3">
-                    <i class="bi bi-folder-fill text-warning" style="font-size: 2.5rem;"></i>
-                    <h6 class="ms-3 mb-0 fw-bold text-dark text-truncate"><a href="{{ url_for('files.dashboard', folder_id=folder.id) }}" class="text-dark text-decoration-none">{{ folder.name }}</a></h6>
-                </div>
-                <div class="text-muted small fw-medium d-flex justify-content-between align-items-center mb-2">
-                    <span>{{ folder.files|selectattr('is_deleted', 'equalto', False)|list|length }} files</span>
-                    <span>{{ folder.created_at.strftime('%Y-%m-%d') }}</span>
-                </div>
-                <div class="mt-auto">
-                    <button type="button" class="btn btn-warning w-100 btn-favorite-folder text-white fw-bold shadow-sm" data-folder-id="{{ folder.id }}" title="Unfavorite">
-                        <i class="bi bi-star-fill me-1"></i> Unfavorite
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% set is_dashboard = False %}
+    {% include 'components/folder_card.html' %}
     {% endfor %}
 
     <!-- Render Files -->
     {% for f in files.items %}
-    <div class="col-12 col-sm-6 col-md-4 col-xl-3 cv-card-wrapper" data-search-name="{{ f.original_filename }}">
-        <div class="saas-file-card h-100 cv-hover-lift d-flex flex-column">
-            <div class="saas-file-preview d-flex justify-content-center align-items-center position-relative">
-                {% if f.original_filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
-                    <img src="{{ f.presigned_url }}" alt="thumbnail" class="w-100 h-100 object-fit-cover">
-                {% else %}
-                    <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>
-                {% endif %}
-                
-                {% set active_share = f.shares|selectattr('is_active', 'equalto', True)|first %}
-                {% if active_share %}
-                    <span class="position-absolute top-0 end-0 m-2 badge bg-success rounded-circle p-2 shadow-sm"><i class="bi bi-link-45deg"></i></span>
-                {% endif %}
-                
-                {% if f.versions|length > 0 %}
-                    {% set max_ver = f.versions|map(attribute='version_number')|max %}
-                    <span class="position-absolute top-0 start-0 m-2 badge bg-secondary rounded-pill shadow-sm">V{{ max_ver }}</span>
-                {% endif %}
-            </div>
-            
-            <div class="card-body p-3 d-flex flex-column flex-grow-1">
-                <h6 class="fw-bold text-dark text-truncate mb-2" title="{{ f.original_filename }}">{{ f.original_filename }}</h6>
-                <div class="text-muted small fw-medium d-flex justify-content-between align-items-center mb-3">
-                    <span>{{ f.file_size|format_size }}</span>
-                    <span>{{ f.upload_date.strftime('%Y-%m-%d') }}</span>
-                </div>
-                
-                <div class="mt-auto d-flex gap-2">
-                    <a href="{{ f.presigned_url }}" target="_blank" class="btn btn-light flex-grow-1 fw-bold" title="Preview">View</a>
-                    <a href="{{ url_for('files.download', file_id=f.id) }}" class="btn btn-primary flex-grow-1 fw-bold" title="Download"><i class="bi bi-download"></i></a>
-                    <button type="button" class="btn btn-warning btn-favorite-file text-white fw-bold shadow-sm" data-file-id="{{ f.id }}" title="Unfavorite">
-                        <i class="bi bi-star-fill"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% set is_dashboard = False %}
+    {% include 'components/file_card.html' %}
     {% endfor %}
 </div>
 
 <!-- Empty State -->
 {% if not folders and not files.items %}
-<div class="text-center py-5">
-    <i class="bi bi-star text-muted" style="font-size: 4rem;"></i>
-    <h4 class="mt-3 text-muted">No Favorites Yet</h4>
-    <p class="text-muted">Star important files and folders in your Dashboard to access them here quickly.</p>
-    <a href="{{ url_for('files.dashboard') }}" class="btn btn-primary mt-3 rounded-pill px-4">Go to Dashboard</a>
+<div class="text-center py-5 my-5 bg-transparent border border-secondary rounded-4 border shadow-sm stagger-fade-section">
+    <div class="mb-4">
+        <div class="d-inline-flex justify-content-center align-items-center rounded-circle" style="width: 120px; height: 120px; background: rgba(245, 158, 11, 0.1);">
+            <i class="bi bi-star text-warning" style="font-size: 4rem;"></i>
+        </div>
+    </div>
+    <h3 class="fw-bold text-high mb-2">No Favorites Yet</h3>
+    <p class="text-low mb-4">Star important files and folders in your Dashboard to access them here quickly.</p>
+    <a href="{{ url_for('files.dashboard') }}" class="btn btn-primary px-4 fw-semibold shadow-sm"><i class="bi bi-grid-fill me-2"></i>Go to Dashboard</a>
 </div>
 {% endif %}
 

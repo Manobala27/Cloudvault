@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudVault - Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PWA Manifest & Meta -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.svg">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="file:///C:/Users/balam/OneDrive/Documents/CloudVault/app/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-glass fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <i class="bi bi-cloud-arrow-up-fill text-primary"></i> CloudVault
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    
+                        <!-- Theme Toggle for Guests -->
+                        <li class="nav-item me-3">
+                            <button id="theme-toggle" class="btn btn-icon btn-outline-secondary border-0" aria-label="Toggle theme">
+                                <i id="theme-icon" class="bi bi-moon-fill fs-5"></i>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link " href="/login">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary ms-lg-2 rounded-pill px-4" href="/register">Register</a>
+                        </li>
+                    
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mb-5 page-fade-in">
+                
+                    
+                
+                
+                <!-- PWA Offline / Update Banners -->
+    <div id="offline-banner" class="alert alert-danger text-center fixed-top rounded-0 mb-0 py-2 shadow-sm" style="display: none; z-index: 9999;">
+        <i class="bi bi-wifi-off me-2"></i> You are currently offline. Some features are unavailable.
+    </div>
+    <div id="update-banner" class="alert alert-info text-center fixed-top rounded-0 mb-0 py-2 shadow-sm d-flex justify-content-center align-items-center" style="display: none; z-index: 9998; top: 0;">
+        <i class="bi bi-cloud-download me-2"></i> A new version of CloudVault is available! 
+        <button id="updateAppBtn" class="btn btn-sm btn-primary ms-3 px-3 rounded-pill">Update Now</button>
+        <button id="dismissUpdateBtn" class="btn btn-sm btn-outline-secondary ms-2 rounded-pill border-0"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    
+
+<!-- Calculate Dynamic Stats via Jinja (No backend changes needed) -->
+
+
+
+
+
+
+
+ <!-- 5 GB Example Limit -->
+
+
+<!-- Dashboard Header & Quick Actions -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-5">
+    <div class="mb-3 mb-md-0">
+        <h2 class="fw-bolder mb-1 text-high" style="letter-spacing: -0.5px;">Welcome to CloudVault</h2>
+        <p class="text-med mb-4">Overview of your workspace and recent files.</p>
+        
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="dash-action-btn dash-action-btn-secondary" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                <i class="bi bi-folder-plus text-primary"></i> New Folder
+            </button>
+            <a href="/upload?folder_id=" class="dash-action-btn dash-action-btn-primary text-decoration-none">
+                <i class="bi bi-cloud-upload"></i> Upload
+            </a>
+            <a href="/dashboard?search=shared:" class="dash-action-btn dash-action-btn-secondary text-decoration-none">
+                <i class="bi bi-share text-success"></i> Shared
+            </a>
+            <a href="/dashboard?search=is:favorite" class="dash-action-btn dash-action-btn-secondary text-decoration-none">
+                <i class="bi bi-star text-warning"></i> Favorites
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Storage Hero & Stats -->
+<div class="row g-4 mb-5 pb-4">
+    <div class="col-lg-7">
+        <div class="premium-storage-banner h-100 mb-0 d-flex flex-column justify-content-center p-4 p-md-5 rounded-4 position-relative overflow-hidden" style="background-color: #0f172a; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4 position-relative z-2">
+                <h4 class="mb-0 fw-bold text-white"><i class="bi bi-hdd-network me-2"></i> Storage Usage</h4>
+                <span class="badge bg-transparent border border-secondary text-primary rounded-pill px-3 py-2 fw-bold shadow-sm">Premium Plan</span>
+            </div>
+            <div class="progress mb-3 rounded-pill position-relative z-2" style="height: 12px; background-color: rgba(255,255,255,0.2); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                <div class="progress-bar progress-bar-animated progress-bar-striped" role="progressbar" style="width: 20.0%; background-color: #ffffff;" aria-valuenow="20.0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="d-flex justify-content-between text-white-50 fw-semibold position-relative z-2">
+                <span class="text-white">1.00 GB Used</span>
+                <span class="text-white">5.00 GB Total (20.0%)</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="row g-4 h-100">
+            <div class="col-6">
+                <div class="stat-card-premium h-100 d-flex flex-column align-items-start justify-content-center p-4 cv-hover-lift">
+                    <div class="stat-icon primary mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary bg-primary bg-opacity-10" style="width: 48px; height: 48px; font-size: 1.5rem;"><i class="bi bi-file-earmark-text-fill"></i></div>
+                    <span class="stat-value fs-3 fw-bold text-high">0</span>
+                    <span class="stat-label text-low mt-1 fw-medium">Total Files</span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-card-premium h-100 d-flex flex-column align-items-start justify-content-center p-4 cv-hover-lift">
+                    <div class="stat-icon success mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-success bg-success bg-opacity-10" style="width: 48px; height: 48px; font-size: 1.5rem;"><i class="bi bi-folder-fill"></i></div>
+                    <span class="stat-value fs-3 fw-bold text-high">0</span>
+                    <span class="stat-label text-low mt-1 fw-medium">Folders</span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-card-premium h-100 d-flex flex-column align-items-start justify-content-center p-4 cv-hover-lift">
+                    <div class="stat-icon warning mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-warning bg-warning bg-opacity-10" style="width: 48px; height: 48px; font-size: 1.5rem;"><i class="bi bi-star-fill"></i></div>
+                    <span class="stat-value fs-3 fw-bold text-high">0</span>
+                    <span class="stat-label text-low mt-1 fw-medium">Favorites</span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-card-premium h-100 d-flex flex-column align-items-start justify-content-center p-4 cv-hover-lift">
+                    <div class="stat-icon info mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-info bg-info bg-opacity-10" style="width: 48px; height: 48px; font-size: 1.5rem;"><i class="bi bi-link-45deg"></i></div>
+                    <span class="stat-value fs-3 fw-bold text-high">0</span>
+                    <span class="stat-label text-low mt-1 fw-medium">Shared</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Controls & Breadcrumbs -->
+<div class="glass-search-container p-3 rounded-4 mb-4 border-0" style="background: var(--cv-surface-alt); box-shadow: var(--cv-shadow-xs);">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0 fs-6 fw-medium">
+            <li class="breadcrumb-item"><a href="/dashboard" class="text-decoration-none text-primary"><i class="bi bi-house-door-fill me-1"></i> Home</a></li>
+            
+          </ol>
+        </nav>
+        
+        <div class="d-flex gap-2 flex-grow-1 align-items-center justify-content-lg-center mx-lg-auto">
+            <div class="input-group search-pill flex-grow-1">
+                <span class="input-group-text bg-transparent border border-secondary border-0 text-low ps-3 rounded-start-pill"><i class="bi bi-search"></i></span>
+                <input class="form-control border-0 shadow-none bg-transparent border border-secondary py-2" type="text" id="instant-search" placeholder="Quick find...">
+                <a href="/search/" class="btn btn-light border-0 text-low rounded-end-pill pe-3 d-flex align-items-center bg-transparent border border-secondary"><i class="bi bi-sliders me-1"></i></a>
+            </div>
+            <form method="GET" action="/dashboard" class="d-flex gap-2">
+                
+                
+                
+                
+                <select class="form-select border-0 shadow-sm rounded-pill bg-transparent border border-secondary py-2 fw-medium text-low w-auto" name="sort" onchange="this.form.submit()" data-bs-theme="dark">
+                    <option class="bg-dark text-white" value="newest" >Recent Files</option>
+                    <option class="bg-dark text-white" value="oldest" >Oldest First</option>
+                    <option class="bg-dark text-white" value="name_asc" >Name (A-Z)</option>
+                    <option class="bg-dark text-white" value="name_desc" >Name (Z-A)</option>
+                    <option class="bg-dark text-white" value="largest" >Largest</option>
+                    <option class="bg-dark text-white" value="smallest" >Smallest</option>
+                </select>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Folders Section -->
+<div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+    <h4 class="fw-bold m-0 text-high" style="letter-spacing: -0.5px;"><i class="bi bi-folder2-open me-2 text-primary"></i> Folders</h4>
+</div>
+<div class="row g-4 mb-4">
+    
+    
+    
+
+<div class="col-12 col-md-6 col-lg-4 cv-card-wrapper" data-search-name="Test Folder">
+    <div class="saas-file-card h-100 d-flex flex-column cv-hover-lift">
+        <div class="cv-card-icon position-relative cv-file-thumb-container d-flex justify-content-center align-items-center">
+            
+                
+                    <!-- Folder icon inside thumbnail area -->
+                    <i class="bi bi-folder-fill text-warning" style="font-size: 4rem;"></i>
+                    <a href="/dashboard?folder_id=1" class="saas-preview-overlay text-decoration-none stretched-link cv-folder-link"></a>
+                
+            
+        </div>
+        
+        <div class="card-body p-3 d-flex flex-column flex-grow-1 rounded-bottom-4">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <h6 class="fw-bolder text-white text-truncate mb-0 pe-2 cv-folder-name" title="Test Folder">
+                    Test Folder
+                </h6>
+                
+                
+                    
+                    <div class="dropdown position-relative z-3 cv-card-actions" style="opacity: 0; transition: opacity 0.2s;">
+                        <button class="btn btn-sm text-white-50 p-0 border-0" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical fs-5"></i>
+                        </button>
+                        
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0">
+                            <li><button class="dropdown-item btn-favorite-folder" data-folder-id="1"><i class="bi bi-star me-2"></i> Favorite</button></li>
+                            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#tagFolderModal1"><i class="bi bi-tags me-2"></i> Tags</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteFolderModal1"><i class="bi bi-trash me-2"></i> Delete</button></li>
+                        </ul>
+                        
+                    </div>
+                    
+                
+            </div>
+            
+            <div class="d-flex justify-content-between text-white-50 small fw-medium mb-2">
+                
+                    <span class="cv-folder-count">0 items</span>
+                    <span class="cv-folder-date">2026-07-14</span>
+                
+            </div>
+            
+            <div class="mt-auto position-relative z-3 cv-folder-tags folder-tags-container-1">
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+    
+
+<div class="col-12 col-md-6 col-lg-4 cv-card-wrapper" data-search-name="Test Folder">
+    <div class="saas-file-card h-100 d-flex flex-column cv-hover-lift">
+        <div class="cv-card-icon position-relative cv-file-thumb-container d-flex justify-content-center align-items-center">
+            
+                
+                    <!-- Folder icon inside thumbnail area -->
+                    <i class="bi bi-folder-fill text-warning" style="font-size: 4rem;"></i>
+                    <a href="/dashboard?folder_id=1" class="saas-preview-overlay text-decoration-none stretched-link cv-folder-link"></a>
+                
+            
+        </div>
+        
+        <div class="card-body p-3 d-flex flex-column flex-grow-1 rounded-bottom-4">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <h6 class="fw-bolder text-white text-truncate mb-0 pe-2 cv-folder-name" title="Test Folder">
+                    Test Folder
+                </h6>
+                
+                
+                    
+                    <div class="dropdown position-relative z-3 cv-card-actions" style="opacity: 0; transition: opacity 0.2s;">
+                        <button class="btn btn-sm text-white-50 p-0 border-0" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical fs-5"></i>
+                        </button>
+                        
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0">
+                            <li><button class="dropdown-item btn-favorite-folder" data-folder-id="1"><i class="bi bi-star me-2"></i> Favorite</button></li>
+                            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#tagFolderModal1"><i class="bi bi-tags me-2"></i> Tags</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteFolderModal1"><i class="bi bi-trash me-2"></i> Delete</button></li>
+                        </ul>
+                        
+                    </div>
+                    
+                
+            </div>
+            
+            <div class="d-flex justify-content-between text-white-50 small fw-medium mb-2">
+                
+                    <span class="cv-folder-count">0 items</span>
+                    <span class="cv-folder-date">2026-07-14</span>
+                
+            </div>
+            
+            <div class="mt-auto position-relative z-3 cv-folder-tags folder-tags-container-1">
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+</div>
+
+
+
+<!-- Files Section -->
+<div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+    <h2 class="fw-bolder m-0 text-high" style="letter-spacing: -0.5px;"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i>Recent Files</h2>
+</div>
+<div class="row g-4 mb-4">
+    
+    
+    
+
+<div class="col-12 col-md-6 col-lg-4 cv-card-wrapper" data-search-name="test.txt">
+    <div class="saas-file-card h-100 d-flex flex-column cv-hover-lift">
+        <div class="cv-card-icon position-relative cv-file-thumb-container d-flex justify-content-center align-items-center">
+            
+                
+                    
+                        <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    <a href="/preview/1" class="saas-preview-overlay text-decoration-none stretched-link cv-file-link"></a>
+                    <!-- Hover Action Overlay -->
+                    <div class="cv-action-overlay">
+                        <button type="button" class="cv-action-btn btn-favorite-file" data-file-id="1" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to Favorites">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                        <button type="button" class="cv-action-btn" data-bs-toggle="modal" data-bs-target="#shareModal1" data-bs-toggle="tooltip" data-bs-placement="left" title="Share">
+                            <i class="bi bi-share"></i>
+                        </button>
+                        <a href="/preview/1" class="cv-action-btn" data-bs-toggle="tooltip" data-bs-placement="left" title="Preview">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="/download/1" class="cv-action-btn" data-bs-toggle="tooltip" data-bs-placement="left" title="Download">
+                            <i class="bi bi-download"></i>
+                        </a>
+                        <div class="dropdown">
+                            <button class="cv-action-btn" type="button" data-bs-toggle="dropdown" data-bs-toggle="tooltip" data-bs-placement="left" title="More Options">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0">
+                                <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#tagModal1"><i class="bi bi-tags me-2"></i> Tags</button></li>
+                                <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#versionModal1"><i class="bi bi-clock-history me-2"></i> Versions</button></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal1"><i class="bi bi-trash me-2"></i> Delete</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                
+            
+        </div>
+        
+        <div class="card-body p-3 d-flex flex-column flex-grow-1 rounded-bottom-4">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <h6 class="fw-bolder text-white text-truncate mb-0 pe-2 cv-file-name" title="test.txt">
+                    test.txt
+                </h6>
+                
+                
+            </div>
+            
+            <div class="d-flex justify-content-between text-white-50 small fw-medium mb-2">
+                
+                    <span class="cv-file-size">1000.00 B</span>
+                    <span class="cv-file-date">2026-07-14</span>
+                
+            </div>
+            
+            <div class="mt-auto position-relative z-3 cv-file-tags">
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+    
+
+<div class="col-12 col-md-6 col-lg-4 cv-card-wrapper" data-search-name="test.txt">
+    <div class="saas-file-card h-100 d-flex flex-column cv-hover-lift">
+        <div class="cv-card-icon position-relative cv-file-thumb-container d-flex justify-content-center align-items-center">
+            
+                
+                    
+                        <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    <a href="/preview/1" class="saas-preview-overlay text-decoration-none stretched-link cv-file-link"></a>
+                    <!-- Hover Action Overlay -->
+                    <div class="cv-action-overlay">
+                        <button type="button" class="cv-action-btn btn-favorite-file" data-file-id="1" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to Favorites">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                        <button type="button" class="cv-action-btn" data-bs-toggle="modal" data-bs-target="#shareModal1" data-bs-toggle="tooltip" data-bs-placement="left" title="Share">
+                            <i class="bi bi-share"></i>
+                        </button>
+                        <a href="/preview/1" class="cv-action-btn" data-bs-toggle="tooltip" data-bs-placement="left" title="Preview">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="/download/1" class="cv-action-btn" data-bs-toggle="tooltip" data-bs-placement="left" title="Download">
+                            <i class="bi bi-download"></i>
+                        </a>
+                        <div class="dropdown">
+                            <button class="cv-action-btn" type="button" data-bs-toggle="dropdown" data-bs-toggle="tooltip" data-bs-placement="left" title="More Options">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0">
+                                <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#tagModal1"><i class="bi bi-tags me-2"></i> Tags</button></li>
+                                <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#versionModal1"><i class="bi bi-clock-history me-2"></i> Versions</button></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal1"><i class="bi bi-trash me-2"></i> Delete</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                
+            
+        </div>
+        
+        <div class="card-body p-3 d-flex flex-column flex-grow-1 rounded-bottom-4">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <h6 class="fw-bolder text-white text-truncate mb-0 pe-2 cv-file-name" title="test.txt">
+                    test.txt
+                </h6>
+                
+                
+            </div>
+            
+            <div class="d-flex justify-content-between text-white-50 small fw-medium mb-2">
+                
+                    <span class="cv-file-size">1000.00 B</span>
+                    <span class="cv-file-date">2026-07-14</span>
+                
+            </div>
+            
+            <div class="mt-auto position-relative z-3 cv-file-tags">
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+    
+
+<div class="col-12 col-md-6 col-lg-4 cv-card-wrapper" data-search-name="test.txt">
+    <div class="saas-file-card h-100 d-flex flex-column cv-hover-lift">
+        <div class="cv-card-icon position-relative cv-file-thumb-container d-flex justify-content-center align-items-center">
+            
+                
+                    
+                        <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    <a href="/preview/1" class="saas-preview-overlay text-decoration-none stretched-link cv-file-link"></a>
+                    <!-- Hover Action Overlay -->
+                    <div class="cv-action-overlay">
+                        <button type="button" class="cv-action-btn btn-favorite-file" data-file-id="1" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to Favorites">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                        <button type="button" class="cv-action-btn" data-bs-toggle="modal" data-bs-target="#shareModal1" data-bs-toggle="tooltip" data-bs-placement="left" title="Share">
+                            <i class="bi bi-share"></i>
+                        </button>
+                        <a href="/preview/1" class="cv-action-btn" data-bs-toggle="tooltip" data-bs-placement="left" title="Preview">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="/download/1" class="cv-action-btn" data-bs-toggle="tooltip" data-bs-placement="left" title="Download">
+                            <i class="bi bi-download"></i>
+                        </a>
+                        <div class="dropdown">
+                            <button class="cv-action-btn" type="button" data-bs-toggle="dropdown" data-bs-toggle="tooltip" data-bs-placement="left" title="More Options">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0">
+                                <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#tagModal1"><i class="bi bi-tags me-2"></i> Tags</button></li>
+                                <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#versionModal1"><i class="bi bi-clock-history me-2"></i> Versions</button></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal1"><i class="bi bi-trash me-2"></i> Delete</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                
+            
+        </div>
+        
+        <div class="card-body p-3 d-flex flex-column flex-grow-1 rounded-bottom-4">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <h6 class="fw-bolder text-white text-truncate mb-0 pe-2 cv-file-name" title="test.txt">
+                    test.txt
+                </h6>
+                
+                
+            </div>
+            
+            <div class="d-flex justify-content-between text-white-50 small fw-medium mb-2">
+                
+                    <span class="cv-file-size">1000.00 B</span>
+                    <span class="cv-file-date">2026-07-14</span>
+                
+            </div>
+            
+            <div class="mt-auto position-relative z-3 cv-file-tags">
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+</div>
+
+
+<!-- Empty State -->
+
+
+<!-- Pagination -->
+
+
+
+<!-- Create Folder Modal -->
+<div class="modal fade" id="createFolderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-folder-plus text-primary me-2"></i>Create New Folder</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/folder/create" method="POST">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="csrf_token" value="IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w">
+                    
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Folder Name</label>
+                        <input type="text" class="form-control form-control-lg shadow-sm" name="folder_name" placeholder="e.g., Important Documents" required autofocus>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Create Folder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modals for Folders -->
+
+<div class="modal fade text-start" id="deleteFolderModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Folder</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Move <strong>Test Folder</strong> and all its contents to the Trash?
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/folder/delete/1" method="POST">
+                    <input type="hidden" name="csrf_token" value="IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w">
+                    <button type="submit" class="btn btn-danger">Yes, Move to Trash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Folder Tags Modal -->
+<div class="modal fade text-start" id="tagFolderModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-tags text-primary me-2"></i> Manage Tags for Test Folder</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                
+                    <div class="text-center text-low my-3">
+                        <i class="bi bi-tags fs-1"></i>
+                        <p class="mt-2">You don't have any tags yet.</p>
+                        <a href="/tags/" class="btn btn-primary btn-sm rounded-pill">Create Tags</a>
+                    </div>
+                
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade text-start" id="deleteFolderModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Folder</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Move <strong>Test Folder</strong> and all its contents to the Trash?
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/folder/delete/1" method="POST">
+                    <input type="hidden" name="csrf_token" value="IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w">
+                    <button type="submit" class="btn btn-danger">Yes, Move to Trash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Folder Tags Modal -->
+<div class="modal fade text-start" id="tagFolderModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-tags text-primary me-2"></i> Manage Tags for Test Folder</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                
+                    <div class="text-center text-low my-3">
+                        <i class="bi bi-tags fs-1"></i>
+                        <p class="mt-2">You don't have any tags yet.</p>
+                        <a href="/tags/" class="btn btn-primary btn-sm rounded-pill">Create Tags</a>
+                    </div>
+                
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modals for Files -->
+
+<!-- Share Modal -->
+<div class="modal fade text-start" id="shareModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Share test.txt</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+                
+                    <div class="text-center mb-4">
+                        <i class="bi bi-globe2 text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3">Generate Public Link</h5>
+                        <p class="text-low mb-0">Create a secure link to share this file with anyone.</p>
+                    </div>
+                    <form action="/share/toggle/1" method="POST">
+                        <input type="hidden" name="csrf_token" value="IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w">
+                        <input type="hidden" name="share_action" value="create">
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-low small fw-bold">Password Protection (Optional)</label>
+                            <input type="password" name="share_password" class="form-control" placeholder="Leave blank for no password">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-low small fw-bold">Expiration</label>
+                                <select name="share_expiry" class="form-select">
+                                    <option value="1">1 Day</option>
+                                    <option value="7" selected>7 Days</option>
+                                    <option value="30">30 Days</option>
+                                    <option value="unlimited">Never</option>
+                                </select>
+                            </div>
+                            <div class="col-6 mb-4">
+                                <label class="form-label text-low small fw-bold">Download Limit</label>
+                                <select name="share_limit" class="form-select">
+                                    <option value="unlimited">Unlimited</option>
+                                    <option value="1">1 Download</option>
+                                    <option value="5">5 Downloads</option>
+                                    <option value="10">10 Downloads</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold">Create Link</button>
+                    </form>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade text-start" id="deleteModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Delete File</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to move <strong>test.txt</strong> to the Trash?
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/delete/1" method="POST">
+                    <input type="hidden" name="csrf_token" value="IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w">
+                    <button type="submit" class="btn btn-danger">Yes, Move to Trash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Version Modal -->
+<div class="modal fade text-start" id="versionModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-clock-history text-secondary me-2"></i> Version History: test.txt</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Version</th>
+                                <th>Date</th>
+                                <th>Size</th>
+                                <th>Uploaded By</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File Tags Modal -->
+<div class="modal fade text-start" id="tagFileModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-tags text-primary me-2"></i> Manage Tags for test.txt</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                
+                    <div class="text-center text-low my-3">
+                        <i class="bi bi-tags fs-1"></i>
+                        <p class="mt-2">You don't have any tags yet.</p>
+                        <a href="/tags/" class="btn btn-primary btn-sm rounded-pill">Create Tags</a>
+                    </div>
+                
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade text-start" id="shareModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Share test.txt</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+                
+                    <div class="text-center mb-4">
+                        <i class="bi bi-globe2 text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3">Generate Public Link</h5>
+                        <p class="text-low mb-0">Create a secure link to share this file with anyone.</p>
+                    </div>
+                    <form action="/share/toggle/1" method="POST">
+                        <input type="hidden" name="csrf_token" value="IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w">
+                        <input type="hidden" name="share_action" value="create">
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-low small fw-bold">Password Protection (Optional)</label>
+                            <input type="password" name="share_password" class="form-control" placeholder="Leave blank for no password">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-low small fw-bold">Expiration</label>
+                                <select name="share_expiry" class="form-select">
+                                    <option value="1">1 Day</option>
+                                    <option value="7" selected>7 Days</option>
+                                    <option value="30">30 Days</option>
+                                    <option value="unlimited">Never</option>
+                                </select>
+                            </div>
+                            <div class="col-6 mb-4">
+                                <label class="form-label text-low small fw-bold">Download Limit</label>
+                                <select name="share_limit" class="form-select">
+                                    <option value="unlimited">Unlimited</option>
+                                    <option value="1">1 Download</option>
+                                    <option value="5">5 Downloads</option>
+                                    <option value="10">10 Downloads</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold">Create Link</button>
+                    </form>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade text-start" id="deleteModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Delete File</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to move <strong>test.txt</strong> to the Trash?
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/delete/1" method="POST">
+                    <input type="hidden" name="csrf_token" value="IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w">
+                    <button type="submit" class="btn btn-danger">Yes, Move to Trash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Version Modal -->
+<div class="modal fade text-start" id="versionModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-clock-history text-secondary me-2"></i> Version History: test.txt</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Version</th>
+                                <th>Date</th>
+                                <th>Size</th>
+                                <th>Uploaded By</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File Tags Modal -->
+<div class="modal fade text-start" id="tagFileModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-tags text-primary me-2"></i> Manage Tags for test.txt</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                
+                    <div class="text-center text-low my-3">
+                        <i class="bi bi-tags fs-1"></i>
+                        <p class="mt-2">You don't have any tags yet.</p>
+                        <a href="/tags/" class="btn btn-primary btn-sm rounded-pill">Create Tags</a>
+                    </div>
+                
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade text-start" id="shareModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Share test.txt</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+                
+                    <div class="text-center mb-4">
+                        <i class="bi bi-globe2 text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3">Generate Public Link</h5>
+                        <p class="text-low mb-0">Create a secure link to share this file with anyone.</p>
+                    </div>
+                    <form action="/share/toggle/1" method="POST">
+                        <input type="hidden" name="csrf_token" value="IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w">
+                        <input type="hidden" name="share_action" value="create">
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-low small fw-bold">Password Protection (Optional)</label>
+                            <input type="password" name="share_password" class="form-control" placeholder="Leave blank for no password">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-low small fw-bold">Expiration</label>
+                                <select name="share_expiry" class="form-select">
+                                    <option value="1">1 Day</option>
+                                    <option value="7" selected>7 Days</option>
+                                    <option value="30">30 Days</option>
+                                    <option value="unlimited">Never</option>
+                                </select>
+                            </div>
+                            <div class="col-6 mb-4">
+                                <label class="form-label text-low small fw-bold">Download Limit</label>
+                                <select name="share_limit" class="form-select">
+                                    <option value="unlimited">Unlimited</option>
+                                    <option value="1">1 Download</option>
+                                    <option value="5">5 Downloads</option>
+                                    <option value="10">10 Downloads</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold">Create Link</button>
+                    </form>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade text-start" id="deleteModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Delete File</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to move <strong>test.txt</strong> to the Trash?
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/delete/1" method="POST">
+                    <input type="hidden" name="csrf_token" value="IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w">
+                    <button type="submit" class="btn btn-danger">Yes, Move to Trash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Version Modal -->
+<div class="modal fade text-start" id="versionModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-clock-history text-secondary me-2"></i> Version History: test.txt</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Version</th>
+                                <th>Date</th>
+                                <th>Size</th>
+                                <th>Uploaded By</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File Tags Modal -->
+<div class="modal fade text-start" id="tagFileModal1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="bi bi-tags text-primary me-2"></i> Manage Tags for test.txt</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                
+                    <div class="text-center text-low my-3">
+                        <i class="bi bi-tags fs-1"></i>
+                        <p class="mt-2">You don't have any tags yet.</p>
+                        <a href="/tags/" class="btn btn-primary btn-sm rounded-pill">Create Tags</a>
+                    </div>
+                
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+function copyToClipboard(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        // Find the copy button that triggered this and show success
+        event.target.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+        event.target.classList.remove('btn-outline-secondary');
+        event.target.classList.add('btn-success');
+        setTimeout(() => {
+            event.target.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+            event.target.classList.add('btn-outline-secondary');
+            event.target.classList.remove('btn-success');
+        }, 2000);
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+
+// AJAX Favorite Toggles
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = "IjljYjI3ZjU0ZWQ5ZTBjYzI3MzEyY2Y3MjBkMmQzMzE4MTUwZDFiMzQi.alYhvg.2ayN5f9EiH9DqVHWtFLf0odb-_w";
+
+    // Toggle File Favorite
+    document.querySelectorAll('.btn-favorite-file').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const fileId = this.getAttribute('data-file-id');
+            const icon = this.querySelector('i');
+            
+            fetch(`/favorite/file/${fileId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if(data.is_favorite) {
+                        icon.classList.remove('bi-star');
+                        icon.classList.add('bi-star-fill');
+                    } else {
+                        icon.classList.remove('bi-star-fill');
+                        icon.classList.add('bi-star');
+                    }
+                } else {
+                    console.error("Failed to toggle favorite");
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+
+    // Toggle Folder Favorite
+    document.querySelectorAll('.btn-favorite-folder').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const folderId = this.getAttribute('data-folder-id');
+            const icon = this.querySelector('i');
+            
+            fetch(`/favorite/folder/${folderId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if(data.is_favorite) {
+                        icon.classList.remove('bi-star');
+                        icon.classList.add('bi-star-fill');
+                    } else {
+                        icon.classList.remove('bi-star-fill');
+                        icon.classList.add('bi-star');
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+
+    // AJAX Tag Toggles for Files
+    document.querySelectorAll('.file-tag-checkbox').forEach(chk => {
+        chk.addEventListener('change', function() {
+            const fileId = this.getAttribute('data-file-id');
+            const tagId = this.getAttribute('data-tag-id');
+            const tagName = this.getAttribute('data-tag-name');
+            const tagColor = this.getAttribute('data-tag-color');
+            const isChecked = this.checked;
+            
+            fetch(`/tags/assign/file/${fileId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tag_id: tagId, assign: isChecked })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const container = document.querySelector(`.file-tags-container-${fileId}`);
+                    if(isChecked) {
+                        const span = document.createElement('span');
+                        span.className = 'badge rounded-pill me-1';
+                        span.style.backgroundColor = tagColor;
+                        span.style.fontWeight = 'normal';
+                        span.style.fontSize = '0.75rem';
+                        span.textContent = tagName;
+                        span.setAttribute('data-tag-id', tagId);
+                        container.appendChild(span);
+                    } else {
+                        const span = container.querySelector(`span[data-tag-id="${tagId}"]`);
+                        if(span) span.remove();
+                        // fallback if data-tag-id wasn't set initially from server render
+                        else {
+                            const spans = container.querySelectorAll('span');
+                            spans.forEach(s => {
+                                if(s.textContent.trim() === tagName) s.remove();
+                            });
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+
+    // AJAX Tag Toggles for Folders
+    document.querySelectorAll('.folder-tag-checkbox').forEach(chk => {
+        chk.addEventListener('change', function() {
+            const folderId = this.getAttribute('data-folder-id');
+            const tagId = this.getAttribute('data-tag-id');
+            const tagName = this.getAttribute('data-tag-name');
+            const tagColor = this.getAttribute('data-tag-color');
+            const isChecked = this.checked;
+            
+            fetch(`/tags/assign/folder/${folderId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tag_id: tagId, assign: isChecked })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const container = document.querySelector(`.folder-tags-container-${folderId}`);
+                    if(isChecked) {
+                        const span = document.createElement('span');
+                        span.className = 'badge rounded-pill me-1';
+                        span.style.backgroundColor = tagColor;
+                        span.style.fontWeight = 'normal';
+                        span.style.fontSize = '0.75rem';
+                        span.textContent = tagName;
+                        span.setAttribute('data-tag-id', tagId);
+                        container.appendChild(span);
+                    } else {
+                        const span = container.querySelector(`span[data-tag-id="${tagId}"]`);
+                        if(span) span.remove();
+                        else {
+                            const spans = container.querySelectorAll('span');
+                            spans.forEach(s => {
+                                if(s.textContent.trim() === tagName) s.remove();
+                            });
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+});
+</script>
+
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/js/main.js?v=181930"></script>
+    
+    <script>
+        // Global loading spinner for forms
+        document.querySelectorAll('form.needs-loading').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (!form.checkValidity()) return;
+                const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+                if (submitBtn) {
+                    if (submitBtn.dataset.isSubmitting) {
+                        e.preventDefault();
+                        return;
+                    }
+                    submitBtn.dataset.isSubmitting = 'true';
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+                    setTimeout(() => { submitBtn.disabled = true; }, 10);
+                }
+            });
+        });
+    </script>
+    <script>
+        
+    </script>
+
+    <!-- PWA Service Worker & Install Logic -->
+    <script>
+        // Adjust banner offset based on offline state to not overlap
+        function updateBannerPositions() {
+            const ob = document.getElementById('offline-banner');
+            const ub = document.getElementById('update-banner');
+            if (ob.style.display !== 'none' && ub.style.display !== 'none') {
+                ub.style.top = ob.offsetHeight + 'px';
+            } else {
+                ub.style.top = '0px';
+            }
+        }
+
+        // Offline / Online detection
+        window.addEventListener('online', () => {
+            document.getElementById('offline-banner').style.display = 'none';
+            updateBannerPositions();
+        });
+        window.addEventListener('offline', () => {
+            document.getElementById('offline-banner').style.display = 'block';
+            updateBannerPositions();
+        });
+        if (!navigator.onLine) {
+            document.getElementById('offline-banner').style.display = 'block';
+            updateBannerPositions();
+        }
+
+        // Service Worker Registration
+        let newWorker;
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then(reg => {
+                    console.log('ServiceWorker registration successful:', reg.scope);
+                    
+                    reg.addEventListener('updatefound', () => {
+                        newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                if (!sessionStorage.getItem('pwaUpdateDismissed')) {
+                                    document.getElementById('update-banner').style.setProperty('display', 'flex', 'important');
+                                    updateBannerPositions();
+                                }
+                            }
+                        });
+                    });
+                }).catch(err => {
+                    console.error('ServiceWorker registration failed:', err);
+                });
+            });
+            
+            // Handle update activation
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
+            });
+            
+            document.getElementById('updateAppBtn')?.addEventListener('click', () => {
+                if (newWorker) {
+                    newWorker.postMessage({ action: 'skipWaiting' });
+                }
+                document.getElementById('update-banner').style.setProperty('display', 'none', 'important');
+            });
+            document.getElementById('dismissUpdateBtn')?.addEventListener('click', () => {
+                sessionStorage.setItem('pwaUpdateDismissed', 'true');
+                document.getElementById('update-banner').style.setProperty('display', 'none', 'important');
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installBtn = document.getElementById('installAppBtn');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67+ auto-prompt
+            e.preventDefault();
+            deferredPrompt = e;
+            if(installBtn) {
+                installBtn.style.display = 'block';
+                installBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    installBtn.style.display = 'none';
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response to the install prompt: ${outcome}`);
+                    deferredPrompt = null;
+                });
+            }
+        });
+        window.addEventListener('appinstalled', () => {
+            if(installBtn) installBtn.style.display = 'none';
+            console.log('CloudVault was installed successfully.');
+        });
+    </script>
+</body>
+</html>

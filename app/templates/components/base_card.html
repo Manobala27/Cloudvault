@@ -1,0 +1,138 @@
+<div class="col-12 col-md-6 col-lg-4 col-xl-3 cv-card-wrapper" {% if item %}data-search-name="{{ item.original_filename if item_type == 'file' else item.name }}"{% endif %}>
+    {% if item_type == 'file' %}
+        <div class="file-card h-100 cv-hover-lift {% if not item %}d-none cv-template-file{% endif %}">
+            <div class="thumbnail position-relative">
+                {% if item %}
+                    {% if item.original_filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
+                        <div class="skeleton-loader"></div>
+                        <img class="cv-file-thumbnail" src="{{ item.presigned_url }}" loading="lazy" alt="thumbnail" style="object-fit: cover; width: 100%; height: 100%;">
+                    {% else %}
+                        <div class="file-icon-placeholder d-flex justify-content-center align-items-center" style="height: 100%;">
+                            <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>
+                        </div>
+                    {% endif %}
+                    
+                    {% set active_share = item.shares|selectattr('is_active', 'equalto', True)|first if item.shares else None %}
+                    {% if active_share %}
+                        <span class="cv-share-badge badge bg-primary position-absolute top-0 end-0 m-2"><i class="bi bi-link-45deg"></i> Shared</span>
+                    {% endif %}
+                    
+                    {% set max_ver = item.versions|map(attribute='version_number')|max if item.versions else 1 %}
+                    {% if max_ver > 1 %}
+                        <span class="cv-version-badge badge bg-secondary position-absolute top-0 start-0 m-2 rounded-pill shadow-sm" style="font-size: 0.75rem;">V{{ max_ver }}</span>
+                    {% endif %}
+                {% else %}
+                    <!-- JS Clone -->
+                    <img class="cv-file-img cv-file-thumbnail d-none" src="" loading="lazy" alt="thumbnail" style="object-fit: cover; width: 100%; height: 100%;">
+                    <div class="file-icon-placeholder cv-file-icon d-none d-flex justify-content-center align-items-center" style="height: 100%;">
+                        <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 3rem;"></i>
+                    </div>
+                    <span class="cv-share-badge badge bg-primary position-absolute top-0 end-0 m-2 d-none"><i class="bi bi-link-45deg"></i> Shared</span>
+                    <span class="cv-version-badge badge bg-secondary position-absolute top-0 start-0 m-2 rounded-pill shadow-sm d-none" style="font-size: 0.75rem;"></span>
+                {% endif %}
+
+                <a href="{% if item %}{{ url_for('files.preview', file_id=item.id) }}{% else %}#{% endif %}" class="saas-preview-overlay text-decoration-none cv-file-link" style="position: absolute; inset: 0; z-index: 5;"></a>
+                
+                <div class="overlay-actions position-absolute w-100 h-100 top-0 start-0 d-flex justify-content-center align-items-center" style="z-index: 10; gap: 10px; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
+                    <a href="{% if item %}{{ url_for('files.preview', file_id=item.id) }}{% else %}#{% endif %}" class="cv-action-btn {% if not item %}cv-clone-preview{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Preview" style="pointer-events: auto;">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{% if item %}{{ url_for('files.download', file_id=item.id) }}{% else %}#{% endif %}" class="cv-action-btn {% if not item %}cv-clone-download{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Download" style="pointer-events: auto;">
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <button type="button" class="cv-action-btn {% if not item %}cv-clone-share{% endif %}" data-bs-toggle="modal" data-bs-target="{% if item %}#shareModal{{ item.id }}{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Share" style="pointer-events: auto;">
+                        <i class="bi bi-share"></i>
+                    </button>
+                    <button type="button" class="cv-action-btn btn-favorite-file {% if not item %}cv-clone-fav{% endif %}" data-file-id="{% if item %}{{ item.id }}{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to Favorites" style="pointer-events: auto;">
+                        <i class="bi {% if item and item.is_favorite %}bi-heart-fill text-danger heart-pop{% else %}bi-heart{% endif %}"></i>
+                    </button>
+                    <div class="dropdown" style="pointer-events: auto;">
+                        <button class="cv-action-btn" type="button" data-bs-toggle="dropdown" data-bs-toggle="tooltip" data-bs-placement="top" title="More Options">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0">
+                            <li><button class="dropdown-item {% if not item %}cv-clone-tag{% endif %}" data-bs-toggle="modal" data-bs-target="{% if item %}#tagFileModal{{ item.id }}{% endif %}"><i class="bi bi-tags me-2"></i> Tags</button></li>
+                            <li><button class="dropdown-item {% if not item %}cv-clone-version{% endif %}" data-bs-toggle="modal" data-bs-target="{% if item %}#versionModal{{ item.id }}{% endif %}"><i class="bi bi-clock-history me-2"></i> Versions</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button class="dropdown-item text-danger {% if not item %}cv-clone-delete{% endif %}" data-bs-toggle="modal" data-bs-target="{% if item %}#deleteModal{{ item.id }}{% endif %}"><i class="bi bi-trash me-2"></i> Delete</button></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="file-info d-flex flex-column p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="filename fw-bold text-high text-truncate mb-0 cv-file-name" {% if item %}title="{{ item.original_filename }}"{% endif %} style="font-size: 1.05rem;">
+                        {% if item %}{{ item.original_filename }}{% endif %}
+                    </h6>
+                </div>
+                
+                <div class="metadata d-flex justify-content-between text-low small fw-medium mb-2" style="font-size: 0.85rem;">
+                    <span class="size cv-file-size">{% if item %}{{ item.file_size|format_size }}{% endif %}</span>
+                    <span class="date cv-file-date">{% if item %}{{ item.upload_date.strftime('%Y-%m-%d') }}{% endif %}</span>
+                </div>
+                
+                <div class="mt-auto position-relative z-3 cv-file-tags">
+                    {% if item %}
+                    {% for t in item.tags %}
+                    <span class="badge rounded-pill me-1" style="background-color: {{ t.color_hex }}; font-weight: 500;">{{ t.name }}</span>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="file-card h-100 cv-hover-lift {% if not item %}d-none cv-template-folder{% endif %}">
+            <div class="thumbnail position-relative d-flex justify-content-center align-items-center" style="background: var(--cv-surface);">
+                {% if item %}
+                    <i class="bi bi-folder-fill text-warning" style="font-size: 4rem;"></i>
+                    <a href="{{ url_for('files.dashboard', folder_id=item.id) }}" class="saas-preview-overlay text-decoration-none stretched-link cv-folder-link" style="position: absolute; inset: 0; z-index: 5;"></a>
+                {% else %}
+                    <i class="bi bi-folder-fill text-warning cv-folder-icon" style="font-size: 4rem;"></i>
+                    <a href="#" class="saas-preview-overlay text-decoration-none stretched-link cv-folder-link" style="position: absolute; inset: 0; z-index: 5;"></a>
+                {% endif %}
+            </div>
+            
+            <div class="file-info d-flex flex-column p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="filename fw-bold text-high text-truncate mb-0 cv-folder-name" {% if item %}title="{{ item.name }}"{% endif %} style="font-size: 1.05rem;">
+                        {% if item %}{{ item.name }}{% endif %}
+                    </h6>
+                    
+                    {% if is_dashboard %}
+                    <div class="dropdown position-relative z-3 cv-card-actions" style="opacity: 0; transition: opacity 0.2s;">
+                        <button class="btn btn-sm text-low p-0 border-0" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical fs-5"></i>
+                        </button>
+                        {% if item %}
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0">
+                            <li><button class="dropdown-item btn-favorite-folder" data-folder-id="{{ item.id }}"><i class="bi {% if item.is_favorite %}bi-star-fill text-warning{% else %}bi-star{% endif %} me-2"></i> Favorite</button></li>
+                            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#tagFolderModal{{ item.id }}"><i class="bi bi-tags me-2"></i> Tags</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteFolderModal{{ item.id }}"><i class="bi bi-trash me-2"></i> Delete</button></li>
+                        </ul>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="position-relative z-3 cv-card-actions d-flex gap-2" style="opacity: 0; transition: opacity 0.2s;">
+                        <button type="button" class="btn btn-sm text-warning p-0 border-0 btn-favorite-folder cv-btn-fav" {% if item %}data-folder-id="{{ item.id }}"{% endif %} title="Favorite" style="transition: color 0.2s;"><i class="bi {% if item and item.is_favorite %}bi-star-fill text-warning{% else %}bi-star{% endif %} fs-5"></i></button>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="metadata d-flex justify-content-between text-low small fw-medium mb-2" style="font-size: 0.85rem;">
+                    <span class="size cv-folder-count">{% if item %}{{ item.files|selectattr('is_deleted', 'equalto', False)|list|length }} items{% endif %}</span>
+                    <span class="date cv-folder-date">{% if item %}{{ item.created_at.strftime('%Y-%m-%d') }}{% endif %}</span>
+                </div>
+                
+                <div class="mt-auto position-relative z-3 cv-folder-tags folder-tags-container-{{ item.id if item else '' }}">
+                    {% if item %}
+                    {% for t in item.tags %}
+                    <span class="badge rounded-pill me-1" style="background-color: {{ t.color_hex }}; font-weight: 500;">{{ t.name }}</span>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
