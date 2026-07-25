@@ -113,6 +113,7 @@
                                 <li><a class="dropdown-item py-2" href="{{ url_for('security.settings') }}"><i class="bi bi-shield-lock me-2 text-primary"></i>Security</a></li>
                                 <li><a class="dropdown-item py-2" href="{{ url_for('api_keys.index') }}"><i class="bi bi-key-fill me-2 text-info"></i>API Keys</a></li>
                                 <li><a class="dropdown-item py-2" href="{{ url_for('backups.index') }}"><i class="bi bi-cloud-arrow-down-fill me-2 text-success"></i>Backup & Restore</a></li>
+                                <li><a class="dropdown-item py-2" href="{{ url_for('main.contact') }}"><i class="bi bi-chat-dots-fill me-2 text-warning"></i>Support</a></li>
                                 <li><a class="dropdown-item py-2" href="#" id="installAppBtn" style="display: none;"><i class="bi bi-download me-2 text-warning"></i>Install App</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
@@ -124,6 +125,9 @@
                             <button id="theme-toggle" class="btn btn-icon btn-outline-secondary border-0" aria-label="Toggle theme">
                                 <i id="theme-icon" class="bi bi-moon-fill fs-5"></i>
                             </button>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.contact' %}active{% endif %}" href="{{ url_for('main.contact') }}">Support</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
@@ -162,6 +166,23 @@
         <button id="updateAppBtn" class="btn btn-sm btn-primary ms-3 px-3 rounded-pill">Update Now</button>
         <button id="dismissUpdateBtn" class="btn btn-sm btn-outline-secondary ms-2 rounded-pill border-0"><i class="bi bi-x-lg"></i></button>
     </div>
+
+    <!-- Email Verification Banner -->
+    {% if current_user.is_authenticated and not current_user.email_verified %}
+    <div class="alert alert-warning border-0 shadow-sm rounded-3 py-3 mb-4 d-flex align-items-center justify-content-between text-start" role="alert">
+        <div>
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+            Your email address (<strong>{{ current_user.email }}</strong>) is not verified. Some features like uploading, sharing, or creating folders are locked.
+        </div>
+        <div class="d-flex gap-2">
+            <form action="{{ url_for('security.resend_verification') }}" method="POST" class="m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-warning fw-bold rounded-pill px-3 shadow-sm">Resend Link</button>
+            </form>
+            <a href="{{ url_for('main.contact') }}" class="btn btn-sm btn-outline-warning fw-bold rounded-pill px-3">Contact Support</a>
+        </div>
+    </div>
+    {% endif %}
 
     {% block content %}{% endblock %}
     </main>

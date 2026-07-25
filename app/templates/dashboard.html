@@ -333,6 +333,11 @@
                         <input type="hidden" name="share_action" value="create">
                         
                         <div class="mb-3">
+                            <label class="form-label text-low small fw-bold">Send Link via Email (Optional, comma-separated)</label>
+                            <input type="text" name="share_emails" class="form-control" placeholder="friend@example.com, colleague@example.com">
+                        </div>
+                        
+                        <div class="mb-3">
                             <label class="form-label text-low small fw-bold">Password Protection (Optional)</label>
                             <input type="password" name="share_password" class="form-control" placeholder="Leave blank for no password">
                         </div>
@@ -469,6 +474,12 @@
                 {% endif %}
             </div>
             <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 <!-- Toast Container -->
 <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
     <div id="statusToast" class="toast align-items-center text-white bg-dark border-secondary" role="alert" aria-live="assertive" aria-atomic="true">

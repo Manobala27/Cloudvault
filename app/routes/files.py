@@ -12,8 +12,54 @@ from app.forms import UploadForm
 
 files = Blueprint('files', __name__)
 
+from functools import wraps
+from flask import current_app
+
+def verification_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.is_authenticated and not current_user.email_verified:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+                return jsonify({'error': 'Verification required', 'message': 'Please verify your email address to access this feature.'}), 403
+            flash("Please verify your email address to access this feature.", "warning")
+            return redirect(url_for('security.unverified'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def check_user_storage_alert(user):
+    from app.models import FileVersion
+    all_versions = FileVersion.query.filter_by(uploaded_by=user.id).all()
+    total_size = sum(v.file_size for v in all_versions)
+    storage_limit = 5 * 1024 * 1024 * 1024 # 5 GB
+    pct = (total_size / storage_limit) * 100
+    
+    current_level = 0
+    if pct >= 100:
+        current_level = 100
+    elif pct >= 90:
+        current_level = 90
+    elif pct >= 80:
+        current_level = 80
+        
+    if current_level < user.highest_storage_alert_sent:
+        user.highest_storage_alert_sent = current_level
+        db.session.commit()
+    elif current_level > user.highest_storage_alert_sent:
+        user.highest_storage_alert_sent = current_level
+        db.session.commit()
+        
+        from app.services.email_service import email_service
+        email_service.send_storage_warning(user, current_level)
+        
+        if current_level == 100:
+            email_service.send_admin_notification(
+                "Storage Limit Exceeded",
+                f"User {user.username} ({user.email}) has reached or exceeded their storage limit.\nUsed: {total_size} bytes (Limit: {storage_limit} bytes)."
+            )
+
 @files.route("/upload", methods=['GET', 'POST'])
 @login_required
+@verification_required
 def upload():
     form = UploadForm()
     
@@ -23,6 +69,20 @@ def upload():
         print("form.errors =", form.errors, flush=True)
         
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    # Check 100% capacity before proceeding
+    from app.models import FileVersion
+    all_versions = FileVersion.query.filter_by(uploaded_by=current_user.id).all()
+    total_size = sum(v.file_size for v in all_versions)
+    storage_limit = 5 * 1024 * 1024 * 1024 # 5 GB
+    if total_size >= storage_limit:
+        if is_ajax:
+            return jsonify({
+                "success": False,
+                "errors": {"file": ["Storage limit reached. You cannot upload more files."]}
+            }), 400
+        flash("You have reached 100% of your storage limit. Please delete some files permanently to upload new ones.", "danger")
+        return redirect(url_for('files.dashboard'))
 
     if form.validate_on_submit():
         file_obj = form.file.data
@@ -87,6 +147,7 @@ def upload():
                 log = ActivityLog(user_id=current_user.id, action='VERSION_CREATED', file_name=f"{original_filename} (V{max_version+1})", ip_address=request.remote_addr)
                 db.session.add(log)
                 db.session.commit()
+                check_user_storage_alert(current_user)
                 
                 if not is_ajax:
                     notification_service.create_notification(current_user.id, "Version Created", f"New version of {original_filename} uploaded.", "VERSION_CREATED", "bi-cloud-arrow-up")
@@ -116,6 +177,7 @@ def upload():
                 log = ActivityLog(user_id=current_user.id, action='UPLOAD', file_name=original_filename, ip_address=request.remote_addr)
                 db.session.add(log)
                 db.session.commit()
+                check_user_storage_alert(current_user)
                 
                 if not is_ajax:
                     notification_service.create_notification(current_user.id, "Upload Success", f"File '{original_filename}' uploaded successfully.", "UPLOAD_SUCCESS", "bi-check-circle")
@@ -267,6 +329,7 @@ def download(file_id):
 
 @files.route("/delete/<int:file_id>", methods=['POST'])
 @login_required
+@verification_required
 def delete_file(file_id):
     file_record = File.query.get_or_404(file_id)
     if file_record.owner != current_user:
@@ -288,6 +351,7 @@ def delete_file(file_id):
 
 @files.route("/share/toggle/<int:file_id>", methods=['POST'])
 @login_required
+@verification_required
 def toggle_share(file_id):
     file_record = File.query.get_or_404(file_id)
     if file_record.owner != current_user:
@@ -348,6 +412,12 @@ def toggle_share(file_id):
         
         flash(f"Public link created for '{file_record.original_filename}'.", "success")
         db.session.commit()
+        
+        # Check if email sharing is requested
+        share_emails = request.form.get('share_emails', '').strip()
+        if share_emails:
+            from app.services.email_service import email_service
+            email_service.send_share_email(current_user, file_record.original_filename, new_share, share_emails)
         
     return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
 
@@ -475,6 +545,7 @@ def public_download(share_token):
 
 @files.route("/folder/create", methods=['POST'])
 @login_required
+@verification_required
 def create_folder():
     folder_name = request.form.get('folder_name', '').strip()
     parent_id_str = request.form.get('parent_id')
@@ -527,6 +598,7 @@ def _soft_delete_folder_recursive(folder):
 
 @files.route("/folder/delete/<int:folder_id>", methods=['POST'])
 @login_required
+@verification_required
 def delete_folder(folder_id):
     folder = Folder.query.get_or_404(folder_id)
     if folder.owner != current_user:
@@ -649,6 +721,7 @@ def restore_folder(folder_id):
 
 @files.route("/delete_permanent/file/<int:file_id>", methods=['POST'])
 @login_required
+@verification_required
 def delete_permanent_file(file_id):
     file_record = File.query.get_or_404(file_id)
     if file_record.owner != current_user:
@@ -670,11 +743,13 @@ def delete_permanent_file(file_id):
     
     db.session.delete(file_record)
     db.session.commit()
+    check_user_storage_alert(current_user)
     flash(f"'{file_record.original_filename}' and all its versions permanently deleted.", "success")
     return redirect(url_for('files.trash'))
 
 @files.route("/delete_permanent/folder/<int:folder_id>", methods=['POST'])
 @login_required
+@verification_required
 def delete_permanent_folder(folder_id):
     folder = Folder.query.get_or_404(folder_id)
     if folder.owner != current_user:
@@ -688,6 +763,7 @@ def delete_permanent_folder(folder_id):
     db.session.add(log)
     
     db.session.commit()
+    check_user_storage_alert(current_user)
     flash(f"Folder '{folder.name}' permanently deleted.", "success")
     return redirect(url_for('files.trash'))
 
@@ -716,6 +792,7 @@ def revoke_specific_share(share_id):
 
 @files.route("/restore_version/<int:file_id>/<int:version_id>", methods=['POST'])
 @login_required
+@verification_required
 def restore_version(file_id, version_id):
     file_record = File.query.get_or_404(file_id)
     if file_record.owner != current_user:
@@ -777,6 +854,7 @@ def restore_version(file_id, version_id):
 
 @files.route("/download_version/<int:version_id>")
 @login_required
+@verification_required
 def download_version(version_id):
     version = FileVersion.query.get_or_404(version_id)
     if version.file.owner != current_user:
@@ -799,6 +877,7 @@ def download_version(version_id):
 
 @files.route("/favorite/file/<int:file_id>", methods=['POST'])
 @login_required
+@verification_required
 def toggle_favorite_file(file_id):
     file_record = File.query.get_or_404(file_id)
     if file_record.owner != current_user:
@@ -812,7 +891,7 @@ def toggle_favorite_file(file_id):
     db.session.add(log)
     db.session.commit()
     
-    if is_fav:
+    if file_record.is_favorite:
         notification_service.create_notification(current_user.id, "Favorite Added", f"'{file_record.original_filename}' favorited.", "FAVORITE_ADDED", "bi-star-fill")
     else:
         notification_service.create_notification(current_user.id, "Favorite Removed", f"'{file_record.original_filename}' unfavorited.", "FAVORITE_REMOVED", "bi-star")
@@ -821,6 +900,7 @@ def toggle_favorite_file(file_id):
 
 @files.route("/favorite/folder/<int:folder_id>", methods=['POST'])
 @login_required
+@verification_required
 def toggle_favorite_folder(folder_id):
     folder_record = Folder.query.get_or_404(folder_id)
     if folder_record.owner != current_user:

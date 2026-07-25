@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email Address</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f8fafc; padding: 40px 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+        .header { background-color: #e11d48; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+        .content { padding: 40px 30px; line-height: 1.6; }
+        .content h2 { font-size: 20px; font-weight: 600; color: #0f172a; margin-top: 0; }
+        .btn-container { text-align: center; margin: 30px 0; }
+        .btn { display: inline-block; background-color: #e11d48; color: #ffffff !important; text-decoration: none; padding: 12px 30px; border-radius: 30px; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(225,29,72,0.2); }
+        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
+        .link-text { word-break: break-all; color: #64748b; font-size: 13px; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <table class="wrapper" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td>
+                <div class="container">
+                    <div class="header">
+                        <h1>☁️ CloudVault</h1>
+                    </div>
+                    <div class="content">
+                        <h2>Verify Your Email Address</h2>
+                        <p>Thank you for choosing CloudVault. To complete your registration or verify your new email address, please click the button below:</p>
+                        
+                        <div class="btn-container">
+                            <a href="{{ url_for('security.verify_email', token=token, _external=True) }}" class="btn">Verify Email Address</a>
+                        </div>
+                        
+                        <p>Please note that this verification link will expire in 24 hours. If you did not make this request, you can safely ignore this email.</p>
+                        
+                        <div class="link-text">
+                            <p>If you're having trouble clicking the button, copy and paste this link into your web browser:</p>
+                            <p>{{ url_for('security.verify_email', token=token, _external=True) }}</p>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>&copy; 2026 CloudVault. All rights reserved.</p>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

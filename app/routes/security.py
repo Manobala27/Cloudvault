@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session, make_response
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session, make_response, current_app
 from flask_login import login_required, current_user
-from app.models import ActivityLog
+from itsdangerous import URLSafeTimedSerializer
+from app.models import ActivityLog, User
 from app.services.two_factor_service import two_factor_service
 from app.services.notification_service import notification_service
+from app.services.email_service import email_service
 from app import db
 import io
 import csv
@@ -228,8 +230,9 @@ def verify_2fa():
             session.pop('2fa_remember', None)
             session.pop('2fa_next_page', None)
             
+            from app.routes.auth import handle_login_success
             flash('Login successful!', 'success')
-            return response
+            return handle_login_success(user, response, request)
         else:
             # Log failed attempt
             log = ActivityLog(user_id=user.id, action='OTP_FAILED', ip_address=request.remote_addr)
@@ -272,3 +275,133 @@ def remove_trust():
         res.delete_cookie('trusted_device_token')
         return res
     return jsonify({'success': False})
+
+@security_bp.route('/unverified', methods=['GET'])
+@login_required
+def unverified():
+    if current_user.email_verified:
+        return redirect(url_for('files.dashboard'))
+    return render_template('auth/unverified.html')
+
+@security_bp.route('/verify-email/<token>', methods=['GET'])
+def verify_email(token):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        token_email = serializer.loads(token, salt='email-verify-salt', max_age=86400) # 24 hours
+    except:
+        flash("The verification link is invalid or has expired.", "danger")
+        return redirect(url_for('auth.login'))
+        
+    user = User.query.filter_by(pending_new_email=token_email).first()
+    if user:
+        old_email = user.email
+        user.email = token_email
+        user.pending_new_email = None
+        user.email_verified = True
+        db.session.commit()
+        
+        subject_old = "CloudVault: Email Changed Successfully"
+        html_old = f"<p>Hello {user.username},</p><p>This email confirms that your CloudVault account email address has been successfully changed from <strong>{old_email}</strong> to <strong>{token_email}</strong>.</p>"
+        email_service._send_email(old_email, subject_old, html_old, "EMAIL_CHANGED_OLD")
+        
+        subject_new = "CloudVault: Email Verified Successfully"
+        html_new = f"<p>Hello {user.username},</p><p>Your email address <strong>{token_email}</strong> has been verified successfully. Your account is now fully active.</p>"
+        email_service._send_email(token_email, subject_new, html_new, "EMAIL_CHANGED_NEW")
+        
+        flash("Your email address has been successfully verified and updated!", "success")
+        if current_user.is_authenticated:
+            return redirect(url_for('files.dashboard'))
+        return redirect(url_for('auth.login'))
+        
+    user = User.query.filter_by(email=token_email).first()
+    if user:
+        user.email_verified = True
+        db.session.commit()
+        
+        flash("Your email address has been successfully verified!", "success")
+        if current_user.is_authenticated:
+            return redirect(url_for('files.dashboard'))
+        return redirect(url_for('auth.login'))
+        
+    flash("User account not found.", "danger")
+    return redirect(url_for('auth.login'))
+
+@security_bp.route('/resend-verification', methods=['POST'])
+@login_required
+def resend_verification():
+    if current_user.email_verified:
+        flash("Your email is already verified.", "info")
+        return redirect(url_for('files.dashboard'))
+        
+    target_email = current_user.pending_new_email if current_user.pending_new_email else current_user.email
+    
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    token = serializer.dumps(target_email, salt='email-verify-salt')
+    
+    # Render verify email with the target email
+    class TempUser:
+        def __init__(self, username, email):
+            self.username = username
+            self.email = email
+            
+    user_for_render = TempUser(current_user.username, target_email)
+    email_service.send_verification_email(user_for_render, token)
+    
+    flash(f"A new verification link has been sent to '{target_email}'.", "success")
+    return redirect(url_for('security.unverified'))
+
+@security_bp.route('/change_email', methods=['POST'])
+@login_required
+def change_email():
+    new_email = request.form.get('new_email', '').strip()
+    password = request.form.get('password')
+    
+    if not new_email or not password:
+        flash("All fields are required.", "danger")
+        return redirect(url_for('security.settings'))
+        
+    if not bcrypt.check_password_hash(current_user.password, password):
+        flash("Incorrect password. Email change cancelled.", "danger")
+        return redirect(url_for('security.settings'))
+        
+    existing_user = User.query.filter_by(email=new_email).first()
+    if existing_user:
+        flash("That email address is already registered.", "danger")
+        return redirect(url_for('security.settings'))
+        
+    current_user.pending_new_email = new_email
+    db.session.commit()
+    
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    token = serializer.dumps(new_email, salt='email-verify-salt')
+    
+    class TempUser:
+        def __init__(self, username, email):
+            self.username = username
+            self.email = email
+            
+    user_for_render = TempUser(current_user.username, new_email)
+    email_service.send_verification_email(user_for_render, token)
+    
+    # Notify old email
+    subject = "CloudVault: Request to Change Your Email Address"
+    html_content = f"<p>Hello {current_user.username},</p><p>We received a request to change the email address of your CloudVault account to <strong>{new_email}</strong>.</p><p>A verification link has been sent to the new email address. Your current email remains active until verified.</p><p>If you did not request this, please secure your account immediately.</p>"
+    email_service._send_email(current_user.email, subject, html_content, "EMAIL_CHANGE_REQUESTED")
+    
+    flash(f"Verification link sent to '{new_email}'. Your email will update once verified.", "success")
+    return redirect(url_for('security.settings'))
+
+@security_bp.route('/update_preferences', methods=['POST'])
+@login_required
+def update_preferences():
+    current_user.pref_welcome_email = 'pref_welcome_email' in request.form
+    current_user.pref_share_emails = 'pref_share_emails' in request.form
+    current_user.pref_login_alerts = 'pref_login_alerts' in request.form
+    current_user.pref_storage_alerts = 'pref_storage_alerts' in request.form
+    current_user.pref_security_alerts = 'pref_security_alerts' in request.form
+    current_user.pref_product_updates = 'pref_product_updates' in request.form
+    
+    db.session.commit()
+    flash("Your notification preferences have been updated.", "success")
+    return redirect(url_for('security.settings'))
+

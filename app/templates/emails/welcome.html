@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to CloudVault</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f8fafc; padding: 40px 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+        .header { background-color: #e11d48; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+        .content { padding: 40px 30px; line-height: 1.6; }
+        .content h2 { font-size: 20px; font-weight: 600; color: #0f172a; margin-top: 0; }
+        .btn-container { text-align: center; margin: 30px 0; }
+        .btn { display: inline-block; background-color: #e11d48; color: #ffffff !important; text-decoration: none; padding: 12px 30px; border-radius: 30px; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(225,29,72,0.2); }
+        .security-box { background-color: #fff1f2; border-left: 4px solid #e11d48; padding: 20px; border-radius: 4px; margin-top: 30px; }
+        .security-box h3 { margin-top: 0; font-size: 16px; color: #9f1239; font-weight: 600; }
+        .security-box ul { margin: 0; padding-left: 20px; font-size: 14px; }
+        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+    <table class="wrapper" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td>
+                <div class="container">
+                    <div class="header">
+                        <h1>☁️ CloudVault</h1>
+                    </div>
+                    <div class="content">
+                        <h2>Hello {{ user.username }},</h2>
+                        <p>Welcome to CloudVault! We're thrilled to have you join our secure cloud storage service. CloudVault lets you store, access, share, and track version history for all of your important files safely and easily.</p>
+                        
+                        <div class="btn-container">
+                            <a href="{{ url_for('auth.login', _external=True) }}" class="btn">Log In to Your Dashboard</a>
+                        </div>
+                        
+                        <div class="security-box">
+                            <h3>🛡️ Security Best Practices</h3>
+                            <ul>
+                                <li>Enable <strong>Two-Factor Authentication (2FA)</strong> in settings immediately.</li>
+                                <li>Always verify share links before sharing publicly.</li>
+                                <li>Never reuse your password across other websites.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>&copy; 2026 CloudVault. All rights reserved.</p>
+                        <p>You received this email because you registered on CloudVault.</p>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

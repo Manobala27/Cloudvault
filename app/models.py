@@ -24,6 +24,18 @@ class User(db.Model, UserMixin):
     trusted_device_expiry = db.Column(db.DateTime, nullable=True)
     last_2fa_used = db.Column(db.DateTime, nullable=True)
     
+    # Email verification & notification preferences
+    email_verified = db.Column(db.Boolean, default=False, nullable=False)
+    pending_new_email = db.Column(db.String(120), nullable=True)
+    pref_welcome_email = db.Column(db.Boolean, default=True, nullable=False)
+    pref_share_emails = db.Column(db.Boolean, default=True, nullable=False)
+    pref_login_alerts = db.Column(db.Boolean, default=True, nullable=False)
+    pref_storage_alerts = db.Column(db.Boolean, default=True, nullable=False)
+    pref_security_alerts = db.Column(db.Boolean, default=True, nullable=False)
+    pref_product_updates = db.Column(db.Boolean, default=True, nullable=False)
+    failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
+    highest_storage_alert_sent = db.Column(db.Integer, default=0, nullable=False)
+
     files = db.relationship('File', backref='owner', lazy=True)
     folders = db.relationship('Folder', backref='owner', lazy=True)
 

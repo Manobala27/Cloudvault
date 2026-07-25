@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
@@ -18,6 +19,7 @@ login_manager.login_view = 'auth.login'
 login_manager.login_message_category = 'info'
 csrf = CSRFProtect()
 limiter = Limiter(key_func=get_remote_address)
+mail = Mail()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -29,6 +31,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+    mail.init_app(app)
 
     # Register blueprints
     from app.routes.main import main as main_blueprint
@@ -83,7 +86,7 @@ def create_app(config_class=Config):
         from app.models import Notification
         
         context = {'now': lambda: datetime.utcnow()}
-        if current_user.is_authenticated:
+        if current_user and hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
             count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
             context['unread_notifications_count'] = count
         else:

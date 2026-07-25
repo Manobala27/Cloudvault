@@ -108,6 +108,93 @@
                 </div>
             </div>
             {% endif %}
+            
+            <!-- Email Settings Card -->
+            <div class="premium-card-large mb-4 text-start">
+                <div class="border-bottom pb-3 mb-4 px-4 pt-4">
+                    <h5 class="fw-bold"><i class="bi bi-envelope-fill text-primary me-2"></i>Email Settings</h5>
+                </div>
+                <div class="p-4 pt-0">
+                    <form action="{{ url_for('security.change_email') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Current Email</label>
+                            <input type="text" class="form-control" value="{{ current_user.email }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">New Email Address</label>
+                            <input type="email" name="new_email" class="form-control" placeholder="newemail@example.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Confirm Password</label>
+                            <input type="password" name="password" class="form-control" placeholder="Enter password to confirm" required>
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary"><i class="bi bi-envelope-check"></i> Change Email</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Email Notification Preferences Card -->
+            <div class="premium-card-large mb-4 text-start">
+                <div class="border-bottom pb-3 mb-4 px-4 pt-4">
+                    <h5 class="fw-bold"><i class="bi bi-bell-fill text-primary me-2"></i>Email Preferences</h5>
+                </div>
+                <div class="p-4 pt-0">
+                    <form action="{{ url_for('security.update_preferences') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="pref_welcome_email" id="pref_welcome_email" {% if current_user.pref_welcome_email %}checked{% endif %}>
+                            <label class="form-check-label fw-medium text-dark" for="pref_welcome_email">
+                                Welcome Email
+                            </label>
+                            <div class="form-text text-muted small">Receive a guide and welcome tips on registration.</div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="pref_share_emails" id="pref_share_emails" {% if current_user.pref_share_emails %}checked{% endif %}>
+                            <label class="form-check-label fw-medium text-dark" for="pref_share_emails">
+                                Share Emails
+                            </label>
+                            <div class="form-text text-muted small">Notify recipients by email when sharing a file.</div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="pref_login_alerts" id="pref_login_alerts" {% if current_user.pref_login_alerts %}checked{% endif %}>
+                            <label class="form-check-label fw-medium text-dark" for="pref_login_alerts">
+                                Login Alerts
+                            </label>
+                            <div class="form-text text-muted small">Get alerted when a new browser or device logs into your account.</div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="pref_storage_alerts" id="pref_storage_alerts" {% if current_user.pref_storage_alerts %}checked{% endif %}>
+                            <label class="form-check-label fw-medium text-dark" for="pref_storage_alerts">
+                                Storage Alerts
+                            </label>
+                            <div class="form-text text-muted small">Receive warning emails when storage hits 80%, 90%, and 100% limits.</div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="pref_security_alerts" id="pref_security_alerts" {% if current_user.pref_security_alerts %}checked{% endif %}>
+                            <label class="form-check-label fw-medium text-dark" for="pref_security_alerts">
+                                Security Alerts
+                            </label>
+                            <div class="form-text text-muted small">Critical alerts about password changes or account settings updates.</div>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="pref_product_updates" id="pref_product_updates" {% if current_user.pref_product_updates %}checked{% endif %}>
+                            <label class="form-check-label fw-medium text-dark" for="pref_product_updates">
+                                Product Updates
+                            </label>
+                            <div class="form-text text-muted small">Stay up to date with new features and announcements.</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary px-4 shadow-sm"><i class="bi bi-save"></i> Save Preferences</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
