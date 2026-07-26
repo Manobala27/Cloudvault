@@ -2,16 +2,16 @@
 {% block title %}Analytics Dashboard{% endblock %}
 {% block content %}
 <div class="page-header flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-    <h2 class="text-dark mb-0"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Storage Analytics</h2>
+    <h2 class="text-high mb-0"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Storage Analytics</h2>
     <div class="d-flex gap-2">
-        <select id="timeRange" class="form-select shadow-sm" onchange="loadAnalytics()">
+        <select id="timeRange" class="form-select form-themed shadow-sm" onchange="loadAnalytics()" style="max-width: 180px;">
             <option value="7">Last 7 Days</option>
             <option value="30" selected>Last 30 Days</option>
             <option value="90">Last 90 Days</option>
             <option value="365">Last Year</option>
             <option value="all">All Time</option>
         </select>
-        <a href="{{ url_for('analytics.export_csv') }}" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
+        <a href="{{ url_for('analytics.export_csv') }}" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">
             <i class="bi bi-file-earmark-excel me-1"></i> Export CSV
         </a>
     </div>
@@ -22,7 +22,7 @@
         <!-- Skeleton Loaders -->
         {% for i in range(4) %}
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm placeholder-glow h-100">
+            <div class="stat-card-premium placeholder-glow h-100">
                 <div class="card-body py-4 text-center">
                     <div class="placeholder col-8 bg-secondary rounded py-2 mb-2"></div>
                     <div class="placeholder col-6 bg-primary rounded py-3"></div>
@@ -109,35 +109,35 @@
         // Overview Cards
         const cardsHTML = `
             <div class="col-md-3">
-                <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 bg-white rounded-4 border shadow-sm cv-hover-lift">
+                <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 rounded-4 border shadow-sm cv-hover-lift">
                     <div class="stat-icon primary mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary bg-primary bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-hdd-fill"></i></div>
-                    <h2 class="fw-bold mb-0 text-dark">${formatBytes(data.storage_used)}</h2>
+                    <h2 class="fw-bold mb-0 text-high">${formatBytes(data.storage_used)}</h2>
                     <p class="text-muted small text-uppercase fw-bold mb-3 mt-1">Storage Used</p>
-                    <div class="progress mt-auto w-100" style="height: 6px;">
+                    <div class="progress mt-auto w-100" style="height: 6px; background-color: rgba(255,255,255,0.06);">
                         <div class="progress-bar bg-primary" role="progressbar" style="width: ${data.storage_percent}%;"></div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 bg-white rounded-4 border shadow-sm cv-hover-lift">
+                <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 rounded-4 border shadow-sm cv-hover-lift">
                     <div class="stat-icon success mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-success bg-success bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-file-earmark-text-fill"></i></div>
-                    <h2 class="fw-bold mb-0 text-dark">${data.total_files}</h2>
+                    <h2 class="fw-bold mb-0 text-high">${data.total_files}</h2>
                     <p class="text-muted small text-uppercase fw-bold mb-0 mt-1">Total Files</p>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 bg-white rounded-4 border shadow-sm cv-hover-lift">
+                <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 rounded-4 border shadow-sm cv-hover-lift">
                     <div class="stat-icon warning mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-warning bg-warning bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-star-fill"></i></div>
-                    <h2 class="fw-bold mb-0 text-dark">${data.total_favorites}</h2>
+                    <h2 class="fw-bold mb-0 text-high">${data.total_favorites}</h2>
                     <p class="text-muted small text-uppercase fw-bold mb-0 mt-1">Favorites</p>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 bg-white rounded-4 border shadow-sm cv-hover-lift">
+                <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 rounded-4 border shadow-sm cv-hover-lift">
                     <div class="stat-icon danger mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-danger bg-danger bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-trash-fill"></i></div>
-                    <h2 class="fw-bold mb-0 text-dark">${data.trash_count}</h2>
+                    <h2 class="fw-bold mb-0 text-high">${data.trash_count}</h2>
                     <p class="text-muted small text-uppercase fw-bold mb-1 mt-1">In Trash</p>
-                    <div class="text-muted small fw-medium mt-auto border-top pt-2 w-100 text-center">${formatBytes(data.trash_size)}</div>
+                    <div class="text-muted small fw-medium mt-auto border-top pt-2 w-100 text-center" style="border-color: rgba(255,255,255,0.06) !important;">${formatBytes(data.trash_size)}</div>
                 </div>
             </div>
         `;
@@ -198,7 +198,7 @@
             plugins: {
                 legend: {
                     labels: {
-                        color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d'
+                        color: '#CBD5E1'
                     }
                 }
             }
@@ -214,8 +214,8 @@
                 datasets: [{
                     label: 'Files Uploaded',
                     data: data.trend.counts,
-                    borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.4
@@ -226,11 +226,11 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1, color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d' },
-                        grid: { color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#343a40' : '#e9ecef' }
+                        ticks: { stepSize: 1, color: '#CBD5E1' },
+                        grid: { color: 'rgba(255, 255, 255, 0.06)' }
                     },
                     x: {
-                        ticks: { color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d' },
+                        ticks: { color: '#CBD5E1' },
                         grid: { display: false }
                     }
                 }
@@ -250,7 +250,7 @@
                 datasets: [{
                     data: typeData,
                     backgroundColor: [
-                        '#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0', '#6f42c1', '#6c757d'
+                        '#3B82F6', '#22C55E', '#F59E0B', '#EF4444', '#10B981', '#8B5CF6', '#64748B'
                     ],
                     borderWidth: 0
                 }]
@@ -264,7 +264,7 @@
                         labels: {
                             padding: 20,
                             usePointStyle: true,
-                            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d'
+                            color: '#CBD5E1'
                         }
                     }
                 }

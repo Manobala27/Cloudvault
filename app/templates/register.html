@@ -1,84 +1,275 @@
 {% extends "base.html" %}
 {% block title %}Register{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block body_class %}auth-page-body{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="auth-card mt-4 mb-5 mx-auto">
-            <div class="text-center mb-4">
-                <i class="bi bi-person-plus-fill text-primary" style="font-size: 3rem;"></i>
-                <h2 class="text-dark mt-2">Create an Account</h2>
-                <p class="text-muted">Join CloudVault today</p>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% set state = namespace(error_msg=none, success_msg=none, info_msg=none) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      {% if category == 'danger' or category == 'error' %}
+        {% set state.error_msg = message %}
+      {% elif category == 'success' %}
+        {% set state.success_msg = message %}
+      {% else %}
+        {% set state.info_msg = message %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+<div class="auth-container">
+    <!-- Left Sidebar (Desktop Only) -->
+    <div class="auth-sidebar">
+        <a class="brand-logo-wrapper" href="{{ url_for('main.index') }}">
+            <i class="bi bi-cloud-arrow-up-fill brand-logo-icon"></i>
+            <span class="brand-name">CloudVault</span>
+        </a>
+        <div class="sidebar-glow"></div>
+        <div>
+            <h1 class="brand-tagline">
+                <span>Secure.</span>
+                <span class="highlight">Store.</span>
+                <span class="accent">Access Anywhere.</span>
+            </h1>
+            <p class="brand-description">
+                Experience enterprise-grade cloud storage. Securely encrypt, organize, and access your files from any device, anywhere in the world.
+            </p>
+            
+            <!-- Glassmorphic CSS/SVG Vector Illustration -->
+            <div class="illustration-container">
+                <svg class="glass-vault-svg anim-float" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Glowing Background Blobs -->
+                    <circle cx="120" cy="120" r="70" fill="url(#bgGlow)" opacity="0.2" class="anim-pulse-glow" />
+                    
+                    <!-- Security Orbit Rings -->
+                    <circle cx="120" cy="120" r="100" stroke="rgba(59, 130, 246, 0.12)" stroke-width="1.5" />
+                    <circle cx="120" cy="120" r="80" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1" stroke-dasharray="6 8" class="anim-orbital-1" />
+                    <circle cx="120" cy="120" r="60" stroke="rgba(34, 197, 94, 0.15)" stroke-width="1" stroke-dasharray="12 4" class="anim-orbital-2" />
+                    
+                    <!-- Animated Data Streams -->
+                    <path d="M120 20 A 100 100 0 0 1 220 120" stroke="url(#dataLineGlow)" stroke-width="2" stroke-linecap="round" class="anim-dash" />
+                    
+                    <!-- Central Cloud Vault Shape -->
+                    <path d="M75 135 C 75 115, 95 100, 115 100 C 122 100, 128 102, 134 105 C 139 95, 150 90, 160 90 C 175 90, 188 103, 188 120 C 195 120, 201 126, 201 133 C 201 141, 195 147, 187 147 H 75" 
+                          fill="rgba(17, 24, 39, 0.65)" 
+                          stroke="url(#cloudBorder)" 
+                          stroke-width="1.5" 
+                          style="backdrop-filter: blur(8px);" />
+                    
+                    <!-- Embedded Secure Vault Shield -->
+                    <path d="M120 85 L145 95 V125 C145 142.5, 120 155, 120 155 C120 155, 95 142.5, 95 125 V95 L120 85 Z" 
+                          fill="rgba(59, 130, 246, 0.12)" 
+                          stroke="url(#shieldBorder)" 
+                          stroke-width="1.5" />
+                    
+                    <!-- Lock Core inside Shield -->
+                    <path d="M114 116 V111 C114 107.6, 116.6 105, 120 105 C123.4 105, 126 107.6, 126 111 V116" 
+                          stroke="#60A5FA" 
+                          stroke-width="1.5" 
+                          stroke-linecap="round" />
+                    <rect x="111" y="116" width="18" height="13" rx="3" fill="#3B82F6" stroke="#60A5FA" stroke-width="1" />
+                    <circle cx="120" cy="122.5" r="1.5" fill="#F8FAFC" />
+                    
+                    <!-- Floating Folder (Left Side) -->
+                    <g class="anim-float-delayed" transform="translate(30, 70) scale(0.85)">
+                        <path d="M5 12 C 5 10.9, 5.9 10, 7 10 H 18 L 22 14 H 37 C 38.1 14, 39 14.9, 39 16 V 33 C 39 34.1, 38.1 35, 37 35 H 7 C 5.9 35, 5 34.1, 5 33 Z" 
+                              fill="rgba(17, 24, 39, 0.7)" 
+                              stroke="#64748B" 
+                              stroke-width="1.2" 
+                              style="backdrop-filter: blur(4px);" />
+                        <path d="M22 14 H 37 V 18 H 5 V 16 C 5 14.9, 5.9 14, 7 14 H 18 Z" fill="rgba(59, 130, 246, 0.2)" />
+                    </g>
+                    
+                    <!-- Floating Secure File (Right Side) -->
+                    <g class="anim-float-faster" transform="translate(175, 135) scale(0.85)">
+                        <path d="M6 8 C 6 6.9, 6.9 6, 8 6 H 24 L 32 14 V 38 C 32 39.1, 31.1 40, 30 40 H 8 C 6.9 40, 6 39.1, 6 38 Z" 
+                              fill="rgba(17, 24, 39, 0.7)" 
+                              stroke="#64748B" 
+                              stroke-width="1.2" 
+                              style="backdrop-filter: blur(4px);" />
+                        <path d="M24 6 V 14 H 32" stroke="#64748B" stroke-width="1.2" fill="none" />
+                        <line x1="12" y1="20" x2="26" y2="20" stroke="rgba(34, 197, 94, 0.4)" stroke-width="1.5" stroke-linecap="round" />
+                        <line x1="12" y1="26" x2="22" y2="26" stroke="rgba(34, 197, 94, 0.4)" stroke-width="1.5" stroke-linecap="round" />
+                        <line x1="12" y1="32" x2="18" y2="32" stroke="rgba(34, 197, 94, 0.4)" stroke-width="1.5" stroke-linecap="round" />
+                    </g>
+
+                    <defs>
+                        <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                            <stop offset="0%" stop-color="#3B82F6" />
+                            <stop offset="100%" stop-color="#3B82F6" stop-opacity="0" />
+                        </radialGradient>
+                        <linearGradient id="cloudBorder" x1="75" y1="90" x2="201" y2="147" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="rgba(255, 255, 255, 0.12)" />
+                            <stop offset="100%" stop-color="rgba(59, 130, 246, 0.3)" />
+                        </linearGradient>
+                        <linearGradient id="shieldBorder" x1="95" y1="85" x2="145" y2="155" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#60A5FA" />
+                            <stop offset="100%" stop-color="#3B82F6" />
+                        </linearGradient>
+                        <linearGradient id="dataLineGlow" x1="120" y1="20" x2="220" y2="120" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#3B82F6" />
+                            <stop offset="100%" stop-color="rgba(59, 130, 246, 0)" />
+                        </linearGradient>
+                    </defs>
+                </svg>
             </div>
+        </div>
+        <div class="brand-footer">
+            &copy; 2026 CloudVault Inc. &middot; Premium Enterprise Storage
+        </div>
+    </div>
+    
+    <!-- Right Main Pane -->
+    <div class="auth-main-pane">
+        <!-- Top Nav -->
+        <div class="auth-top-nav">
+            <a href="{{ url_for('main.contact') }}" class="auth-nav-link"><i class="bi bi-chat-dots me-1"></i>Support</a>
+        </div>
+        
+        <!-- Mobile Logo Header (Hidden on Desktop) -->
+        <div class="mobile-brand-header">
+            <a class="mobile-brand-logo" href="{{ url_for('main.index') }}">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+                <span>CloudVault</span>
+            </a>
+            <span class="text-muted small">Secure. Store. Access Anywhere.</span>
+        </div>
+        
+        <!-- Auth Card -->
+        <div class="auth-card">
+            <h2 class="auth-card-title">Create an Account</h2>
+            <p class="auth-card-subtitle">Get started with CloudVault today</p>
+            
+            {% if state.error_msg %}
+            <div class="auth-alert">
+                <i class="bi bi-exclamation-circle-fill auth-alert-icon"></i>
+                <div>{{ state.error_msg }}</div>
+            </div>
+            {% endif %}
+            {% if state.success_msg %}
+            <div class="auth-alert auth-alert-success">
+                <i class="bi bi-check-circle-fill auth-alert-icon"></i>
+                <div>{{ state.success_msg }}</div>
+            </div>
+            {% endif %}
+            {% if state.info_msg %}
+            <div class="auth-alert auth-alert-info">
+                <i class="bi bi-info-circle-fill auth-alert-icon"></i>
+                <div>{{ state.info_msg }}</div>
+            </div>
+            {% endif %}
             
             <form method="POST" action="" class="needs-loading text-start">
                 {{ form.hidden_tag() }}
                 
-                <div class="mb-3 form-floating">
+                <div class="auth-input-group">
+                    <label for="username" class="auth-label">Username</label>
+                    <div class="auth-input-wrapper">
+                        <i class="bi bi-user bi-person auth-input-icon"></i>
+                        {% if form.username.errors %}
+                            {{ form.username(class="auth-input is-invalid", id="username", placeholder="Username", required=True) }}
+                        {% else %}
+                            {{ form.username(class="auth-input", id="username", placeholder="Username", required=True) }}
+                        {% endif %}
+                    </div>
                     {% if form.username.errors %}
-                        {{ form.username(class="form-control is-invalid", placeholder="Username") }}
-                    {% else %}
-                        {{ form.username(class="form-control", placeholder="Username") }}
-                    {% endif %}
-                    {{ form.username.label(class="form-label") }}
-                    {% if form.username.errors %}
-                        <div class="invalid-feedback px-2">
+                        <div class="invalid-feedback">
                             {% for error in form.username.errors %}<span>{{ error }}</span>{% endfor %}
                         </div>
                     {% endif %}
                 </div>
                 
-                <div class="mb-3 form-floating">
+                <div class="auth-input-group">
+                    <label for="email" class="auth-label">Email Address</label>
+                    <div class="auth-input-wrapper">
+                        <i class="bi bi-envelope auth-input-icon"></i>
+                        {% if form.email.errors %}
+                            {{ form.email(class="auth-input is-invalid", id="email", placeholder="name@example.com", required=True) }}
+                        {% else %}
+                            {{ form.email(class="auth-input", id="email", placeholder="name@example.com", required=True) }}
+                        {% endif %}
+                    </div>
                     {% if form.email.errors %}
-                        {{ form.email(class="form-control is-invalid", placeholder="name@example.com") }}
-                    {% else %}
-                        {{ form.email(class="form-control", placeholder="name@example.com") }}
-                    {% endif %}
-                    {{ form.email.label(class="form-label") }}
-                    {% if form.email.errors %}
-                        <div class="invalid-feedback px-2">
+                        <div class="invalid-feedback">
                             {% for error in form.email.errors %}<span>{{ error }}</span>{% endfor %}
                         </div>
                     {% endif %}
                 </div>
                 
-                <div class="mb-3 form-floating">
+                <div class="auth-input-group">
+                    <label for="password" class="auth-label">Password</label>
+                    <div class="auth-input-wrapper auth-input-wrapper-password">
+                        <i class="bi bi-lock auth-input-icon"></i>
+                        {% if form.password.errors %}
+                            {{ form.password(class="auth-input is-invalid", id="password", placeholder="••••••••", required=True) }}
+                        {% else %}
+                            {{ form.password(class="auth-input", id="password", placeholder="••••••••", required=True) }}
+                        {% endif %}
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('password')">
+                            <i class="bi bi-eye" id="password-toggle-icon"></i>
+                        </button>
+                    </div>
                     {% if form.password.errors %}
-                        {{ form.password(class="form-control is-invalid", placeholder="Password") }}
-                    {% else %}
-                        {{ form.password(class="form-control", placeholder="Password") }}
-                    {% endif %}
-                    {{ form.password.label(class="form-label") }}
-                    {% if form.password.errors %}
-                        <div class="invalid-feedback px-2">
+                        <div class="invalid-feedback">
                             {% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}
                         </div>
                     {% endif %}
                 </div>
-                
-                <div class="mb-4 form-floating">
+
+                <div class="auth-input-group">
+                    <label for="confirm_password" class="auth-label">Confirm Password</label>
+                    <div class="auth-input-wrapper auth-input-wrapper-password">
+                        <i class="bi bi-lock-fill auth-input-icon"></i>
+                        {% if form.confirm_password.errors %}
+                            {{ form.confirm_password(class="auth-input is-invalid", id="confirm_password", placeholder="••••••••", required=True) }}
+                        {% else %}
+                            {{ form.confirm_password(class="auth-input", id="confirm_password", placeholder="••••••••", required=True) }}
+                        {% endif %}
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('confirm_password')">
+                            <i class="bi bi-eye" id="confirm_password-toggle-icon"></i>
+                        </button>
+                    </div>
                     {% if form.confirm_password.errors %}
-                        {{ form.confirm_password(class="form-control is-invalid", placeholder="Confirm Password") }}
-                    {% else %}
-                        {{ form.confirm_password(class="form-control", placeholder="Confirm Password") }}
-                    {% endif %}
-                    {{ form.confirm_password.label(class="form-label") }}
-                    {% if form.confirm_password.errors %}
-                        <div class="invalid-feedback px-2">
+                        <div class="invalid-feedback">
                             {% for error in form.confirm_password.errors %}<span>{{ error }}</span>{% endfor %}
                         </div>
                     {% endif %}
                 </div>
                 
-                <div class="d-grid gap-2 mb-4">
-                    {{ form.submit(class="btn btn-primary btn-lg shadow-sm") }}
+                <div class="d-grid gap-2 mb-4 mt-4">
+                    <button type="submit" class="auth-btn-primary">
+                        Sign Up
+                    </button>
                 </div>
                 
                 <div class="text-center mt-3">
-                    <span class="text-muted fw-medium">Already have an account?</span> 
-                    <a href="{{ url_for('auth.login') }}" class="text-decoration-none fw-bold text-primary">Login here</a>
+                    <span class="auth-link-secondary small">Already have an account?</span> 
+                    <a href="{{ url_for('auth.login') }}" class="auth-link small ms-1">Login here</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+{% endwith %}
+
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(inputId + '-toggle-icon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    }
+}
+</script>
 {% endblock %}

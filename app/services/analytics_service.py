@@ -9,7 +9,7 @@ class AnalyticsService:
     def get_user_analytics(user_id, days=None):
         query_filter = [File.user_id == user_id, File.is_deleted == False]
         if days:
-            cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+            cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
             query_filter.append(File.upload_date >= cutoff)
             
         files = File.query.filter(*query_filter).all()
@@ -39,9 +39,9 @@ class AnalyticsService:
         smallest_file = min([f for f in files if f.file_size], key=lambda f: f.file_size) if [f for f in files if f.file_size] else None
         avg_size = total_size / total_files if total_files > 0 else 0
 
-        # Storage capacity (Assumed 15GB standard, could be pulled from user model if exists)
-        # Let's assume a hard limit of 15GB (15 * 1024**3)
-        storage_quota = 15 * 1024 * 1024 * 1024 
+        # Storage capacity configured in settings
+        from app.services.settings_service import settings_service
+        storage_quota = settings_service.get('storage_limit_gb') * 1024 * 1024 * 1024 
         storage_percent = (total_size / storage_quota) * 100 if storage_quota > 0 else 0
         
         # File type grouping
@@ -69,7 +69,7 @@ class AnalyticsService:
         trend_dates = []
         trend_counts = []
         trend_sizes = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         for i in range(29, -1, -1):
             date = (now - timedelta(days=i)).date()
             trend_dates.append(date.strftime("%Y-%m-%d"))
@@ -144,17 +144,88 @@ class AnalyticsService:
         # Activity trend (last 7 days total logs)
         trend_dates = []
         trend_activity = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         for i in range(6, -1, -1):
             date = (now - timedelta(days=i)).date()
             trend_dates.append(date.strftime("%Y-%m-%d"))
-            
-            # This could be expensive on large DBs, using SQL directly is better
-            # but for our scale, we can query it
-            start = datetime(date.year, date.month, date.day, tzinfo=timezone.utc)
+            start = datetime(date.year, date.month, date.day)
             end = start + timedelta(days=1)
             count = ActivityLog.query.filter(ActivityLog.created_at >= start, ActivityLog.created_at < end).count()
             trend_activity.append(count)
+
+        # Extended admin analytics for Phase 3 charts
+        # 1. Daily Registrations (last 30 days)
+        reg_dates = []
+        reg_counts = []
+        for i in range(29, -1, -1):
+            date = (now - timedelta(days=i)).date()
+            reg_dates.append(date.strftime("%Y-%m-%d"))
+            start = datetime(date.year, date.month, date.day)
+            end = start + timedelta(days=1)
+            count = User.query.filter(User.date_registered >= start, User.date_registered < end).count()
+            reg_counts.append(count)
+
+        # 2. Daily Uploads & Sizes (last 30 days)
+        upload_dates = []
+        upload_counts = []
+        upload_sizes = []
+        for i in range(29, -1, -1):
+            date = (now - timedelta(days=i)).date()
+            upload_dates.append(date.strftime("%Y-%m-%d"))
+            start = datetime(date.year, date.month, date.day)
+            end = start + timedelta(days=1)
+            day_files_query = File.query.filter(File.upload_date >= start, File.upload_date < end, File.is_deleted == False).all()
+            upload_counts.append(len(day_files_query))
+            upload_sizes.append(sum(f.file_size for f in day_files_query if f.file_size))
+
+        # 3. Storage Growth cumulative (last 30 days)
+        growth_sizes = []
+        cutoff_date = now - timedelta(days=30)
+        base_storage = sum(f.file_size for f in all_files if f.upload_date and f.upload_date < cutoff_date and f.file_size)
+        running = base_storage
+        for i in range(29, -1, -1):
+            date = (now - timedelta(days=i)).date()
+            start = datetime(date.year, date.month, date.day)
+            end = start + timedelta(days=1)
+            day_files_query = File.query.filter(File.upload_date >= start, File.upload_date < end, File.is_deleted == False).all()
+            running += sum(f.file_size for f in day_files_query if f.file_size)
+            growth_sizes.append(running)
+
+        # 4. File Type Distribution (across all files)
+        types = {'Images': 0, 'Videos': 0, 'Audio': 0, 'Documents': 0, 'Archives': 0, 'Code': 0, 'Others': 0}
+        type_sizes = {k: 0 for k in types.keys()}
+        for f in all_files:
+            mime, _ = mimetypes.guess_type(f.original_filename)
+            category = 'Others'
+            if mime:
+                if mime.startswith('image/'): category = 'Images'
+                elif mime.startswith('video/'): category = 'Videos'
+                elif mime.startswith('audio/'): category = 'Audio'
+                elif mime in ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']: category = 'Documents'
+                elif mime in ['application/zip', 'application/x-tar', 'application/x-rar-compressed']: category = 'Archives'
+                elif mime.startswith('text/') or mime in ['application/json', 'application/javascript']: category = 'Code'
+            types[category] += 1
+            type_sizes[category] += (f.file_size or 0)
+
+        # 5. Top 10 Storage Consumers
+        sorted_consumers = sorted(user_storages.items(), key=lambda x: x[1], reverse=True)[:10]
+        top_consumers = []
+        for uid, size in sorted_consumers:
+            u = User.query.get(uid)
+            if u:
+                top_consumers.append({
+                    'username': u.username,
+                    'email': u.email,
+                    'storage_used': size
+                })
+
+        # 6. User Activity Distribution (grouped by log actions)
+        activity_distribution = {}
+        activity_counts = db.session.query(
+            ActivityLog.action, func.count(ActivityLog.id)
+        ).group_by(ActivityLog.action).all()
+        for action, count in activity_counts:
+            activity_distribution[action] = count
 
         return {
             'total_users': total_users,
@@ -181,7 +252,27 @@ class AnalyticsService:
             'trend': {
                 'dates': trend_dates,
                 'activity': trend_activity
-            }
+            },
+            'registrations': {
+                'dates': reg_dates,
+                'counts': reg_counts
+            },
+            'uploads_trend': {
+                'dates': upload_dates,
+                'counts': upload_counts,
+                'sizes': upload_sizes
+            },
+            'storage_growth': {
+                'dates': upload_dates,
+                'sizes': growth_sizes
+            },
+            'file_types': {
+                'labels': list(types.keys()),
+                'counts': list(types.values()),
+                'sizes': list(type_sizes.values())
+            },
+            'top_consumers': top_consumers,
+            'activities_grouped': activity_distribution
         }
 
 analytics_service = AnalyticsService()

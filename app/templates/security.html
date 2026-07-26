@@ -2,7 +2,7 @@
 {% block title %}Security Settings{% endblock %}
 {% block content %}
 <div class="page-header mb-4">
-    <h2 class="text-dark"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Security Settings</h2>
+    <h2 class="text-high"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Security Settings</h2>
     <p class="text-muted mb-0">Manage your account security and two-factor authentication.</p>
 </div>
 
@@ -22,9 +22,9 @@
                         <div>
                             <h4 class="fw-bold mb-1">Two-Factor Authentication (2FA)</h4>
                             {% if current_user.two_factor_enabled %}
-                                <span class="badge bg-success">Enabled</span>
+                                <span class="badge cv-badge-success rounded-pill px-3">Enabled</span>
                             {% else %}
-                                <span class="badge bg-warning text-dark">Disabled</span>
+                                <span class="badge cv-badge-warning rounded-pill px-3">Disabled</span>
                             {% endif %}
                         </div>
                     </div>
@@ -42,11 +42,11 @@
                             </div>
                             <div class="col-md-8">
                                 <p class="small mb-1 text-muted">Can't scan the QR code? Enter this secret manually:</p>
-                                <code class="d-block p-2 bg-light border rounded mb-3 user-select-all">{{ secret }}</code>
+                                <code class="d-block p-2 rounded mb-3 user-select-all" style="background: rgba(255,255,255,0.03); border: 1px solid var(--cv-surface-border) !important; color: var(--cv-text-main);">{{ secret }}</code>
                                 
                                 <form id="enable2faForm" class="d-flex gap-2">
-                                    <input type="text" class="form-control" id="token2fa" placeholder="Enter 6-digit code" maxlength="6" required pattern="[0-9]{6}">
-                                    <button type="submit" class="btn btn-primary" id="btnEnable2fa">Enable 2FA</button>
+                                    <input type="text" class="form-control form-themed" id="token2fa" placeholder="Enter 6-digit code" maxlength="6" required pattern="[0-9]{6}">
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="btnEnable2fa">Enable 2FA</button>
                                 </form>
                                 <div id="enableFeedback" class="mt-2 small"></div>
                             </div>
@@ -71,7 +71,7 @@
                 <div class="p-4">
                     {% if current_user.trusted_device_expiry %}
                         <p class="text-muted">You have a device trusted until {{ current_user.trusted_device_expiry.strftime('%Y-%m-%d') }}.</p>
-                        <button class="btn btn-outline-danger" id="btnRemoveTrust" onclick="removeTrust()">
+                        <button class="btn btn-outline-danger rounded-pill px-4" id="btnRemoveTrust" onclick="removeTrust()">
                             <i class="bi bi-laptop"></i> Remove Trust from Device
                         </button>
                     {% else %}
@@ -89,8 +89,8 @@
                     <p class="text-muted">Recovery codes can be used to access your account in the event you lose access to your device and cannot receive two-factor authentication codes.</p>
                     
                     <div id="recoveryCodesContainer" class="d-none mb-3">
-                        <div class="bg-light p-3 border rounded text-center mb-3">
-                            <code id="codesList" class="fs-5 text-dark" style="white-space: pre-wrap;"></code>
+                        <div class="p-3 border rounded text-center mb-3" style="background: rgba(255,255,255,0.02); border-color: var(--cv-surface-border) !important;">
+                            <code id="codesList" class="fs-5 text-high" style="white-space: pre-wrap;"></code>
                         </div>
                         <div class="alert alert-warning py-2 mb-3">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i> Save these codes now! They will not be shown again.
@@ -98,11 +98,11 @@
                         <form action="{{ url_for('security.download_recovery_codes') }}" method="POST">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="codes" id="downloadCodesInput">
-                            <button type="submit" class="btn btn-success"><i class="bi bi-download me-1"></i> Download Codes</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-download me-1"></i> Download Codes</button>
                         </form>
                     </div>
 
-                    <button class="btn btn-outline-primary" id="btnRegenerateCodes" onclick="regenerateCodes()">
+                    <button class="btn btn-secondary rounded-pill px-4" id="btnRegenerateCodes" onclick="regenerateCodes()">
                         <i class="bi bi-arrow-clockwise"></i> Generate New Recovery Codes
                     </button>
                 </div>
@@ -119,17 +119,17 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Current Email</label>
-                            <input type="text" class="form-control" value="{{ current_user.email }}" disabled>
+                            <input type="text" class="form-control form-themed" value="{{ current_user.email }}" disabled>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">New Email Address</label>
-                            <input type="email" name="new_email" class="form-control" placeholder="newemail@example.com" required>
+                            <input type="email" name="new_email" class="form-control form-themed" placeholder="newemail@example.com" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Confirm Password</label>
-                            <input type="password" name="password" class="form-control" placeholder="Enter password to confirm" required>
+                            <input type="password" name="password" class="form-control form-themed" placeholder="Enter password to confirm" required>
                         </div>
-                        <button type="submit" class="btn btn-outline-primary"><i class="bi bi-envelope-check"></i> Change Email</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-envelope-check me-1"></i> Change Email</button>
                     </form>
                 </div>
             </div>
@@ -145,7 +145,7 @@
                         
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" name="pref_welcome_email" id="pref_welcome_email" {% if current_user.pref_welcome_email %}checked{% endif %}>
-                            <label class="form-check-label fw-medium text-dark" for="pref_welcome_email">
+                            <label class="form-check-label fw-medium text-high" for="pref_welcome_email">
                                 Welcome Email
                             </label>
                             <div class="form-text text-muted small">Receive a guide and welcome tips on registration.</div>
@@ -153,7 +153,7 @@
 
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" name="pref_share_emails" id="pref_share_emails" {% if current_user.pref_share_emails %}checked{% endif %}>
-                            <label class="form-check-label fw-medium text-dark" for="pref_share_emails">
+                            <label class="form-check-label fw-medium text-high" for="pref_share_emails">
                                 Share Emails
                             </label>
                             <div class="form-text text-muted small">Notify recipients by email when sharing a file.</div>
@@ -161,7 +161,7 @@
 
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" name="pref_login_alerts" id="pref_login_alerts" {% if current_user.pref_login_alerts %}checked{% endif %}>
-                            <label class="form-check-label fw-medium text-dark" for="pref_login_alerts">
+                            <label class="form-check-label fw-medium text-high" for="pref_login_alerts">
                                 Login Alerts
                             </label>
                             <div class="form-text text-muted small">Get alerted when a new browser or device logs into your account.</div>
@@ -169,7 +169,7 @@
 
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" name="pref_storage_alerts" id="pref_storage_alerts" {% if current_user.pref_storage_alerts %}checked{% endif %}>
-                            <label class="form-check-label fw-medium text-dark" for="pref_storage_alerts">
+                            <label class="form-check-label fw-medium text-high" for="pref_storage_alerts">
                                 Storage Alerts
                             </label>
                             <div class="form-text text-muted small">Receive warning emails when storage hits 80%, 90%, and 100% limits.</div>
@@ -177,7 +177,7 @@
 
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" name="pref_security_alerts" id="pref_security_alerts" {% if current_user.pref_security_alerts %}checked{% endif %}>
-                            <label class="form-check-label fw-medium text-dark" for="pref_security_alerts">
+                            <label class="form-check-label fw-medium text-high" for="pref_security_alerts">
                                 Security Alerts
                             </label>
                             <div class="form-text text-muted small">Critical alerts about password changes or account settings updates.</div>
@@ -185,7 +185,7 @@
 
                         <div class="form-check mb-4">
                             <input class="form-check-input" type="checkbox" name="pref_product_updates" id="pref_product_updates" {% if current_user.pref_product_updates %}checked{% endif %}>
-                            <label class="form-check-label fw-medium text-dark" for="pref_product_updates">
+                            <label class="form-check-label fw-medium text-high" for="pref_product_updates">
                                 Product Updates
                             </label>
                             <div class="form-text text-muted small">Stay up to date with new features and announcements.</div>
@@ -198,9 +198,12 @@
         </div>
     </div>
 
+{% endblock %}
+
+{% block modals %}
 <!-- Disable 2FA Modal -->
 <div class="modal fade" id="disable2faModal" tabindex="-1" aria-labelledby="disable2faModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0">
                 <h5 class="modal-title fw-bold" id="disable2faModalLabel">Disable 2FA</h5>
@@ -210,13 +213,13 @@
                 <p class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> This will decrease the security of your account.</p>
                 <p>Please enter your password to confirm you want to disable two-factor authentication.</p>
                 <div class="mb-3">
-                    <input type="password" class="form-control" id="disablePassword" placeholder="Your password">
+                    <input type="password" class="form-control form-themed" id="disablePassword" placeholder="Your password">
                 </div>
                 <div id="disableFeedback" class="small text-danger"></div>
             </div>
             <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="btnDisableConfirm" onclick="disable2fa()">Disable 2FA</button>
+                <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4" id="btnDisableConfirm" onclick="disable2fa()">Disable 2FA</button>
             </div>
         </div>
     </div>

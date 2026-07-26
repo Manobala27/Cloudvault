@@ -3,29 +3,29 @@
 {% block content %}
 <div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
     <div class="mb-3 mb-md-0">
-        <h2 class="text-dark"><i class="bi bi-clock-history text-primary me-2"></i> Activity Log</h2>
+        <h2 class="text-high"><i class="bi bi-clock-history text-primary me-2"></i> Activity Log</h2>
         <p class="text-muted mb-0 mt-1">Audit history of all your actions in CloudVault.</p>
     </div>
     <div class="d-flex gap-2">
         <form method="GET" action="{{ url_for('activity.index') }}" class="d-flex gap-2 flex-wrap flex-md-now justify-content-md-end">
-            <select name="action" class="form-select shadow-sm" style="min-width: 150px;" onchange="this.form.submit()">
+            <select name="action" class="form-select form-themed shadow-sm" style="min-width: 150px;" onchange="this.form.submit()">
                 <option value="">All Actions</option>
                 {% for act in distinct_actions %}
                 <option value="{{ act }}" {% if action_filter == act %}selected{% endif %}>{{ act }}</option>
                 {% endfor %}
             </select>
-            <div class="input-group" style="min-width: 200px;">
-                <span class="input-group-text bg-white border-end-0 text-muted ps-3 rounded-start-pill"><i class="bi bi-search"></i></span>
-                <input type="text" name="search" class="form-control border-start-0 ps-0 shadow-none rounded-end-pill py-2" placeholder="Search files/folders..." value="{{ search_query }}">
+            <div class="input-group search-pill" style="min-width: 200px;">
+                <span class="input-group-text bg-transparent border-0 pe-2"><i class="bi bi-search text-secondary"></i></span>
+                <input type="text" name="search" class="form-control form-themed border-0 shadow-none bg-transparent py-2" placeholder="Search logs..." value="{{ search_query }}">
             </div>
             <button type="submit" class="btn btn-primary d-none">Search</button>
         </form>
     </div>
 </div>
 
-<div class="table-responsive mb-4">
+<div class="table-responsive mb-4 mt-3" style="background: var(--cv-surface); border: 1px solid var(--cv-surface-border) !important; border-radius: 14px; overflow: hidden; box-shadow: var(--cv-shadow-sm);">
     <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th class="ps-4">Time</th>
                     <th>Action</th>

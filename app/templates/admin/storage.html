@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Storage Management{% endblock %}
+{% block content %}
+
+<div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
+    <div class="mb-3 mb-md-0">
+        <h2 class="text-high"><i class="bi bi-hdd-network-fill text-primary me-2"></i> Storage Management</h2>
+        <p class="text-muted mb-0 mt-1">Audit platform storage utilization, large objects, and unused user quotas.</p>
+    </div>
+</div>
+
+<!-- Admin Sub Navigation Tab-bar -->
+<div class="d-flex flex-wrap gap-2 mb-4 admin-nav-bar">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-people me-1"></i> Users
+    </a>
+    <a href="{{ url_for('admin.files') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-files me-1"></i> Files
+    </a>
+    <a href="{{ url_for('admin.storage') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+        <i class="bi bi-hdd-network me-1"></i> Storage
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bar-chart me-1"></i> Analytics
+    </a>
+    <a href="{{ url_for('admin.health') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-heart-pulse me-1"></i> Health
+    </a>
+    <a href="{{ url_for('admin.activity') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-activity me-1"></i> Activity
+    </a>
+    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-shield-check me-1"></i> Audit Logs
+    </a>
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-gear me-1"></i> Settings
+    </a>
+    <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+    </a>
+    <a href="{{ url_for('admin.notifications') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bell me-1"></i> Notifications
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Storage gauge card -->
+    <div class="col-lg-6">
+        <div class="stat-card-premium p-4 rounded-4 border shadow-sm h-100">
+            <h5 class="fw-bold text-high mb-3">Overall Storage Usage</h5>
+            <div class="d-flex align-items-center mb-2">
+                <h3 class="fw-bold mb-0 text-high me-3">{{ storage_used|format_size }}</h3>
+                <span class="text-muted small">used of {{ total_storage|format_size }} allocated</span>
+            </div>
+            
+            {% set pct = (storage_used / total_storage * 100) if total_storage > 0 else 0 %}
+            <div class="progress rounded-pill bg-dark bg-opacity-20 mb-3" style="height: 10px;">
+                <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ pct }}%;" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            
+            <div class="d-flex justify-content-between pt-2 border-top border-secondary border-opacity-10 text-muted small">
+                <div>Free space: <strong>{{ free_storage|format_size }}</strong></div>
+                <div>Utilization: <strong>{{ pct|round(2) }}%</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Consumers -->
+    <div class="col-lg-6">
+        <div class="stat-card-premium p-4 rounded-4 border shadow-sm h-100">
+            <h5 class="fw-bold text-high mb-3">Top 5 Storage Consumers</h5>
+            <ul class="list-group list-group-flush bg-transparent">
+                {% for u, size in top_consumers %}
+                <li class="list-group-item bg-transparent border-secondary border-opacity-10 d-flex justify-content-between align-items-center px-0 py-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                            {{ u.username[0]|upper }}
+                        </div>
+                        <div>
+                            <h6 class="mb-0 small fw-bold text-high">{{ u.username }}</h6>
+                            <small class="text-muted text-truncate" style="max-width: 180px; display: inline-block;">{{ u.email }}</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ size|format_size }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Large Files -->
+    <div class="col-lg-8">
+        <div class="premium-card-large">
+            <h5 class="fw-bold text-high mb-4"><i class="bi bi-file-earmark-arrow-up text-primary me-2"></i> Large Objects (> 5MB)</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-start">
+                    <thead class="table-light">
+                        <tr>
+                            <th>File Name</th>
+                            <th>Uploader</th>
+                            <th>Size</th>
+                            <th>Upload Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in large_files %}
+                        <tr>
+                            <td class="text-truncate fw-medium" style="max-width: 250px;">{{ f.original_filename }}</td>
+                            <td>{{ f.owner.username if f.owner else 'Deleted' }}</td>
+                            <td class="fw-bold">{{ f.file_size|format_size }}</td>
+                            <td class="small text-muted">{{ f.upload_date.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not large_files %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted small">No large files found (> 5MB).</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Largest Folders -->
+    <div class="col-lg-4">
+        <div class="stat-card-premium p-4 rounded-4 border shadow-sm">
+            <h5 class="fw-bold text-high mb-4"><i class="bi bi-folder2 text-primary me-2"></i> Largest Folders</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-start">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Folder</th>
+                            <th>Owner</th>
+                            <th class="text-end">Size</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for folder, size in largest_folders %}
+                        <tr>
+                            <td class="text-truncate small fw-medium" style="max-width: 120px;">
+                                <i class="bi bi-folder-fill text-warning me-1"></i> {{ folder.name }}
+                            </td>
+                            <td class="small">{{ folder.owner.username if folder.owner else 'Deleted' }}</td>
+                            <td class="text-end small fw-bold">{{ size|format_size }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not largest_folders %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted small">No folders created yet.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

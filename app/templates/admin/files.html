@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}File Browser{% endblock %}
+{% block content %}
+
+<div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
+    <div class="mb-3 mb-md-0">
+        <h2 class="text-high"><i class="bi bi-files text-primary me-2"></i> Global File Browser</h2>
+        <p class="text-muted mb-0 mt-1">Browse, audit metadata, and manage all files across all user repositories.</p>
+    </div>
+</div>
+
+<!-- Admin Sub Navigation Tab-bar -->
+<div class="d-flex flex-wrap gap-2 mb-4 admin-nav-bar">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-people me-1"></i> Users
+    </a>
+    <a href="{{ url_for('admin.files') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+        <i class="bi bi-files me-1"></i> Files
+    </a>
+    <a href="{{ url_for('admin.storage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-hdd-network me-1"></i> Storage
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bar-chart me-1"></i> Analytics
+    </a>
+    <a href="{{ url_for('admin.health') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-heart-pulse me-1"></i> Health
+    </a>
+    <a href="{{ url_for('admin.activity') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-activity me-1"></i> Activity
+    </a>
+    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-shield-check me-1"></i> Audit Logs
+    </a>
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-gear me-1"></i> Settings
+    </a>
+    <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+    </a>
+    <a href="{{ url_for('admin.notifications') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bell me-1"></i> Notifications
+    </a>
+</div>
+
+<!-- Filter Box -->
+<div class="premium-card-large mb-4">
+    <form action="{{ url_for('admin.files') }}" method="GET" class="row g-3">
+        <div class="col-md-3">
+            <div class="input-group search-pill w-100">
+                <span class="input-group-text bg-transparent border-0 pe-2"><i class="bi bi-search text-secondary"></i></span>
+                <input type="text" name="search" class="form-control form-themed border-0 shadow-none bg-transparent py-2" placeholder="Search file name..." value="{{ search_query }}">
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="input-group search-pill w-100">
+                <span class="input-group-text bg-transparent border-0 pe-2"><i class="bi bi-person text-secondary"></i></span>
+                <input type="text" name="user" class="form-control form-themed border-0 shadow-none bg-transparent py-2" placeholder="Filter by username..." value="{{ user_filter }}">
+            </div>
+        </div>
+        
+        <div class="col-6 col-md-2">
+            <input type="text" name="ext" class="form-control form-themed rounded-pill border-secondary border-opacity-20 py-2" placeholder="Extension (e.g. pdf)" value="{{ ext_filter }}">
+        </div>
+        
+        <div class="col-6 col-md-2">
+            <select name="status" class="form-select form-themed rounded-pill border-secondary border-opacity-20 py-2">
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Files</option>
+                <option value="deleted" {% if status_filter == 'deleted' %}selected{% endif %}>Soft Deleted</option>
+            </select>
+        </div>
+        
+        <div class="col-12 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary rounded-pill px-3 flex-grow-1">Filter</button>
+            {% if search_query or user_filter or ext_filter or status_filter != 'active' %}
+            <a href="{{ url_for('admin.files') }}" class="btn btn-secondary rounded-pill px-3">Clear</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Table list -->
+<div class="table-responsive mb-4">
+    <table class="table table-hover align-middle mb-0 text-start">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-4">File Target</th>
+                <th>Owner</th>
+                <th>Size</th>
+                <th>Uploaded</th>
+                <th>S3 Storage Key</th>
+                <th class="text-end pe-4">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in files.items %}
+            <tr>
+                <td class="ps-4">
+                    <div class="d-flex align-items-center">
+                        <div class="text-primary me-3" style="font-size: 1.5rem;"><i class="bi bi-file-earmark-text-fill"></i></div>
+                        <div>
+                            <h6 class="mb-0 fw-bold text-high">{{ f.original_filename }}</h6>
+                            {% if f.folder %}
+                            <small class="text-muted"><i class="bi bi-folder-fill text-warning me-1"></i>{{ f.folder.name }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </td>
+                <td>{{ f.owner.username if f.owner else 'Deleted' }}</td>
+                <td class="fw-semibold">{{ f.file_size|format_size }}</td>
+                <td><small class="text-muted">{{ f.upload_date.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                <td><code class="small text-truncate text-low" style="max-width: 150px; display: inline-block;">{{ f.filename }}</code></td>
+                <td class="text-end pe-4">
+                    <div class="d-flex justify-content-end gap-1">
+                        <a href="{{ url_for('admin.admin_download_file', file_id=f.id) }}" class="btn btn-light btn-sm rounded-circle" title="Download">
+                            <i class="bi bi-cloud-download"></i>
+                        </a>
+                        {% if f.is_deleted %}
+                        <form action="{{ url_for('admin.admin_restore_file', file_id=f.id) }}" method="POST" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-light btn-sm text-success rounded-circle" title="Restore">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-light btn-sm text-danger rounded-circle" data-bs-toggle="modal" data-bs-target="#hardDeleteModal{{ f.id }}" title="Delete Permanently">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                        {% else %}
+                        <form action="{{ url_for('admin.admin_delete_file', file_id=f.id) }}" method="POST" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-light btn-sm text-danger rounded-circle" title="Soft Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not files.items %}
+            <tr>
+                <td colspan="6" class="text-center py-5 text-muted">
+                    <i class="bi bi-folder-x mb-3 d-block" style="font-size: 2rem;"></i>
+                    No files found matching the criteria.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% if files.pages > 1 %}
+<div class="mt-4 d-flex justify-content-center">
+    <nav aria-label="File navigation">
+        <ul class="pagination pagination-sm mb-0">
+            {% for page_num in files.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    {% if files.page == page_num %}
+                        <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('admin.files', page=page_num, search=search_query, user=user_filter, ext=ext_filter, status=status_filter) }}">{{ page_num }}</a></li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block modals %}
+<!-- Hard Delete Modals -->
+{% for f in files.items %}
+{% if f.is_deleted %}
+<div class="modal fade" id="hardDeleteModal{{ f.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Permanently Delete File</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-start">
+                Are you absolutely sure you want to permanently delete <strong>{{ f.original_filename }}</strong>?
+                <br><br>
+                This action will completely erase the object and all previous versions from AWS S3 storage. <strong>This action CANNOT be undone!</strong>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('admin.admin_delete_file', file_id=f.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="hard_delete" value="true">
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">Delete Permanently</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

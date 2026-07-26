@@ -1,0 +1,866 @@
+/* ==========================================================================
+   CloudVault Premium Enterprise SaaS Auth Stylesheet (Phase 1)
+   Inspired by Vercel, Linear, and GitHub Design Aesthetics
+   ========================================================================== */
+
+/* Design Tokens Scoped under .auth-page-body */
+.auth-page-body {
+    background-color: #0B1220 !important;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    color: #F8FAFC !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+    height: 100vh;
+}
+
+/* Hide navigation bar on auth pages */
+.auth-page-body nav.navbar {
+    display: none !important;
+}
+
+/* Hide standard email warnings since we handle verification inline */
+.auth-page-body .alert-warning {
+    display: none !important;
+}
+
+/* Reset main wrapper */
+.auth-page-body main.container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: #0B1220;
+}
+
+/* ==========================================================================
+   Responsive Grid & Page Split
+   ========================================================================== */
+.auth-container {
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    height: 100vh;
+    min-height: 600px;
+    background-color: #0B1220;
+    overflow: hidden;
+}
+
+/* Left Sidebar (Desktop Only) */
+.auth-sidebar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 42%;
+    padding: 3.5rem;
+    background: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 100% 100%, rgba(37, 99, 235, 0.05) 0%, transparent 50%),
+                #0B1220;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* Cybernetic Grid Background */
+.auth-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center;
+    mask-image: radial-gradient(ellipse at 40% 40%, black 40%, transparent 85%);
+    -webkit-mask-image: radial-gradient(ellipse at 40% 40%, black 40%, transparent 85%);
+    z-index: -1;
+}
+
+/* Light Glow Blob */
+.sidebar-glow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+    top: 30%;
+    left: 20%;
+    filter: blur(40px);
+    pointer-events: none;
+    z-index: -1;
+    animation: pulseGlow 12s infinite alternate ease-in-out;
+}
+
+/* Right Main Pane */
+.auth-main-pane {
+    width: 58%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 3rem 2rem;
+    position: relative;
+}
+
+/* Guest header for support links */
+.auth-top-nav {
+    position: absolute;
+    top: 2rem;
+    right: 3rem;
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.875rem;
+    z-index: 10;
+}
+
+.auth-nav-link {
+    color: #94A3B8;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.auth-nav-link:hover {
+    color: #F8FAFC;
+}
+
+/* ==========================================================================
+   Branding & Typography
+   ========================================================================== */
+.brand-logo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+
+.brand-logo-icon {
+    font-size: 1.75rem;
+    color: #3B82F6;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 8px rgba(59,130,246,0.3));
+}
+
+.brand-name {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #F8FAFC;
+    letter-spacing: -0.02em;
+}
+
+.brand-tagline {
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.04em;
+    color: #F8FAFC;
+    margin-top: 4rem;
+}
+
+.brand-tagline span {
+    display: block;
+}
+
+.brand-tagline .highlight {
+    background: linear-gradient(90deg, #F8FAFC 0%, #94A3B8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brand-tagline .accent {
+    background: linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brand-description {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #94A3B8;
+    max-width: 360px;
+    margin-top: 1.5rem;
+    font-weight: 400;
+}
+
+.brand-footer {
+    font-size: 0.75rem;
+    color: #64748B;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Premium Components
+   ========================================================================== */
+
+/* Auth Card System */
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: rgba(17, 24, 39, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.1), 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+                0 0 20px 0 rgba(59, 130, 246, 0.04), /* subtle border glow */
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 14px;
+    padding: 2.75rem;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Header Text inside Cards */
+.auth-card-title {
+    font-size: 1.625rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #F8FAFC;
+    margin-bottom: 0.5rem;
+}
+
+.auth-card-subtitle {
+    font-size: 0.875rem;
+    color: #94A3B8;
+    margin-bottom: 2rem;
+}
+
+/* Input Fields System */
+.auth-input-group {
+    margin-bottom: 1.35rem;
+    position: relative;
+}
+
+.auth-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #CBD5E1;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.01em;
+}
+
+.auth-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.auth-input-icon {
+    position: absolute;
+    left: 1rem;
+    color: #64748B;
+    font-size: 1.1rem;
+    pointer-events: none;
+    transition: color 0.2s ease;
+}
+
+.auth-input {
+    width: 100%;
+    height: 48px;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    color: #F8FAFC !important;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.5;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.auth-input::placeholder {
+    color: #475569;
+}
+
+/* Autofill fixes for dark mode browser inputs */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover, 
+.auth-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #F8FAFC !important;
+    -webkit-box-shadow: 0 0 0px 1000px #111827 inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.auth-input:focus {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-color: #3B82F6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16),
+                inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.auth-input:focus ~ .auth-input-icon {
+    color: #3B82F6;
+}
+
+/* Password Toggle */
+.auth-input-wrapper-password .auth-input {
+    padding-right: 2.75rem;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #64748B;
+    font-size: 1.1rem;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+    color: #CBD5E1;
+}
+
+/* Validation Indicator Styles */
+.auth-input.is-invalid {
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    background-color: rgba(239, 68, 68, 0.02) !important;
+}
+
+.auth-input.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16),
+                inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.auth-input.is-invalid ~ .auth-input-icon {
+    color: #EF4444;
+}
+
+.invalid-feedback {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #EF4444;
+    margin-top: 0.375rem;
+    padding-left: 0.25rem;
+    animation: slideDown 0.2s ease;
+}
+
+/* Custom Buttons System */
+.auth-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    border: none;
+    border-radius: 14px;
+    color: #F8FAFC;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 280ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.auth-btn-primary:hover {
+    background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3), 
+                0 0 12px 2px rgba(59, 130, 246, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.auth-btn-primary:active {
+    transform: translateY(0);
+}
+
+.auth-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    color: #CBD5E1;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #F8FAFC;
+}
+
+/* Custom Alert Boxes (Inline) */
+.auth-alert {
+    display: flex;
+    gap: 0.75rem;
+    background: rgba(239, 68, 68, 0.04);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    color: #EF4444;
+    border-radius: 14px;
+    padding: 0.875rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 1.5rem;
+    text-align: left;
+    animation: shake 0.4s ease-in-out;
+}
+
+.auth-alert-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.auth-alert-success {
+    background: rgba(34, 197, 94, 0.04);
+    border-color: rgba(34, 197, 94, 0.15);
+    color: #22C55E;
+    animation: fadeIn 0.4s ease;
+}
+
+.auth-alert-info {
+    background: rgba(59, 130, 246, 0.04);
+    border-color: rgba(59, 130, 246, 0.15);
+    color: #3B82F6;
+    animation: fadeIn 0.4s ease;
+}
+
+.auth-alert-warning {
+    background: rgba(245, 158, 11, 0.04);
+    border-color: rgba(245, 158, 11, 0.15);
+    color: #F59E0B;
+    animation: fadeIn 0.4s ease;
+}
+
+/* Remember Me Checkbox */
+.auth-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+
+.auth-checkbox {
+    width: 16px;
+    height: 16px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    outline: none;
+    margin-right: 0.5rem;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.auth-checkbox:checked {
+    background-color: #3B82F6;
+    border-color: #3B82F6;
+}
+
+.auth-checkbox:checked::before {
+    content: "\F26E"; /* Bootstrap Icons Check */
+    font-family: "bootstrap-icons";
+    color: #F8FAFC;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.auth-checkbox:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.auth-checkbox-label {
+    font-size: 0.8125rem;
+    color: #94A3B8;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.auth-checkbox-label:hover {
+    color: #CBD5E1;
+}
+
+/* Link Actions Styling */
+.auth-link {
+    color: #3B82F6;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.auth-link:hover {
+    color: #2563EB;
+    text-decoration: underline;
+}
+
+.auth-link-secondary {
+    color: #94A3B8;
+    font-weight: 500;
+}
+
+.auth-link-secondary:hover {
+    color: #F8FAFC;
+}
+
+/* Divider Lines */
+.auth-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin: 1.75rem 0;
+}
+
+/* ==========================================================================
+   State Pages Illustrations and Aesthetics
+   ========================================================================== */
+
+/* State Page Wrapper (centered inside auth-card) */
+.auth-state-container {
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+}
+
+.state-icon-glow-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 1.75rem;
+    z-index: 1;
+}
+
+.state-icon-glow-wrapper::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    filter: blur(14px);
+    opacity: 0.15;
+    z-index: -1;
+}
+
+/* Glow modifiers */
+.glow-success {
+    background: rgba(34, 197, 94, 0.06);
+    border: 1px solid rgba(34, 197, 94, 0.15);
+    color: #22C55E;
+}
+.glow-success::before { background: #22C55E; }
+
+.glow-danger {
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    color: #EF4444;
+}
+.glow-danger::before { background: #EF4444; }
+
+.glow-warning {
+    background: rgba(245, 158, 11, 0.06);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    color: #F59E0B;
+}
+.glow-warning::before { background: #F59E0B; }
+
+.glow-info {
+    background: rgba(59, 130, 246, 0.06);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    color: #3B82F6;
+}
+.glow-info::before { background: #3B82F6; }
+
+.state-icon {
+    font-size: 2.25rem;
+}
+
+/* Glassmorphic CSS/SVG Illustration Container */
+.illustration-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.glass-vault-svg {
+    width: 240px;
+    height: 240px;
+    filter: drop-shadow(0 12px 28px rgba(0,0,0,0.3));
+}
+
+/* Interactive animations for vectors */
+.anim-float {
+    animation: floatVault 6s infinite ease-in-out;
+}
+
+.anim-pulse-glow {
+    animation: svgPulse 3s infinite ease-in-out;
+    transform-origin: center;
+}
+
+.anim-orbital-1 {
+    animation: svgOrbit1 20s infinite linear;
+    transform-origin: 120px 120px;
+}
+
+.anim-orbital-2 {
+    animation: svgOrbit2 28s infinite linear;
+    transform-origin: 120px 120px;
+}
+
+.anim-dash {
+    stroke-dasharray: 6;
+    animation: strokeFlow 4s infinite linear;
+}
+
+/* Password strength checklist display */
+.password-requirements-checklist {
+    list-style: none;
+    padding-left: 0.5rem;
+    margin-top: 0.75rem;
+    margin-bottom: 1.25rem;
+    text-align: left;
+}
+
+.password-requirement-item {
+    font-size: 0.75rem;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    transition: color 0.2s ease;
+}
+
+.password-requirement-item.valid {
+    color: #22C55E;
+}
+
+.password-requirement-item.valid i {
+    color: #22C55E;
+}
+
+.password-requirement-item i {
+    font-size: 0.75rem;
+    color: #475569;
+}
+
+/* Tiny notification badge element */
+.auth-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-primary-trans {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60A5FA;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+/* Form action loader overlay */
+.auth-btn-loading-text {
+    display: none;
+}
+
+.auth-btn-primary.is-loading .auth-btn-normal-text {
+    display: none;
+}
+
+.auth-btn-primary.is-loading .auth-btn-loading-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Spinner */
+.auth-spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #F8FAFC;
+    border-radius: 50%;
+    animation: authSpin 0.75s infinite linear;
+}
+
+/* ==========================================================================
+   CSS Keyframe Animations
+   ========================================================================== */
+@keyframes cardEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+}
+
+@keyframes authSpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.15); opacity: 1; filter: blur(50px); }
+}
+
+@keyframes floatVault {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes svgPulse {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.05); }
+}
+
+@keyframes svgOrbit1 {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes svgOrbit2 {
+    to { transform: rotate(-360deg); }
+}
+
+@keyframes strokeFlow {
+    to { stroke-dashoffset: -12; }
+}
+
+/* ==========================================================================
+   Responsive Viewports (Mobile & Tablet)
+   ========================================================================== */
+@media (max-width: 991.98px) {
+    .auth-sidebar {
+        display: none !important;
+    }
+    
+    .auth-main-pane {
+        width: 100%;
+        min-height: 100vh;
+        padding: 4.5rem 1.25rem 2rem 1.25rem;
+        background-color: #0B1220;
+    }
+    
+    .auth-top-nav {
+        top: 1.5rem;
+        right: 1.5rem;
+    }
+    
+    .auth-card {
+        padding: 2.25rem 1.5rem;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+    /* Small logo header for mobile since sidebar is hidden */
+    .mobile-brand-header {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .mobile-brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #F8FAFC;
+        text-decoration: none;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mobile-brand-logo i {
+        color: #3B82F6;
+    }
+}
+
+/* Support for very small device heights */
+@media (max-height: 650px) {
+    .auth-container {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .auth-sidebar {
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .auth-main-pane {
+        min-height: 100vh;
+        height: auto;
+        padding-top: 5rem;
+    }
+}
+
+.mobile-brand-header {
+    display: none;
+}
+
+/* Additional premium floating keyframe parameters */
+.anim-float-delayed {
+    animation: floatVault 7s infinite ease-in-out;
+    animation-delay: 1.5s;
+}
+
+.anim-float-faster {
+    animation: floatVault 5s infinite ease-in-out;
+    animation-delay: 0.5s;
+}

@@ -6,12 +6,12 @@
         
         <!-- 1. Premium page header -->
         <div class="d-flex align-items-center mb-4 mt-2">
-            <a href="{{ url_for('files.dashboard', folder_id=request.args.get('folder_id')) }}" class="btn btn-sm btn-light rounded-circle me-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+            <a href="{{ url_for('files.dashboard', folder_id=request.args.get('folder_id')) }}" class="btn btn-sm btn-secondary rounded-circle me-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; padding: 0 !important;">
                 <i class="bi bi-arrow-left fs-5"></i>
             </a>
             <div>
                 <h2 class="fw-bolder m-0 text-high" style="letter-spacing: -0.5px;"><i class="bi bi-cloud-upload-fill text-primary me-2"></i>Upload Files</h2>
-                <p class="text-white-50 mb-0 mt-1 small fw-medium">Securely upload and store your files in CloudVault</p>
+                <p class="text-muted mb-0 mt-1 small fw-medium">Securely upload and store your files in CloudVault</p>
             </div>
         </div>
 
@@ -27,13 +27,13 @@
             {% endif %}
 
             <!-- 2. Large centered upload card -->
-            <div class="saas-file-card cv-hover-lift mb-4" style="height: auto !important; border-radius: var(--cv-radius-xl);">
+            <div class="saas-file-card cv-hover-lift mb-4" style="height: auto !important; border-radius: var(--cv-radius-lg);">
                 <div class="card-body p-4 p-md-5">
-                    <div id="upload-dropzone" class="cv-upload-zone" style="min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed rgba(14, 165, 233, 0.3); border-radius: var(--cv-radius-lg); background: rgba(15, 23, 42, 0.4); transition: all 0.3s ease;">
+                    <div id="upload-dropzone" class="cv-upload-zone" style="min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed rgba(59, 130, 246, 0.3); border-radius: var(--cv-radius-lg); background: rgba(17, 24, 39, 0.4); transition: all 0.3s ease;">
                         <div class="position-relative z-1 text-center">
-                            <i class="bi bi-cloud-arrow-up cv-upload-icon text-primary mb-3" style="font-size: 5rem; display: block; line-height: 1; filter: drop-shadow(0 0 20px rgba(14, 165, 233, 0.3)); transition: transform 0.3s ease;"></i>
+                            <i class="bi bi-cloud-arrow-up cv-upload-icon text-primary mb-3" style="font-size: 5rem; display: block; line-height: 1; filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.3)); transition: transform 0.3s ease;"></i>
                             <h3 class="fw-bold text-white mb-2">Drag & Drop your files here</h3>
-                            <p class="text-white-50 mb-4 fw-medium fs-6">Or click to browse your computer</p>
+                            <p class="text-muted mb-4 fw-medium fs-6">Or click to browse your computer</p>
                             
                             {{ form.file(class="d-none", id="file-input", required=True) }}
                             <button id="browse-btn" type="button" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-lg" style="font-size: 1.1rem;" onclick="console.log('7. Browse button clicked'); document.getElementById('file-input').click()">

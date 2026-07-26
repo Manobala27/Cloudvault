@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}User Profile - {{ user.username }}{% endblock %}
+{% block content %}
+
+<div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
+    <div class="mb-3 mb-md-0">
+        <h2 class="text-high"><i class="bi bi-person-badge text-primary me-2"></i> User Profile</h2>
+        <p class="text-muted mb-0 mt-1">Detailed overview of account statistics and history for <strong>{{ user.username }}</strong>.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin.users') }}" class="btn btn-secondary rounded-pill px-4">
+            <i class="bi bi-arrow-left me-2"></i> Back to Users
+        </a>
+    </div>
+</div>
+
+<!-- Admin Sub Navigation Tab-bar -->
+<div class="d-flex flex-wrap gap-2 mb-4 admin-nav-bar">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+        <i class="bi bi-people me-1"></i> Users
+    </a>
+    <a href="{{ url_for('admin.files') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-files me-1"></i> Files
+    </a>
+    <a href="{{ url_for('admin.storage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-hdd-network me-1"></i> Storage
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bar-chart me-1"></i> Analytics
+    </a>
+    <a href="{{ url_for('admin.health') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-heart-pulse me-1"></i> Health
+    </a>
+    <a href="{{ url_for('admin.activity') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-activity me-1"></i> Activity
+    </a>
+    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-shield-check me-1"></i> Audit Logs
+    </a>
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-gear me-1"></i> Settings
+    </a>
+    <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+    </a>
+    <a href="{{ url_for('admin.notifications') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bell me-1"></i> Notifications
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- User summary card -->
+    <div class="col-lg-4">
+        <div class="stat-card-premium p-4 rounded-4 border shadow-sm text-center">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 2.25rem;">
+                {{ user.username[0]|upper }}
+            </div>
+            <h4 class="fw-bold mb-1 text-high">{{ user.username }}</h4>
+            <p class="text-muted small mb-3">{{ user.email }}</p>
+            
+            <div class="mb-4">
+                {% if user.is_active %}
+                <span class="badge bg-success rounded-pill px-3 py-1"><i class="bi bi-check-circle-fill"></i> Active</span>
+                {% else %}
+                <span class="badge bg-danger rounded-pill px-3 py-1"><i class="bi bi-x-circle-fill"></i> Suspended</span>
+                {% endif %}
+                
+                {% if user.is_admin %}
+                <span class="badge bg-primary rounded-pill px-3 py-1"><i class="bi bi-shield-fill"></i> Admin</span>
+                {% endif %}
+            </div>
+            
+            <div class="text-start border-top pt-3" style="border-color: rgba(255,255,255,0.06) !important;">
+                <div class="mb-2">
+                    <span class="text-muted small">Registered:</span>
+                    <span class="float-end text-high small fw-medium">{{ user.date_registered.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted small">Email Verification:</span>
+                    <span class="float-end small fw-medium {% if user.email_verified %}text-info{% else %}text-warning{% endif %}">
+                        {{ "Verified" if user.email_verified else "Pending" }}
+                    </span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted small">Two-Factor Auth:</span>
+                    <span class="float-end small fw-medium {% if user.two_factor_enabled %}text-success{% else %}text-muted{% endif %}">
+                        {{ "Enabled" if user.two_factor_enabled else "Disabled" }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 mt-4">
+                <form action="{{ url_for('admin.toggle_status', user_id=user.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn {% if user.is_active %}btn-outline-danger{% else %}btn-success{% endif %} w-100 rounded-pill">
+                        {% if user.is_active %}Suspend Account{% else %}Activate Account{% endif %}
+                    </button>
+                </form>
+                {% if user.id != current_user.id %}
+                <button type="button" class="btn btn-outline-danger w-100 rounded-pill" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                    Delete User Data
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- User metrics details -->
+    <div class="col-lg-8">
+        <div class="row g-4 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-card-premium p-3 rounded-4 border text-center">
+                    <h3 class="fw-bold mb-1 text-high">{{ storage_used|format_size }}</h3>
+                    <p class="text-muted small mb-0">Storage Used</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card-premium p-3 rounded-4 border text-center">
+                    <h3 class="fw-bold mb-1 text-high">{{ files_count }}</h3>
+                    <p class="text-muted small mb-0">Active Files</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card-premium p-3 rounded-4 border text-center">
+                    <h3 class="fw-bold mb-1 text-high">{{ folders_count }}</h3>
+                    <p class="text-muted small mb-0">Folders</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card-premium p-3 rounded-4 border text-center">
+                    <h3 class="fw-bold mb-1 text-high">{{ shares_count }}</h3>
+                    <p class="text-muted small mb-0">Shared Tokens</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Activity Timeline -->
+        <div class="premium-card-large">
+            <h5 class="fw-bold mb-4"><i class="bi bi-activity text-primary me-2"></i> Recent Activity Log</h5>
+            {% if recent_activity %}
+            <div class="activity-timeline">
+                {% for log in recent_activity %}
+                <div class="d-flex mb-3 align-items-start">
+                    <div class="activity-marker bg-primary bg-opacity-20 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; flex-shrink: 0;">
+                        <i class="bi bi-info-circle-fill" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <div class="flex-grow-1 border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-0 fw-semibold text-high">{{ log.action }}</h6>
+                            <small class="text-muted">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                        </div>
+                        <p class="text-muted small mb-0 mt-1">
+                            {% if log.file_name %}File: {{ log.file_name }}{% endif %}
+                            {% if log.folder_name %}Folder: {{ log.folder_name }}{% endif %}
+                            (IP: {{ log.ip_address or 'Unknown' }})
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar2-x mb-3 d-block" style="font-size: 2rem;"></i>
+                No activities logged for this user.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block modals %}
+{% if user.id != current_user.id %}
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Delete User Account</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                Are you absolutely sure you want to permanently delete <strong>{{ user.username }}</strong>?
+                <br><br>
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    <strong>DANGER ZONE:</strong> This will permanently delete the user's account, activity history, folders, and securely erase all their files from AWS S3. This action CANNOT be undone!
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">Permanently Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

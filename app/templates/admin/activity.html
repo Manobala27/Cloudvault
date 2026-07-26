@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Activity Monitor{% endblock %}
+{% block content %}
+
+<div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
+    <div class="mb-3 mb-md-0">
+        <h2 class="text-high"><i class="bi bi-activity text-primary me-2"></i> Global Activity Monitor</h2>
+        <p class="text-muted mb-0 mt-1">Audit trail of logins, uploads, sharing, and security operations.</p>
+    </div>
+</div>
+
+<!-- Admin Sub Navigation Tab-bar -->
+<div class="d-flex flex-wrap gap-2 mb-4 admin-nav-bar">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-people me-1"></i> Users
+    </a>
+    <a href="{{ url_for('admin.files') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-files me-1"></i> Files
+    </a>
+    <a href="{{ url_for('admin.storage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-hdd-network me-1"></i> Storage
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bar-chart me-1"></i> Analytics
+    </a>
+    <a href="{{ url_for('admin.health') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-heart-pulse me-1"></i> Health
+    </a>
+    <a href="{{ url_for('admin.activity') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+        <i class="bi bi-activity me-1"></i> Activity
+    </a>
+    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-shield-check me-1"></i> Audit Logs
+    </a>
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-gear me-1"></i> Settings
+    </a>
+    <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+    </a>
+    <a href="{{ url_for('admin.notifications') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bell me-1"></i> Notifications
+    </a>
+</div>
+
+<!-- Controls -->
+<div class="premium-card-large mb-4 text-start">
+    <form action="{{ url_for('admin.activity') }}" method="GET" class="row g-3">
+        <div class="col-md-5">
+            <div class="input-group search-pill w-100">
+                <span class="input-group-text bg-transparent border-0 pe-2"><i class="bi bi-search text-secondary"></i></span>
+                <input type="text" name="search" class="form-control form-themed border-0 shadow-none bg-transparent py-2" placeholder="Search by username..." value="{{ search_query }}">
+            </div>
+        </div>
+        
+        <div class="col-md-4 col-6">
+            <select name="action" class="form-select form-themed rounded-pill border-secondary border-opacity-20 py-2">
+                <option value="">All Actions</option>
+                {% for act in actions_list %}
+                <option value="{{ act }}" {% if action_filter == act %}selected{% endif %}>{{ act }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-3 col-6 d-flex gap-2">
+            <button type="submit" class="btn btn-primary rounded-pill px-3 flex-grow-1">Filter</button>
+            {% if search_query or action_filter %}
+            <a href="{{ url_for('admin.activity') }}" class="btn btn-secondary rounded-pill px-3">Clear</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Logs list -->
+<div class="table-responsive mb-4 text-start">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-4">User</th>
+                <th>Action</th>
+                <th>Target Element</th>
+                <th>IP Address</th>
+                <th class="pe-4">Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs.items %}
+            <tr>
+                <td class="ps-4">
+                    <span class="fw-semibold text-high">{{ log.user.username if log.user else 'System' }}</span>
+                    <span class="d-block small text-muted">{{ log.user.email if log.user else '' }}</span>
+                </td>
+                <td>
+                    <span class="badge bg-dark bg-opacity-20 border border-secondary border-opacity-20 text-high px-2 py-1 small">{{ log.action }}</span>
+                </td>
+                <td>
+                    {% if log.file_name %}
+                    <span class="small text-muted"><i class="bi bi-file-earmark-text-fill text-primary me-1"></i>{{ log.file_name }}</span>
+                    {% elif log.folder_name %}
+                    <span class="small text-muted"><i class="bi bi-folder-fill text-warning me-1"></i>{{ log.folder_name }}</span>
+                    {% else %}
+                    <span class="text-low small">-</span>
+                    {% endif %}
+                </td>
+                <td><code class="small">{{ log.ip_address or 'Unknown' }}</code></td>
+                <td class="small text-muted pe-4">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+            {% endfor %}
+            {% if not logs.items %}
+            <tr>
+                <td colspan="5" class="text-center py-5 text-muted">
+                    <i class="bi bi-journals mb-3 d-block" style="font-size: 2rem;"></i>
+                    No activities recorded.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% if logs.pages > 1 %}
+<div class="mt-4 d-flex justify-content-center">
+    <nav aria-label="Activity navigation">
+        <ul class="pagination pagination-sm mb-0">
+            {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    {% if logs.page == page_num %}
+                        <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('admin.activity', page=page_num, search=search_query, action=action_filter) }}">{{ page_num }}</a></li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
+{% endblock %}

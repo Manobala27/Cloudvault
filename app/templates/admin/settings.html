@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}System Settings{% endblock %}
+{% block content %}
+
+<div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
+    <div class="mb-3 mb-md-0">
+        <h2 class="text-high"><i class="bi bi-gear-fill text-primary me-2"></i> Application Settings</h2>
+        <p class="text-muted mb-0 mt-1">Configure global platform limits, mail servers, security policies, and maintenance modes.</p>
+    </div>
+</div>
+
+<!-- Admin Sub Navigation Tab-bar -->
+<div class="d-flex flex-wrap gap-2 mb-4 admin-nav-bar">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-people me-1"></i> Users
+    </a>
+    <a href="{{ url_for('admin.files') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-files me-1"></i> Files
+    </a>
+    <a href="{{ url_for('admin.storage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-hdd-network me-1"></i> Storage
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bar-chart me-1"></i> Analytics
+    </a>
+    <a href="{{ url_for('admin.health') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-heart-pulse me-1"></i> Health
+    </a>
+    <a href="{{ url_for('admin.activity') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-activity me-1"></i> Activity
+    </a>
+    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-shield-check me-1"></i> Audit Logs
+    </a>
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+        <i class="bi bi-gear me-1"></i> Settings
+    </a>
+    <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+    </a>
+    <a href="{{ url_for('admin.notifications') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bell me-1"></i> Notifications
+    </a>
+</div>
+
+<!-- Settings Form -->
+<form action="{{ url_for('admin.settings') }}" method="POST" class="text-start">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    <div class="row g-4">
+        <!-- Storage and Limits -->
+        <div class="col-md-6">
+            <div class="stat-card-premium p-4 rounded-4 border shadow-sm h-100">
+                <h5 class="fw-bold text-high mb-4"><i class="bi bi-hdd text-primary me-2"></i> Limits & Formats</h5>
+                
+                <div class="mb-3">
+                    <label class="form-label text-med small fw-bold">Max Upload File Size (MB)</label>
+                    <input type="number" name="upload_limit_mb" class="form-control form-themed py-2" value="{{ current_settings.upload_limit_mb }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-med small fw-bold">Default User Storage Quota (GB)</label>
+                    <input type="number" name="storage_limit_gb" class="form-control form-themed py-2" value="{{ current_settings.storage_limit_gb }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-med small fw-bold">Allowed File Extensions (comma separated)</label>
+                    <textarea name="allowed_extensions" class="form-control form-themed" rows="3" required>{{ current_settings.allowed_extensions }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Access Controls and Registration -->
+        <div class="col-md-6">
+            <div class="stat-card-premium p-4 rounded-4 border shadow-sm h-100">
+                <h5 class="fw-bold text-high mb-4"><i class="bi bi-shield-check text-primary me-2"></i> Policies & Toggles</h5>
+                
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="maintenance_mode" id="maintenanceMode" {% if current_settings.maintenance_mode %}checked{% endif %}>
+                    <label class="form-check-label text-med small fw-bold" for="maintenanceMode">Maintenance Mode (Restrict non-admins)</label>
+                </div>
+                
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="registration_enabled" id="registrationEnabled" {% if current_settings.registration_enabled %}checked{% endif %}>
+                    <label class="form-check-label text-med small fw-bold" for="registrationEnabled">Enable User Registrations</label>
+                </div>
+                
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="email_verification_required" id="emailVerificationRequired" {% if current_settings.email_verification_required %}checked{% endif %}>
+                    <label class="form-check-label text-med small fw-bold" for="emailVerificationRequired">Require Email Verification to log in</label>
+                </div>
+
+                <div class="mb-3 mt-4">
+                    <label class="form-label text-med small fw-bold">Minimum Password Length</label>
+                    <input type="number" name="password_min_length" class="form-control form-themed py-2" value="{{ current_settings.password_min_length }}" min="6" max="32" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- SMTP Mail Server Settings -->
+        <div class="col-12">
+            <div class="stat-card-premium p-4 rounded-4 border shadow-sm">
+                <h5 class="fw-bold text-high mb-4"><i class="bi bi-envelope text-primary me-2"></i> SMTP Configuration</h5>
+                
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-med small fw-bold">SMTP Server Host</label>
+                        <input type="text" name="smtp_host" class="form-control form-themed py-2" value="{{ current_settings.smtp_host }}" placeholder="e.g. smtp.mailgun.org">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label text-med small fw-bold">SMTP Port</label>
+                        <input type="number" name="smtp_port" class="form-control form-themed py-2" value="{{ current_settings.smtp_port }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-med small fw-bold">SMTP Username</label>
+                        <input type="text" name="smtp_user" class="form-control form-themed py-2" value="{{ current_settings.smtp_user }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-med small fw-bold">SMTP Password</label>
+                        <input type="password" name="smtp_password" class="form-control form-themed py-2" value="{{ current_settings.smtp_password }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-med small fw-bold">Default Sender Address</label>
+                        <input type="email" name="smtp_default_sender" class="form-control form-themed py-2" value="{{ current_settings.smtp_default_sender }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm fw-medium">Save Settings</button>
+        </div>
+    </div>
+</form>
+
+{% endblock %}

@@ -6,7 +6,7 @@
         <div class="auth-card mt-4 mb-5 mx-auto">
             <div class="text-center mb-4">
                 <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
-                <h2 class="text-dark mt-2">Two-Factor Auth</h2>
+                <h2 class="text-high mt-2">Two-Factor Auth</h2>
                 <p class="text-muted">Enter the 6-digit code from your app.</p>
             </div>
 
@@ -16,7 +16,7 @@
                         <input type="hidden" name="action" value="totp">
                         
                         <div class="mb-4">
-                            <input type="text" class="form-control form-control-lg text-center fw-bold fs-4" name="token" id="totpCode" placeholder="000000" maxlength="6" required autocomplete="one-time-code" pattern="[0-9]{6}">
+                            <input type="text" class="form-control form-control-lg form-themed text-center fw-bold fs-4" name="token" id="totpCode" placeholder="000000" maxlength="6" required autocomplete="one-time-code" pattern="[0-9]{6}">
                         </div>
                         
                         <div class="form-check mb-4 text-start">
@@ -26,7 +26,7 @@
                             </label>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">Verify</button>
+                        <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold">Verify</button>
                     </form>
 
                     <!-- Recovery Code Form (Hidden by default) -->
@@ -36,10 +36,10 @@
                         
                         <div class="mb-4">
                             <label class="form-label text-muted small">Enter one of your 8-character recovery codes.</label>
-                            <input type="text" class="form-control text-center text-uppercase fw-bold" name="token" id="recoveryCode" placeholder="XXXXXXXX" maxlength="8" required pattern="[a-zA-Z0-9]{8}">
+                            <input type="text" class="form-control form-themed text-center text-uppercase fw-bold" name="token" id="recoveryCode" placeholder="XXXXXXXX" maxlength="8" required pattern="[a-zA-Z0-9]{8}">
                         </div>
                         
-                        <button type="submit" class="btn btn-warning w-100 fw-bold text-dark mb-3">Use Recovery Code</button>
+                        <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold mb-3">Use Recovery Code</button>
                     </form>
 
                     <div class="text-center mt-4 pt-3 border-top">

@@ -87,8 +87,15 @@ def create_app(config_class=Config):
         
         context = {'now': lambda: datetime.utcnow()}
         if current_user and hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
-            count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
-            context['unread_notifications_count'] = count
+            try:
+                count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+                context['unread_notifications_count'] = count
+            except Exception:
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
+                context['unread_notifications_count'] = 0
         else:
             context['unread_notifications_count'] = 0
             
@@ -174,6 +181,18 @@ def create_app(config_class=Config):
             'version': '25.0',
             'timestamp': datetime.now(timezone.utc).isoformat()
         }), 200 if status == 'healthy' else 503
+
+    @app.before_request
+    def check_maintenance_mode():
+        from flask import request, render_template
+        from app.services.settings_service import settings_service
+        if settings_service.get('maintenance_mode'):
+            allowed_paths = ['/static', '/admin', '/login', '/logout', '/health', '/service-worker.js', '/manifest.json', '/offline.html']
+            if any(request.path.startswith(p) for p in allowed_paths):
+                return
+            if current_user and hasattr(current_user, 'is_authenticated') and current_user.is_authenticated and current_user.is_admin:
+                return
+            return render_template('maintenance.html'), 503
 
     return app
 

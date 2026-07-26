@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}System Alerts{% endblock %}
+{% block content %}
+
+<div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
+    <div class="mb-3 mb-md-0">
+        <h2 class="text-high"><i class="bi bi-bell-fill text-primary me-2"></i> System Alert Center</h2>
+        <p class="text-muted mb-0 mt-1">Audit log of system alerts, storage threshold warnings, and email courier failures.</p>
+    </div>
+</div>
+
+<!-- Admin Sub Navigation Tab-bar -->
+<div class="d-flex flex-wrap gap-2 mb-4 admin-nav-bar">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-people me-1"></i> Users
+    </a>
+    <a href="{{ url_for('admin.files') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-files me-1"></i> Files
+    </a>
+    <a href="{{ url_for('admin.storage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-hdd-network me-1"></i> Storage
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bar-chart me-1"></i> Analytics
+    </a>
+    <a href="{{ url_for('admin.health') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-heart-pulse me-1"></i> Health
+    </a>
+    <a href="{{ url_for('admin.activity') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-activity me-1"></i> Activity
+    </a>
+    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-shield-check me-1"></i> Audit Logs
+    </a>
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-gear me-1"></i> Settings
+    </a>
+    <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+    </a>
+    <a href="{{ url_for('admin.notifications') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+        <i class="bi bi-bell me-1"></i> Notifications
+    </a>
+</div>
+
+<!-- Alerts list -->
+<div class="table-responsive mb-4 text-start">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-4">Type</th>
+                <th>Alert Event</th>
+                <th>Description</th>
+                <th class="pe-4">Logged At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for n in notifications.items %}
+            <tr>
+                <td class="ps-4">
+                    {% if n.notification_type == 'EMAIL_FAILURE' %}
+                    <span class="badge bg-danger rounded-pill px-2 py-1"><i class="bi bi-envelope-exclamation"></i> Mail Failure</span>
+                    {% elif n.notification_type == 'STORAGE_WARNING' %}
+                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1"><i class="bi bi-hdd-fill"></i> Storage</span>
+                    {% else %}
+                    <span class="badge bg-secondary rounded-pill px-2 py-1"><i class="bi bi-info-circle-fill"></i> System</span>
+                    {% endif %}
+                </td>
+                <td class="fw-bold text-high">{{ n.title }}</td>
+                <td class="text-med">{{ n.message }}</td>
+                <td class="small text-muted pe-4">{{ n.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+            {% endfor %}
+            {% if not notifications.items %}
+            <tr>
+                <td colspan="4" class="text-center py-5 text-muted">
+                    <i class="bi bi-bell-slash mb-3 d-block" style="font-size: 2rem;"></i>
+                    No active system alerts or notifications found.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% if notifications.pages > 1 %}
+<div class="mt-4 d-flex justify-content-center">
+    <nav aria-label="Alerts navigation">
+        <ul class="pagination pagination-sm mb-0">
+            {% for page_num in notifications.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    {% if notifications.page == page_num %}
+                        <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('admin.notifications', page=page_num) }}">{{ page_num }}</a></li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
+{% endblock %}

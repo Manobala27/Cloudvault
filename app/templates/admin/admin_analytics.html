@@ -1,50 +1,134 @@
 {% extends "base.html" %}
 {% block title %}Admin Analytics{% endblock %}
 {% block content %}
-<div class="container py-4 mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Global Analytics</h2>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Admin
-        </a>
-    </div>
 
-    <!-- Overview Cards -->
-    <div class="row g-3 mb-4" id="adminCards">
-        <!-- Skeleton Loaders -->
-        {% for i in range(4) %}
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm placeholder-glow h-100">
-                <div class="card-body py-4 text-center">
-                    <div class="placeholder col-8 bg-secondary rounded py-2 mb-2"></div>
-                    <div class="placeholder col-6 bg-primary rounded py-3"></div>
-                </div>
+<div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
+    <div class="mb-3 mb-md-0">
+        <h2 class="text-high"><i class="bi bi-graph-up-arrow text-primary me-2"></i> Global Analytics Dashboard</h2>
+        <p class="text-muted mb-0 mt-1">Audit usage metrics, registration velocities, S3 growth curves, and user activity timelines.</p>
+    </div>
+</div>
+
+<!-- Admin Sub Navigation Tab-bar -->
+<div class="d-flex flex-wrap gap-2 mb-4 admin-nav-bar">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-people me-1"></i> Users
+    </a>
+    <a href="{{ url_for('admin.files') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-files me-1"></i> Files
+    </a>
+    <a href="{{ url_for('admin.storage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-hdd-network me-1"></i> Storage
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+        <i class="bi bi-bar-chart me-1"></i> Analytics
+    </a>
+    <a href="{{ url_for('admin.health') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-heart-pulse me-1"></i> Health
+    </a>
+    <a href="{{ url_for('admin.activity') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-activity me-1"></i> Activity
+    </a>
+    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-shield-check me-1"></i> Audit Logs
+    </a>
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-gear me-1"></i> Settings
+    </a>
+    <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+    </a>
+    <a href="{{ url_for('admin.notifications') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bell me-1"></i> Notifications
+    </a>
+</div>
+
+<!-- Overview Row -->
+<div class="row g-3 mb-4" id="adminCards">
+    <div class="col-md-3">
+        <div class="stat-card-premium p-3 rounded-4 border shadow-sm text-center">
+            <h6 class="text-muted small text-uppercase mb-1">Total Users</h6>
+            <h3 class="fw-bold mb-0 text-high" id="totalUsersVal">-</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-premium p-3 rounded-4 border shadow-sm text-center">
+            <h6 class="text-muted small text-uppercase mb-1">Storage Utilized</h6>
+            <h3 class="fw-bold mb-0 text-high" id="totalStorageVal">-</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-premium p-3 rounded-4 border shadow-sm text-center">
+            <h6 class="text-muted small text-uppercase mb-1">Total Files</h6>
+            <h3 class="fw-bold mb-0 text-high" id="totalFilesVal">-</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-premium p-3 rounded-4 border shadow-sm text-center">
+            <h6 class="text-muted small text-uppercase mb-1">Active Share Tokens</h6>
+            <h3 class="fw-bold mb-0 text-high" id="totalSharesVal">-</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Matrix -->
+<div class="row g-4 mb-4 text-start">
+    <!-- Registrations & Uploads -->
+    <div class="col-md-6">
+        <div class="premium-card-large h-100">
+            <h5 class="fw-bold mb-3">Daily Registrations (Last 30 Days)</h5>
+            <div style="height: 250px;">
+                <canvas id="registrationsChart"></canvas>
             </div>
         </div>
-        {% endfor %}
     </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <h5 class="fw-bold mb-0">System Activity Trend (Last 7 Days)</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="adminTrendChart" height="250"></canvas>
-                </div>
+    <div class="col-md-6">
+        <div class="premium-card-large h-100">
+            <h5 class="fw-bold mb-3">Daily File Uploads (Last 30 Days)</h5>
+            <div style="height: 250px;">
+                <canvas id="uploadsChart"></canvas>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-3 pb-0">
-                    <h5 class="fw-bold mb-0">Newest Users</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush" id="newestUsers">
-                        <div class="list-group-item p-3 placeholder-glow"><span class="placeholder col-12"></span></div>
-                    </div>
-                </div>
+    </div>
+
+    <!-- Storage Growth & File Type Distribution -->
+    <div class="col-md-6">
+        <div class="premium-card-large h-100">
+            <h5 class="fw-bold mb-3">Storage Capacity Growth (Bytes)</h5>
+            <div style="height: 250px;">
+                <canvas id="storageGrowthChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="premium-card-large h-100">
+            <h5 class="fw-bold mb-3">File Category Distribution</h5>
+            <div style="height: 250px;">
+                <canvas id="fileTypeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top consumers & Activity distribution -->
+    <div class="col-md-6">
+        <div class="premium-card-large h-100">
+            <h5 class="fw-bold mb-3">Top 10 Storage Consumers</h5>
+            <div style="height: 280px;">
+                <canvas id="consumersChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="premium-card-large h-100">
+            <h5 class="fw-bold mb-3">System Actions Distribution</h5>
+            <div style="height: 280px;">
+                <canvas id="activitiesChart"></canvas>
             </div>
         </div>
     </div>
@@ -52,7 +136,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    let adminTrendChart = null;
+    let charts = {};
 
     function formatBytes(bytes, decimals = 2) {
         if (!+bytes) return '0 Bytes';
@@ -63,116 +147,116 @@
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
     }
 
-    function loadAdminAnalytics() {
-        fetch("{{ url_for('admin.analytics_data') }}")
-            .then(response => response.json())
-            .then(data => renderAdminAnalytics(data));
+    function getThemeColor() {
+        return document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#E2E8F0' : '#0F172A';
+    }
+    
+    function getGridColor() {
+        return document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
     }
 
-    function renderAdminAnalytics(data) {
-        const cardsHTML = `
-            <div class="col">
-                <div class="card border-0 shadow-sm h-100 bg-primary bg-opacity-10">
-                    <div class="card-body text-center py-4">
-                        <i class="bi bi-people-fill text-primary fs-1 mb-2"></i>
-                        <h6 class="text-muted fw-bold text-uppercase">Total Users</h6>
-                        <h3 class="fw-bold mb-0">${data.total_users}</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card border-0 shadow-sm h-100 bg-success bg-opacity-10">
-                    <div class="card-body text-center py-4">
-                        <i class="bi bi-hdd-network-fill text-success fs-1 mb-2"></i>
-                        <h6 class="text-muted fw-bold text-uppercase">Global Storage</h6>
-                        <h3 class="fw-bold mb-0">${formatBytes(data.total_storage)}</h3>
-                        <small class="text-muted d-block mt-2">Avg: ${formatBytes(data.avg_user_storage)} / user</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10">
-                    <div class="card-body text-center py-4">
-                        <i class="bi bi-share-fill text-warning fs-1 mb-2"></i>
-                        <h6 class="text-muted fw-bold text-uppercase">Active Shares</h6>
-                        <h3 class="fw-bold mb-0">${data.total_shares}</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card border-0 shadow-sm h-100 bg-danger bg-opacity-10">
-                    <div class="card-body text-center py-4">
-                        <i class="bi bi-person-bounding-box text-danger fs-1 mb-2"></i>
-                        <h6 class="text-muted fw-bold text-uppercase">Top Consumer</h6>
-                        <h3 class="fw-bold mb-0 text-truncate px-2" title="${data.largest_user.username}">${data.largest_user.username}</h3>
-                        <small class="text-muted d-block mt-2">${formatBytes(data.largest_user.storage)}</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card border-0 shadow-sm h-100 bg-info bg-opacity-10">
-                    <div class="card-body text-center py-4">
-                        <i class="bi bi-shield-lock-fill text-info fs-1 mb-2"></i>
-                        <h6 class="text-muted fw-bold text-uppercase">2FA Secured</h6>
-                        <h3 class="fw-bold mb-0">${data.two_factor_enabled}</h3>
-                        <small class="text-muted d-block mt-2">${data.two_factor_disabled} unprotected</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card border-0 shadow-sm h-100 bg-secondary bg-opacity-10">
-                    <div class="card-body text-center py-4">
-                        <i class="bi bi-key-fill text-secondary fs-1 mb-2"></i>
-                        <h6 class="text-muted fw-bold text-uppercase">API Keys</h6>
-                        <h3 class="fw-bold mb-0">${data.api_stats.active_keys}</h3>
-                        <small class="text-muted d-block mt-2">${data.api_stats.total_keys} total</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card border-0 shadow-sm h-100 bg-info bg-opacity-10">
-                    <div class="card-body text-center py-4">
-                        <i class="bi bi-cloud-arrow-down-fill text-info fs-1 mb-2"></i>
-                        <h6 class="text-muted fw-bold text-uppercase">Backups</h6>
-                        <h3 class="fw-bold mb-0">${data.backup_stats.total_backups}</h3>
-                        <small class="text-muted d-block mt-2">${(data.backup_stats.storage / 1024).toFixed(1)} KB Storage</small>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.getElementById('adminCards').innerHTML = cardsHTML;
-
-        // Newest Users
-        let usersHTML = '';
-        if (data.newest_users.length > 0) {
-            data.newest_users.forEach(u => {
-                usersHTML += `
-                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                    <div>
-                        <i class="bi bi-person-circle me-2 text-primary fs-5"></i>
-                        <span class="fw-bold">${u.username}</span>
-                    </div>
-                    <span class="text-muted small">${u.email}</span>
-                </div>`;
+    function loadAnalyticsData() {
+        fetch("{{ url_for('admin.analytics_data') }}")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('totalUsersVal').innerText = data.total_users;
+                document.getElementById('totalStorageVal').innerText = formatBytes(data.total_storage);
+                document.getElementById('totalFilesVal').innerText = data.total_files;
+                document.getElementById('totalSharesVal').innerText = data.total_shares;
+                
+                renderCharts(data);
             });
-        } else {
-            usersHTML = `<div class="p-4 text-center text-muted">No users found</div>`;
-        }
-        document.getElementById('newestUsers').innerHTML = usersHTML;
+    }
 
-        // Chart
-        const ctx = document.getElementById('adminTrendChart').getContext('2d');
-        if (adminTrendChart) adminTrendChart.destroy();
-        
-        adminTrendChart = new Chart(ctx, {
+    function renderCharts(data) {
+        const textClr = getThemeColor();
+        const gridClr = getGridColor();
+
+        // 1. Registrations Chart
+        if (charts.reg) charts.reg.destroy();
+        charts.reg = new Chart(document.getElementById('registrationsChart'), {
+            type: 'line',
+            data: {
+                labels: data.registrations.dates,
+                datasets: [{
+                    label: 'Registrations',
+                    data: data.registrations.counts,
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: textClr, font: { size: 9 } } },
+                    y: { grid: { color: gridClr }, ticks: { color: textClr, stepSize: 1 } }
+                }
+            }
+        });
+
+        // 2. Daily Uploads Chart
+        if (charts.uploads) charts.uploads.destroy();
+        charts.uploads = new Chart(document.getElementById('uploadsChart'), {
             type: 'bar',
             data: {
-                labels: data.trend.dates,
+                labels: data.uploads_trend.dates,
                 datasets: [{
-                    label: 'System Actions',
-                    data: data.trend.activity,
-                    backgroundColor: '#0d6efd',
+                    label: 'Files Uploaded',
+                    data: data.uploads_trend.counts,
+                    backgroundColor: '#10B981',
                     borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: textClr, font: { size: 9 } } },
+                    y: { grid: { color: gridClr }, ticks: { color: textClr, stepSize: 1 } }
+                }
+            }
+        });
+
+        // 3. Storage Growth Chart
+        if (charts.growth) charts.growth.destroy();
+        charts.growth = new Chart(document.getElementById('storageGrowthChart'), {
+            type: 'line',
+            data: {
+                labels: data.storage_growth.dates,
+                datasets: [{
+                    label: 'Total Bytes',
+                    data: data.storage_growth.sizes,
+                    borderColor: '#F59E0B',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: textClr, font: { size: 9 } } },
+                    y: { grid: { color: gridClr }, ticks: { color: textClr } }
+                }
+            }
+        });
+
+        // 4. File Type Distribution Chart
+        if (charts.fileTypes) charts.fileTypes.destroy();
+        charts.fileTypes = new Chart(document.getElementById('fileTypeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.file_types.labels,
+                datasets: [{
+                    data: data.file_types.counts,
+                    backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#64748B']
                 }]
             },
             options: {
@@ -180,35 +264,73 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: {
-                            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d'
-                        }
+                        position: 'right',
+                        labels: { color: textClr, font: { size: 10 } }
                     }
-                },
+                }
+            }
+        });
+
+        // 5. Top Consumers Chart (Horizontal Bar)
+        const consumerLabels = data.top_consumers.map(c => c.username);
+        const consumerData = data.top_consumers.map(c => c.storage_used);
+        if (charts.consumers) charts.consumers.destroy();
+        charts.consumers = new Chart(document.getElementById('consumersChart'), {
+            type: 'bar',
+            data: {
+                labels: consumerLabels,
+                datasets: [{
+                    label: 'Bytes Used',
+                    data: consumerData,
+                    backgroundColor: '#6366F1',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1, color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d' },
-                        grid: { color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#343a40' : '#e9ecef' }
-                    },
-                    x: {
-                        ticks: { color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#adb5bd' : '#6c757d' },
-                        grid: { display: false }
+                    x: { grid: { color: gridClr }, ticks: { color: textClr } },
+                    y: { grid: { display: false }, ticks: { color: textClr } }
+                }
+            }
+        });
+
+        // 6. Action Distribution Chart
+        const actionLabels = Object.keys(data.activities_grouped);
+        const actionData = Object.values(data.activities_grouped);
+        if (charts.activities) charts.activities.destroy();
+        charts.activities = new Chart(document.getElementById('activitiesChart'), {
+            type: 'pie',
+            data: {
+                labels: actionLabels,
+                datasets: [{
+                    data: actionData,
+                    backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#64748B', '#06B6D4', '#F43F5E']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: textClr, font: { size: 9 } }
                     }
                 }
             }
         });
     }
 
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.attributeName === "data-bs-theme") {
-                loadAdminAnalytics();
-            }
-        });
+    // Refresh charts on theme switch
+    const observer = new MutationObserver(() => {
+        loadAnalyticsData();
     });
-    observer.observe(document.documentElement, { attributes: true });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
 
-    document.addEventListener("DOMContentLoaded", loadAdminAnalytics);
+    document.addEventListener("DOMContentLoaded", loadAnalyticsData);
 </script>
+
 {% endblock %}

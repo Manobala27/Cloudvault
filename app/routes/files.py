@@ -28,10 +28,11 @@ def verification_required(f):
 
 def check_user_storage_alert(user):
     from app.models import FileVersion
+    from app.services.settings_service import settings_service
     all_versions = FileVersion.query.filter_by(uploaded_by=user.id).all()
     total_size = sum(v.file_size for v in all_versions)
-    storage_limit = 5 * 1024 * 1024 * 1024 # 5 GB
-    pct = (total_size / storage_limit) * 100
+    storage_limit = settings_service.get('storage_limit_gb') * 1024 * 1024 * 1024
+    pct = (total_size / storage_limit) * 100 if storage_limit > 0 else 0
     
     current_level = 0
     if pct >= 100:
@@ -72,9 +73,10 @@ def upload():
 
     # Check 100% capacity before proceeding
     from app.models import FileVersion
+    from app.services.settings_service import settings_service
     all_versions = FileVersion.query.filter_by(uploaded_by=current_user.id).all()
     total_size = sum(v.file_size for v in all_versions)
-    storage_limit = 5 * 1024 * 1024 * 1024 # 5 GB
+    storage_limit = settings_service.get('storage_limit_gb') * 1024 * 1024 * 1024
     if total_size >= storage_limit:
         if is_ajax:
             return jsonify({
@@ -88,18 +90,32 @@ def upload():
         file_obj = form.file.data
         original_filename = secure_filename(file_obj.filename)
         
-        # Check size (Max 10MB)
+        # Check allowed file extensions
+        allowed_exts = [e.strip().lower() for e in settings_service.get('allowed_extensions').split(',') if e.strip()]
+        _, ext = os.path.splitext(original_filename)
+        file_ext = ext.replace('.', '').lower()
+        if allowed_exts and file_ext not in allowed_exts:
+            if is_ajax:
+                return jsonify({
+                    "success": False,
+                    "errors": {"file": [f"File type '{file_ext}' is not allowed."]}
+                }), 400
+            flash(f"File type '{file_ext}' is not allowed.", "danger")
+            return redirect(url_for('files.upload'))
+            
+        # Check size dynamic
         file_obj.seek(0, os.SEEK_END)
         file_size = file_obj.tell()
         file_obj.seek(0, os.SEEK_SET) # Reset pointer
         
-        if file_size > 10 * 1024 * 1024:
+        upload_limit_mb = settings_service.get('upload_limit_mb')
+        if file_size > upload_limit_mb * 1024 * 1024:
             if is_ajax:
                 return jsonify({
                     "success": False,
-                    "errors": {"file": ["File size exceeds the 10MB limit."]}
+                    "errors": {"file": [f"File size exceeds the {upload_limit_mb}MB limit."]}
                 }), 400
-            flash("File size exceeds the 10MB limit.", "danger")
+            flash(f"File size exceeds the {upload_limit_mb}MB limit.", "danger")
             return redirect(url_for('files.upload'))
 
         # Generate unique key for S3

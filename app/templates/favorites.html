@@ -7,17 +7,17 @@
     <h2 class="text-high fw-bolder m-0" style="letter-spacing: -0.5px;"><i class="bi bi-star-fill text-warning me-2"></i>Favorites</h2>
     
     <div class="d-flex gap-2 w-100" style="max-width: 500px;">
-        <div class="input-group">
-            <span class="input-group-text bg-transparent border-secondary text-white-50 rounded-start-pill ps-3"><i class="bi bi-search"></i></span>
-            <input class="form-control bg-transparent border-secondary border-start-0 shadow-none text-white rounded-end-pill pe-3" type="text" id="instant-search" placeholder="Search favorites...">
+        <div class="input-group search-pill flex-grow-1">
+            <span class="input-group-text bg-transparent border-0 pe-2"><i class="bi bi-search text-secondary"></i></span>
+            <input class="form-control form-themed border-0 shadow-none bg-transparent py-2" type="text" id="instant-search" placeholder="Search favorites...">
         </div>
         <form method="GET" action="{{ url_for('files.favorites') }}" class="d-flex">
-            <select class="form-select bg-transparent border-secondary text-white shadow-none rounded-pill px-3" name="sort" onchange="this.form.submit()" style="min-width: 160px;">
-                <option value="recently_favorited" class="text-dark" {% if sort_by == 'recently_favorited' %}selected{% endif %}>Recently Favorited</option>
-                <option value="newest" class="text-dark" {% if sort_by == 'newest' %}selected{% endif %}>Newest Upload</option>
-                <option value="oldest" class="text-dark" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest Upload</option>
-                <option value="name_asc" class="text-dark" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
-                <option value="name_desc" class="text-dark" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+            <select class="form-select form-themed border-0 shadow-sm py-2 fw-medium text-low w-auto" name="sort" onchange="this.form.submit()" style="min-width: 160px;" data-bs-theme="dark">
+                <option value="recently_favorited" class="bg-dark text-white" {% if sort_by == 'recently_favorited' %}selected{% endif %}>Recently Favorited</option>
+                <option value="newest" class="bg-dark text-white" {% if sort_by == 'newest' %}selected{% endif %}>Newest Upload</option>
+                <option value="oldest" class="bg-dark text-white" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest Upload</option>
+                <option value="name_asc" class="bg-dark text-white" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                <option value="name_desc" class="bg-dark text-white" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
             </select>
         </form>
     </div>

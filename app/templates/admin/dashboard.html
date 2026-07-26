@@ -4,60 +4,134 @@
 
 <div class="page-header flex-column flex-md-row align-items-start align-items-md-center">
     <div class="mb-3 mb-md-0">
-        <h2 class="text-dark"><i class="bi bi-shield-lock-fill text-primary me-2"></i> Admin Dashboard</h2>
-        <p class="text-muted mb-0 mt-1">System overview and statistics.</p>
-    </div>
-    <div class="d-flex gap-2">
-        <a href="{{ url_for('admin.users') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
-            <i class="bi bi-people-fill me-2"></i> Manage Users
-        </a>
+        <h2 class="text-high"><i class="bi bi-shield-lock-fill text-primary me-2"></i> Admin Dashboard</h2>
+        <p class="text-muted mb-0 mt-1">Platform overview and management console.</p>
     </div>
 </div>
 
+<!-- Admin Sub Navigation Tab-bar -->
+<div class="d-flex flex-wrap gap-2 mb-4 admin-nav-bar">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-people me-1"></i> Users
+    </a>
+    <a href="{{ url_for('admin.files') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-files me-1"></i> Files
+    </a>
+    <a href="{{ url_for('admin.storage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-hdd-network me-1"></i> Storage
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bar-chart me-1"></i> Analytics
+    </a>
+    <a href="{{ url_for('admin.health') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-heart-pulse me-1"></i> Health
+    </a>
+    <a href="{{ url_for('admin.activity') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-activity me-1"></i> Activity
+    </a>
+    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-shield-check me-1"></i> Audit Logs
+    </a>
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-gear me-1"></i> Settings
+    </a>
+    <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+    </a>
+    <a href="{{ url_for('admin.notifications') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-bell me-1"></i> Notifications
+    </a>
+</div>
+
+<!-- Core Stat Grid -->
 <div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 bg-white rounded-4 border shadow-sm cv-hover-lift">
+    <div class="col-md-4 col-lg-3">
+        <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 rounded-4 border shadow-sm cv-hover-lift">
             <div class="stat-icon primary mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary bg-primary bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-people"></i></div>
-            <h2 class="fw-bold mb-0 text-dark">{{ total_users }}</h2>
+            <h2 class="fw-bold mb-0 text-high">{{ total_users }}</h2>
             <p class="text-muted small text-uppercase fw-bold mb-3 mt-1">Total Users</p>
-            <div class="mt-auto d-flex justify-content-between w-100 pt-3 border-top">
+            <div class="mt-auto d-flex justify-content-between w-100 pt-3 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
                 <div class="text-success small fw-medium"><i class="bi bi-check-circle-fill"></i> {{ active_users }} Active</div>
-                <div class="text-danger small fw-medium"><i class="bi bi-x-circle-fill"></i> {{ disabled_users }} Disabled</div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 bg-white rounded-4 border shadow-sm cv-hover-lift">
-            <div class="stat-icon info mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-info bg-info bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-files"></i></div>
-            <h2 class="fw-bold mb-0 text-dark">{{ total_files }}</h2>
-            <p class="text-muted small text-uppercase fw-bold mb-0 mt-1">Total Files</p>
+    
+    <div class="col-md-4 col-lg-3">
+        <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 rounded-4 border shadow-sm cv-hover-lift">
+            <div class="stat-icon info mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-info bg-info bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-envelope-check"></i></div>
+            <h2 class="fw-bold mb-0 text-high">{{ verified_users }}</h2>
+            <p class="text-muted small text-uppercase fw-bold mb-3 mt-1">Verified Users</p>
+            <div class="mt-auto d-flex justify-content-between w-100 pt-3 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+                <div class="text-danger small fw-medium"><i class="bi bi-envelope-exclamation"></i> {{ unverified_users }} Unverified</div>
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 bg-white rounded-4 border shadow-sm cv-hover-lift">
-            <div class="stat-icon success mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-success bg-success bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-share"></i></div>
-            <h2 class="fw-bold mb-0 text-dark">{{ total_shared_files }}</h2>
-            <p class="text-muted small text-uppercase fw-bold mb-0 mt-1">Active Shares</p>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 rounded-4 border shadow-sm cv-hover-lift">
+            <div class="stat-icon success mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-success bg-success bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-files"></i></div>
+            <h2 class="fw-bold mb-0 text-high">{{ total_files }}</h2>
+            <p class="text-muted small text-uppercase fw-bold mb-3 mt-1">Total Files</p>
+            <div class="mt-auto d-flex justify-content-between w-100 pt-3 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+                <div class="text-muted small fw-medium"><i class="bi bi-folder2-open"></i> {{ total_folders }} Folders</div>
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 bg-white rounded-4 border shadow-sm cv-hover-lift">
+
+    <div class="col-md-4 col-lg-3">
+        <div class="stat-card-premium h-100 d-flex flex-column align-items-center justify-content-center p-4 rounded-4 border shadow-sm cv-hover-lift">
             <div class="stat-icon warning mb-3 shadow-sm rounded-circle d-flex align-items-center justify-content-center text-warning bg-warning bg-opacity-10" style="width: 56px; height: 56px; font-size: 1.75rem;"><i class="bi bi-hdd-network"></i></div>
-            <h2 class="fw-bold mb-0 text-dark">{{ total_storage_used|format_size }}</h2>
-            <p class="text-muted small text-uppercase fw-bold mb-0 mt-1">Storage Used</p>
+            <h2 class="fw-bold mb-0 text-high">{{ total_storage_used|format_size }}</h2>
+            <p class="text-muted small text-uppercase fw-bold mb-3 mt-1">Total Storage</p>
+            <div class="mt-auto d-flex justify-content-between w-100 pt-3 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+                <div class="text-muted small fw-medium"><i class="bi bi-person-fill"></i> Avg: {{ avg_storage_per_user|format_size }}</div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="premium-card-large">
-    <h5 class="fw-bold mb-4">System Activity</h5>
-    <div class="d-flex align-items-center">
-        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-4" style="width: 64px; height: 64px;">
-            <i class="bi bi-activity text-primary" style="font-size: 2rem;"></i>
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="stat-card-premium h-100 p-4 rounded-4 border shadow-sm">
+            <div class="d-flex align-items-center mb-3">
+                <div class="stat-icon success shadow-sm rounded-circle d-flex align-items-center justify-content-center text-success bg-success bg-opacity-10 me-3" style="width: 48px; height: 48px; font-size: 1.25rem;"><i class="bi bi-share"></i></div>
+                <h5 class="fw-bold mb-0 text-high">Shares & Favorites</h5>
+            </div>
+            <div class="d-flex justify-content-around py-3">
+                <div class="text-center">
+                    <h3 class="fw-bold text-high">{{ shared_files }}</h3>
+                    <p class="text-muted mb-0 small">Active Shares</p>
+                </div>
+                <div class="text-center">
+                    <h3 class="fw-bold text-high">{{ favorites }}</h3>
+                    <p class="text-muted mb-0 small">Starred Items</p>
+                </div>
+                <div class="text-center">
+                    <h3 class="fw-bold text-high">{{ trash_items }}</h3>
+                    <p class="text-muted mb-0 small">Trash Items</p>
+                </div>
+            </div>
         </div>
-        <div>
-            <h3 class="fw-bold mb-0 text-dark">{{ total_activity_logs }}</h3>
-            <p class="text-muted mb-0 fw-medium">Total events logged across all users.</p>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="stat-card-premium h-100 p-4 rounded-4 border shadow-sm">
+            <div class="d-flex align-items-center mb-3">
+                <div class="stat-icon info shadow-sm rounded-circle d-flex align-items-center justify-content-center text-info bg-info bg-opacity-10 me-3" style="width: 48px; height: 48px; font-size: 1.25rem;"><i class="bi bi-activity"></i></div>
+                <h5 class="fw-bold mb-0 text-high">System Activity</h5>
+            </div>
+            <div class="d-flex align-items-center py-2">
+                <div class="me-4">
+                    <h2 class="fw-bold mb-0 text-high">{{ total_activity_logs }}</h2>
+                    <p class="text-muted mb-0 small">Audit Events Recorded</p>
+                </div>
+                <div class="ms-auto">
+                    <a href="{{ url_for('admin.activity') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">View Log Stream</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

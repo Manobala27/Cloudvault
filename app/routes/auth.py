@@ -78,6 +78,10 @@ def handle_login_success(user, response, req):
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
+    from app.services.settings_service import settings_service
+    if not settings_service.get('registration_enabled'):
+        flash("New user registrations are currently disabled by the administrator.", "warning")
+        return redirect(url_for('auth.login'))
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
