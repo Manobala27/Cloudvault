@@ -22,6 +22,54 @@ https://cloudvault-1-w43f.onrender.com
 - 📱 Responsive UI
 - 🌙 Dark Mode
 
+
+## 📷 Screenshots
+
+### Home Page
+<p align="center">
+  <img src="screenshots/home.png" width="1000">
+</p>
+
+### Login Page
+<p align="center">
+  <img src="screenshots/login.png" width="1000">
+</p>
+
+### Register Page
+<p align="center">
+  <img src="screenshots/register.png" width="1000">
+</p>
+
+### User Dashboard
+<p align="center">
+  <img src="screenshots/dashboard.png" width="1000">
+</p>
+
+### Upload File
+<p align="center">
+  <img src="screenshots/upload.png" width="1000">
+</p>
+
+### Storage Analytics
+<p align="center">
+  <img src="screenshots/analytics.png" width="1000">
+</p>
+
+### Admin Dashboard
+<p align="center">
+  <img src="screenshots/admin-dashboard.png" width="1000">
+</p>
+
+### Admin Reports
+<p align="center">
+  <img src="screenshots/reports.png" width="1000">
+</p>
+
+### Security Settings
+<p align="center">
+  <img src="screenshots/settings.png" width="1000">
+</p>
+
 ## 🛠️ Tech Stack
 
 ### Backend
