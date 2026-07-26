@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="CloudVault Banner" width="100%">
+</p>
+
 # ☁️ CloudVault
 
 CloudVault is a secure cloud storage web application built with Python and Flask. It allows users to upload, organize, preview, share, and manage files through a modern web interface with enterprise-inspired features.
