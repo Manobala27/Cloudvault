@@ -69,7 +69,10 @@ def handle_login_success(user, response, req):
             "ip": ip_addr,
             "location": "Unknown"
         }
-        email_service.send_login_alert(user, metadata)
+        try:
+            email_service.send_login_alert(user, metadata)
+        except Exception as e:
+            current_app.logger.error(f"Failed to send login alert email: {e}")
         response.set_cookie(cookie_key, "true", max_age=31536000)
     return response
 
@@ -98,12 +101,21 @@ def register():
         serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
         token = serializer.dumps(user.email, salt='email-verify-salt')
         
-        email_service.send_welcome_email(user)
-        email_service.send_verification_email(user, token)
-        email_service.send_admin_notification(
-            "New User Registration",
-            f"User: {user.username}\nEmail: {user.email}\nRegistered at: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
-        )
+        try:
+            email_service.send_welcome_email(user)
+        except Exception as e:
+            current_app.logger.error(f"Failed to send welcome email: {e}")
+        try:
+            email_service.send_verification_email(user, token)
+        except Exception as e:
+            current_app.logger.error(f"Failed to send verification email: {e}")
+        try:
+            email_service.send_admin_notification(
+                "New User Registration",
+                f"User: {user.username}\nEmail: {user.email}\nRegistered at: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            )
+        except Exception as e:
+            current_app.logger.error(f"Failed to send registration admin notification: {e}")
         
         flash('Your account has been created! A verification link has been sent to your email. Please verify to access all features.', 'success')
         return redirect(url_for('auth.login'))
@@ -164,11 +176,17 @@ def login():
                         "time": datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC'),
                         "ip": request.remote_addr
                     }
-                    email_service.send_failed_login_alert(user, metadata)
-                    email_service.send_admin_notification(
-                        "Multiple Failed Logins",
-                        f"Multiple failed login attempts on user account: {user.email}\nTotal failed attempts: {user.failed_login_attempts}\nIP: {request.remote_addr}"
-                    )
+                    try:
+                        email_service.send_failed_login_alert(user, metadata)
+                    except Exception as e:
+                        current_app.logger.error(f"Failed to send failed login alert email: {e}")
+                    try:
+                        email_service.send_admin_notification(
+                            "Multiple Failed Logins",
+                            f"Multiple failed login attempts on user account: {user.email}\nTotal failed attempts: {user.failed_login_attempts}\nIP: {request.remote_addr}"
+                        )
+                    except Exception as e:
+                        current_app.logger.error(f"Failed to send admin failed logins notification: {e}")
                 flash('Login Unsuccessful. Please check email and password', 'danger')
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')

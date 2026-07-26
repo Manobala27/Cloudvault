@@ -1,10 +1,20 @@
 import datetime
 import logging
+from threading import Thread
 from flask import current_app, render_template
 from flask_mail import Message
 from app import mail
 
 logger = logging.getLogger('cloudvault.email')
+
+def send_async_email(app, msg, email_type, recipient):
+    with app.app_context():
+        timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        try:
+            mail.send(msg)
+            logger.info(f"[EMAIL_SUCCESS] Type={email_type} Recipient={recipient} Time={timestamp} Status=Sent")
+        except Exception as e:
+            logger.error(f"[EMAIL_FAILED] Type={email_type} Recipient={recipient} Time={timestamp} Status=Failed Reason={str(e)}")
 
 class EmailService:
     def _send_email(self, recipient, subject, html_content, email_type):
@@ -21,17 +31,14 @@ class EmailService:
             sender=sender
         )
         
-        timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
         try:
-            # In testing or development, if credentials are dummy, it might fail.
-            # Catching SMTP exceptions ensures the app never crashes.
-            mail.send(msg)
-            logger.info(f"[EMAIL_SUCCESS] Type={email_type} Recipient={recipient} Time={timestamp} Status=Sent")
-            return True
+            app = current_app._get_current_object()
+            Thread(target=send_async_email, args=(app, msg, email_type, recipient)).start()
         except Exception as e:
-            logger.error(f"[EMAIL_FAILED] Type={email_type} Recipient={recipient} Time={timestamp} Status=Failed Reason={str(e)}")
-            # Do not crash the application, just log the error
-            return False
+            timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            logger.error(f"[EMAIL_THREAD_FAILED] Type={email_type} Recipient={recipient} Time={timestamp} Status=Failed Reason=Could not start thread: {str(e)}")
+            
+        return True
 
     def send_welcome_email(self, user):
         """Sends a welcome email to the newly registered user."""
