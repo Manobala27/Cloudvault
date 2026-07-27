@@ -1,31 +1,83 @@
 import datetime
 import logging
 from threading import Thread
+import urllib.request
+import urllib.error
+import json
 from flask import current_app, render_template
-from flask_mail import Message
-from app import mail
 
 logger = logging.getLogger('cloudvault.email')
 
 def send_async_email(app, msg, email_type, recipient):
     with app.app_context():
         timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        sender_email = msg.get('sender') or app.config.get('MAIL_DEFAULT_SENDER') or 'noreply@cloudvault.com'
 
         logger.info(
             f"[MAIL_CONFIG] "
-            f"SENDER={app.config.get('MAIL_DEFAULT_SENDER')} "
+            f"SENDER={sender_email} "
             f"Recipient={recipient}"
         )
 
-        try:
-            # Send email via SMTP (Flask-Mail)
-            mail.send(msg)
-            logger.info(
-                f"[EMAIL_SUCCESS] "
+        api_key = app.config.get('BREVO_API_KEY')
+        if not api_key:
+            logger.error(
+                f"[EMAIL_FAILED] "
                 f"Type={email_type} "
                 f"Recipient={recipient} "
                 f"Time={timestamp} "
-                f"Status=Sent via SMTP"
+                f"Status=Failed. Reason=BREVO_API_KEY configuration is missing."
+            )
+            return
+
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json"
+        }
+
+        # Format destinations list for Brevo API
+        if isinstance(recipient, (list, tuple)):
+            to_list = [{"email": r} for r in recipient]
+        else:
+            to_list = [{"email": recipient}]
+
+        payload = {
+            "sender": {"email": sender_email},
+            "to": to_list,
+            "subject": msg.get('subject', ''),
+            "htmlContent": msg.get('html', '')
+        }
+
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode('utf-8'),
+                headers=headers,
+                method='POST'
+            )
+            with urllib.request.urlopen(req, timeout=10) as response:
+                status_code = response.getcode()
+                response_body = response.read().decode('utf-8')
+                logger.info(
+                    f"[EMAIL_SUCCESS] "
+                    f"Type={email_type} "
+                    f"Recipient={recipient} "
+                    f"Time={timestamp} "
+                    f"Status=Sent via Brevo HTTP API (HTTP {status_code}) "
+                    f"Response={response_body}"
+                )
+        except urllib.error.HTTPError as e:
+            status_code = e.code
+            error_body = e.read().decode('utf-8')
+            logger.error(
+                f"[EMAIL_FAILED] "
+                f"Type={email_type} "
+                f"Recipient={recipient} "
+                f"Time={timestamp} "
+                f"Status=Failed. HTTPStatus={status_code} "
+                f"ErrorResponse={error_body}"
             )
         except Exception as e:
             logger.exception(
@@ -44,12 +96,12 @@ class EmailService:
             # Fallback if config is missing
             sender = "noreply@cloudvault.com"
             
-        msg = Message(
-            subject=subject,
-            recipients=[recipient] if isinstance(recipient, str) else list(recipient),
-            html=html_content,
-            sender=sender
-        )
+        msg = {
+            'subject': subject,
+            'recipients': [recipient] if isinstance(recipient, str) else list(recipient),
+            'html': html_content,
+            'sender': sender
+        }
         
         try:
             app = current_app._get_current_object()
