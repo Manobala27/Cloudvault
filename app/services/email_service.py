@@ -10,11 +10,34 @@ logger = logging.getLogger('cloudvault.email')
 def send_async_email(app, msg, email_type, recipient):
     with app.app_context():
         timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+        logger.info(
+            f"[MAIL_CONFIG] "
+            f"SERVER={app.config.get('MAIL_SERVER')} "
+            f"PORT={app.config.get('MAIL_PORT')} "
+            f"TLS={app.config.get('MAIL_USE_TLS')} "
+            f"SSL={app.config.get('MAIL_USE_SSL')} "
+            f"USERNAME={app.config.get('MAIL_USERNAME')} "
+            f"SENDER={app.config.get('MAIL_DEFAULT_SENDER')}"
+        )
+
         try:
             mail.send(msg)
-            logger.info(f"[EMAIL_SUCCESS] Type={email_type} Recipient={recipient} Time={timestamp} Status=Sent")
-        except Exception as e:
-            logger.error(f"[EMAIL_FAILED] Type={email_type} Recipient={recipient} Time={timestamp} Status=Failed Reason={str(e)}")
+            logger.info(
+                f"[EMAIL_SUCCESS] "
+                f"Type={email_type} "
+                f"Recipient={recipient} "
+                f"Time={timestamp} "
+                f"Status=Sent"
+            )
+        except Exception:
+            logger.exception(
+                f"[EMAIL_FAILED] "
+                f"Type={email_type} "
+                f"Recipient={recipient} "
+                f"Time={timestamp} "
+                f"Status=Failed"
+            )
 
 class EmailService:
     def _send_email(self, recipient, subject, html_content, email_type):
