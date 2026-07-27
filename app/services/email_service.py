@@ -3,8 +3,6 @@ import logging
 from threading import Thread
 from flask import current_app, render_template
 from flask_mail import Message
-import boto3
-from botocore.exceptions import ClientError
 from app import mail
 
 logger = logging.getLogger('cloudvault.email')
@@ -12,64 +10,23 @@ logger = logging.getLogger('cloudvault.email')
 def send_async_email(app, msg, email_type, recipient):
     with app.app_context():
         timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        provider = app.config.get('EMAIL_PROVIDER', 'smtp')
 
         logger.info(
-            f"[MAIL_CONFIG] Provider={provider} "
+            f"[MAIL_CONFIG] "
             f"SENDER={app.config.get('MAIL_DEFAULT_SENDER')} "
             f"Recipient={recipient}"
         )
 
         try:
-            if provider == 'ses':
-                # Initialize Amazon SES client using the shared AWS credentials
-                ses_client = boto3.client(
-                    'ses',
-                    aws_access_key_id=app.config.get('AWS_ACCESS_KEY_ID'),
-                    aws_secret_access_key=app.config.get('AWS_SECRET_ACCESS_KEY'),
-                    region_name=app.config.get('AWS_REGION', 'ap-south-1')
-                )
-                
-                # Ensure destinations is a list or tuple of email strings
-                destinations = msg.recipients if isinstance(msg.recipients, (list, tuple)) else [msg.recipients]
-                
-                # Send email using SES API over HTTPS
-                response = ses_client.send_email(
-                    Source=msg.sender,
-                    Destination={
-                        'ToAddresses': destinations
-                    },
-                    Message={
-                        'Subject': {
-                            'Data': msg.subject,
-                            'Charset': 'UTF-8'
-                        },
-                        'Body': {
-                            'Html': {
-                                'Data': msg.html or msg.body or '',
-                                'Charset': 'UTF-8'
-                            }
-                        }
-                    }
-                )
-                message_id = response.get('MessageId')
-                logger.info(
-                    f"[EMAIL_SUCCESS] "
-                    f"Type={email_type} "
-                    f"Recipient={recipient} "
-                    f"Time={timestamp} "
-                    f"Status=Sent via Amazon SES (MessageId={message_id})"
-                )
-            else:
-                # Default SMTP fallback
-                mail.send(msg)
-                logger.info(
-                    f"[EMAIL_SUCCESS] "
-                    f"Type={email_type} "
-                    f"Recipient={recipient} "
-                    f"Time={timestamp} "
-                    f"Status=Sent via SMTP"
-                )
+            # Send email via SMTP (Flask-Mail)
+            mail.send(msg)
+            logger.info(
+                f"[EMAIL_SUCCESS] "
+                f"Type={email_type} "
+                f"Recipient={recipient} "
+                f"Time={timestamp} "
+                f"Status=Sent via SMTP"
+            )
         except Exception as e:
             logger.exception(
                 f"[EMAIL_FAILED] "
