@@ -20,7 +20,14 @@ def send_async_email(app, msg, email_type, recipient):
             f"USERNAME={app.config.get('MAIL_USERNAME')} "
             f"SENDER={app.config.get('MAIL_DEFAULT_SENDER')}"
         )
-
+        print("========== MAIL CONFIG ==========")
+        print("SERVER:", app.config.get("MAIL_SERVER"))
+        print("PORT:", app.config.get("MAIL_PORT"))
+        print("TLS:", app.config.get("MAIL_USE_TLS"))
+        print("SSL:", app.config.get("MAIL_USE_SSL"))
+        print("USERNAME:", app.config.get("MAIL_USERNAME"))
+        print("SENDER:", app.config.get("MAIL_DEFAULT_SENDER"))
+        print("=================================")
         try:
             mail.send(msg)
             logger.info(
