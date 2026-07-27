@@ -15,6 +15,9 @@ class Config:
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '').strip() if os.environ.get('AWS_SECRET_ACCESS_KEY') else None
     AWS_REGION = os.environ.get('AWS_REGION', '').strip() if os.environ.get('AWS_REGION') else None
     S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', '').strip() if os.environ.get('S3_BUCKET_NAME') else None
+    # Email transport configuration
+    EMAIL_PROVIDER = os.environ.get('EMAIL_PROVIDER', 'smtp')  # 'smtp' or 'ses'
+
     # Flask-Mail configuration
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
