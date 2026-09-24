@@ -24,3 +24,9 @@ class Config:
     BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or 'noreply@cloudvault.com'
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL') or 'admin@cloudvault.com'
+
+    # CloudPulse Monitoring & Log Analytics Integration
+    CLOUDPULSE_ENABLED = os.environ.get('CLOUDPULSE_ENABLED', 'true').lower() in ('true', '1', 'yes', 'on')
+    CLOUDPULSE_API_URL = os.environ.get('CLOUDPULSE_API_URL', 'https://c2064m9sol.execute-api.ap-south-1.amazonaws.com/dev/logs').strip()
+    CLOUDPULSE_SERVICE_NAME = os.environ.get('CLOUDPULSE_SERVICE_NAME', 'CloudVault').strip()
+    CLOUDPULSE_TIMEOUT = float(os.environ.get('CLOUDPULSE_TIMEOUT', '3.0'))

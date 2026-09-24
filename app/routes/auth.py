@@ -7,6 +7,7 @@ from app import db, bcrypt, limiter
 from app.forms import RegistrationForm, LoginForm
 from app.models import User, ActivityLog
 from app.services.email_service import email_service
+from app.services.cloudpulse_service import cloudpulse_service
 
 auth = Blueprint('auth', __name__)
 
@@ -159,6 +160,7 @@ def login():
                     log = ActivityLog(user_id=user.id, action='ADMIN_LOGIN', ip_address=request.remote_addr)
                 db.session.add(log)
                 db.session.commit()
+                cloudpulse_service.log_login_success(user=user, ip_address=request.remote_addr, auth_method="password")
                 
                 next_page = request.args.get('next')
                 flash('Login successful!', 'success')
@@ -169,6 +171,7 @@ def login():
             else:
                 user.failed_login_attempts += 1
                 db.session.commit()
+                cloudpulse_service.log_login_failure(email=user.email, ip_address=request.remote_addr, attempts=user.failed_login_attempts, reason="invalid_password")
                 
                 if user.failed_login_attempts >= 5:
                     metadata = {
@@ -189,6 +192,7 @@ def login():
                         current_app.logger.error(f"Failed to send admin failed logins notification: {e}")
                 flash('Login Unsuccessful. Please check email and password', 'danger')
         else:
+            cloudpulse_service.log_login_failure(email=form.email.data, ip_address=request.remote_addr, attempts=1, reason="user_not_found")
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
 
@@ -199,6 +203,7 @@ def logout():
         log = ActivityLog(user_id=current_user.id, action='LOGOUT', ip_address=request.remote_addr)
         db.session.add(log)
         db.session.commit()
+        cloudpulse_service.send_log(level="INFO", message=f"User '{current_user.username}' logged out", event="LOGOUT", user_id=current_user.id, metadata={"ip_address": request.remote_addr})
         
     logout_user()
     return redirect(url_for('main.index'))

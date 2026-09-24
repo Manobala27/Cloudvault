@@ -8,6 +8,7 @@ from app import db, bcrypt
 from app.models import File, Folder, ActivityLog, Share, FileVersion
 from app.s3_service import s3_service
 from app.services.notification_service import notification_service
+from app.services.cloudpulse_service import cloudpulse_service
 from app.forms import UploadForm
 
 files = Blueprint('files', __name__)
@@ -164,6 +165,7 @@ def upload():
                 db.session.add(log)
                 db.session.commit()
                 check_user_storage_alert(current_user)
+                cloudpulse_service.log_upload(user=current_user, file_name=original_filename, file_id=existing_file.id, file_size=file_size, is_version=True, version_num=max_version+1, success=True, ip_address=request.remote_addr)
                 
                 if not is_ajax:
                     notification_service.create_notification(current_user.id, "Version Created", f"New version of {original_filename} uploaded.", "VERSION_CREATED", "bi-cloud-arrow-up")
@@ -194,6 +196,7 @@ def upload():
                 db.session.add(log)
                 db.session.commit()
                 check_user_storage_alert(current_user)
+                cloudpulse_service.log_upload(user=current_user, file_name=original_filename, file_id=new_file.id, file_size=file_size, is_version=False, success=True, ip_address=request.remote_addr)
                 
                 if not is_ajax:
                     notification_service.create_notification(current_user.id, "Upload Success", f"File '{original_filename}' uploaded successfully.", "UPLOAD_SUCCESS", "bi-check-circle")
@@ -207,6 +210,7 @@ def upload():
             
             return redirect(url_for('files.dashboard'))
         else:
+            cloudpulse_service.log_upload(user=current_user, file_name=original_filename, file_size=file_size, success=False, error="Failed to upload file to S3.", ip_address=request.remote_addr)
             if is_ajax:
                 return jsonify({
                     "success": False,
@@ -338,8 +342,10 @@ def download(file_id):
         log = ActivityLog(user_id=current_user.id, action='DOWNLOAD', file_name=file_record.original_filename, ip_address=request.remote_addr)
         db.session.add(log)
         db.session.commit()
+        cloudpulse_service.log_download(user=current_user, file_name=file_record.original_filename, file_id=file_record.id, success=True, ip_address=request.remote_addr)
         return redirect(url)
     else:
+        cloudpulse_service.log_download(user=current_user, file_name=file_record.original_filename, file_id=file_record.id, success=False, error="Failed to generate download link.", ip_address=request.remote_addr)
         flash("Failed to generate download link.", "danger")
         return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
 
@@ -361,6 +367,7 @@ def delete_file(file_id):
     db.session.add(log)
     
     db.session.commit()
+    cloudpulse_service.log_delete(user=current_user, file_name=file_record.original_filename, file_id=file_record.id, permanent=False, ip_address=request.remote_addr)
     notification_service.create_notification(current_user.id, "File Trashed", f"'{file_record.original_filename}' moved to trash.", "FILE_DELETED", "bi-trash")
     flash(f"File '{file_record.original_filename}' has been moved to Trash.", "success")
     return redirect(url_for('files.dashboard', folder_id=folder_id))
@@ -388,6 +395,7 @@ def toggle_share(file_id):
             db.session.add(log)
             flash(f"Share link revoked for '{file_record.original_filename}'.", "info")
             db.session.commit()
+            cloudpulse_service.log_share(user=current_user, file_name=file_record.original_filename, file_id=file_record.id, action='revoke', share_id=active_share.id, ip_address=request.remote_addr)
     else:
         # Create a new share (and disable the old one if it exists, to ensure 1 active share per file via Dashboard for now)
         if active_share:
@@ -428,6 +436,7 @@ def toggle_share(file_id):
         
         flash(f"Public link created for '{file_record.original_filename}'.", "success")
         db.session.commit()
+        cloudpulse_service.log_share(user=current_user, file_name=file_record.original_filename, file_id=file_record.id, action='create', share_id=new_share.id, ip_address=request.remote_addr)
         
         # Check if email sharing is requested
         share_emails = request.form.get('share_emails', '').strip()
@@ -550,6 +559,7 @@ def public_download(share_token):
     db.session.add(log)
     
     db.session.commit()
+    cloudpulse_service.log_download(user=file_record.owner, file_name=file_record.original_filename, file_id=file_record.id, is_public=True, success=True, ip_address=request.remote_addr)
     
     # Redirect to actual S3 presigned URL
     s3_url = s3_service.generate_presigned_url(
@@ -697,6 +707,7 @@ def restore_file(file_id):
     notification_service.create_notification(current_user.id, "File Restored", f"'{file_record.original_filename}' restored from trash.", "FILE_RESTORED", "bi-bootstrap-reboot")
         
     db.session.commit()
+    cloudpulse_service.log_restore(user=current_user, file_name=file_record.original_filename, file_id=file_record.id, is_version=False, ip_address=request.remote_addr)
     return redirect(url_for('files.trash'))
 
 @files.route("/restore/folder/<int:folder_id>", methods=['POST'])
@@ -733,6 +744,7 @@ def restore_folder(folder_id):
     db.session.add(log)
         
     db.session.commit()
+    cloudpulse_service.log_restore(user=current_user, file_name=folder.name, is_folder=True, ip_address=request.remote_addr)
     return redirect(url_for('files.trash'))
 
 @files.route("/delete_permanent/file/<int:file_id>", methods=['POST'])
@@ -757,10 +769,13 @@ def delete_permanent_file(file_id):
     log_v = ActivityLog(user_id=current_user.id, action='VERSION_DELETED', file_name=file_record.original_filename, ip_address=request.remote_addr)
     db.session.add(log_v)
     
+    deleted_filename = file_record.original_filename
+    deleted_file_id = file_record.id
     db.session.delete(file_record)
     db.session.commit()
     check_user_storage_alert(current_user)
-    flash(f"'{file_record.original_filename}' and all its versions permanently deleted.", "success")
+    cloudpulse_service.log_delete(user=current_user, file_name=deleted_filename, file_id=deleted_file_id, permanent=True, ip_address=request.remote_addr)
+    flash(f"'{deleted_filename}' and all its versions permanently deleted.", "success")
     return redirect(url_for('files.trash'))
 
 @files.route("/delete_permanent/folder/<int:folder_id>", methods=['POST'])
@@ -778,9 +793,11 @@ def delete_permanent_folder(folder_id):
     log = ActivityLog(user_id=current_user.id, action='PERMANENT_DELETE_FOLDER', folder_name=folder.name, ip_address=request.remote_addr)
     db.session.add(log)
     
+    deleted_folder_name = folder.name
     db.session.commit()
     check_user_storage_alert(current_user)
-    flash(f"Folder '{folder.name}' permanently deleted.", "success")
+    cloudpulse_service.log_delete(user=current_user, file_name=deleted_folder_name, permanent=True, is_folder=True, ip_address=request.remote_addr)
+    flash(f"Folder '{deleted_folder_name}' permanently deleted.", "success")
     return redirect(url_for('files.trash'))
 
 @files.route("/shares")
@@ -802,6 +819,7 @@ def revoke_specific_share(share_id):
     log = ActivityLog(user_id=current_user.id, action='REVOKE_SHARE', file_name=share.file.original_filename, ip_address=request.remote_addr)
     db.session.add(log)
     db.session.commit()
+    cloudpulse_service.log_share(user=current_user, file_name=share.file.original_filename, file_id=share.file.id, action='revoke', share_id=share.id, ip_address=request.remote_addr)
     
     flash("Share link revoked successfully.", "success")
     return redirect(url_for('files.shared_dashboard'))
@@ -864,6 +882,7 @@ def restore_version(file_id, version_id):
     db.session.commit()
     
     notification_service.create_notification(current_user.id, "Version Restored", f"Restored {file_record.original_filename} to V{version.version_number}.", "VERSION_RESTORED", "bi-clock-history")
+    cloudpulse_service.log_restore(user=current_user, file_name=file_record.original_filename, file_id=file_record.id, is_version=True, version_num=version.version_number, ip_address=request.remote_addr)
 
     flash(f"Version {version.version_number} of '{file_record.original_filename}' restored successfully.", "success")
     return redirect(url_for('files.dashboard', folder_id=file_record.folder_id))
@@ -886,8 +905,10 @@ def download_version(version_id):
         log = ActivityLog(user_id=current_user.id, action='VERSION_DOWNLOADED', file_name=f"{version.file.original_filename} (V{version.version_number})", ip_address=request.remote_addr)
         db.session.add(log)
         db.session.commit()
+        cloudpulse_service.log_download(user=current_user, file_name=version.file.original_filename, file_id=version.file.id, version_num=version.version_number, success=True, ip_address=request.remote_addr)
         return redirect(url)
     else:
+        cloudpulse_service.log_download(user=current_user, file_name=version.file.original_filename, file_id=version.file.id, version_num=version.version_number, success=False, error="Failed to generate presigned URL", ip_address=request.remote_addr)
         flash("Failed to generate download link for version.", "danger")
         return redirect(url_for('files.dashboard'))
 

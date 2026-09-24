@@ -6,6 +6,7 @@ from app import db, limiter
 import os
 from werkzeug.utils import secure_filename
 from app.s3_service import s3_service
+from app.services.cloudpulse_service import cloudpulse_service
 from app.models import FileVersion
 
 api_bp = Blueprint('api', __name__, url_prefix='/api/v1')
@@ -146,6 +147,7 @@ def upload_file():
             db.session.add(log)
             
             db.session.commit()
+            cloudpulse_service.log_upload(user=g.api_user, file_name=filename, file_id=new_file.id, file_size=size, is_version=False, success=True, ip_address=request.remote_addr)
             
             return jsonify({
                 'success': True,
@@ -156,6 +158,7 @@ def upload_file():
                 }
             })
         else:
+            cloudpulse_service.log_upload(user=g.api_user, file_name=filename, file_size=size, success=False, error="Upload to S3 failed.", ip_address=request.remote_addr)
             return jsonify({'success': False, 'message': 'Upload to S3 failed.'}), 500
 
 @api_bp.route('/files/<int:file_id>', methods=['DELETE'])
@@ -170,14 +173,18 @@ def delete_file(file_id):
         log = ActivityLog(user_id=g.api_user.id, action='API_DELETE', ip_address=request.remote_addr, details=f"Sent {file.filename} to trash via API")
         db.session.add(log)
         db.session.commit()
+        cloudpulse_service.log_delete(user=g.api_user, file_name=file.original_filename, file_id=file.id, permanent=False, ip_address=request.remote_addr)
         return jsonify({'success': True, 'message': 'File moved to trash.'})
     else:
         # Permanently delete
-        s3_service.delete_file(file.s3_key)
+        deleted_name = file.original_filename
+        deleted_id = file.id
+        s3_service.delete_file(file.filename)
         db.session.delete(file)
-        log = ActivityLog(user_id=g.api_user.id, action='API_DELETE_PERMANENT', ip_address=request.remote_addr, details=f"Permanently deleted {file.filename} via API")
+        log = ActivityLog(user_id=g.api_user.id, action='API_DELETE_PERMANENT', ip_address=request.remote_addr, details=f"Permanently deleted {deleted_name} via API")
         db.session.add(log)
         db.session.commit()
+        cloudpulse_service.log_delete(user=g.api_user, file_name=deleted_name, file_id=deleted_id, permanent=True, ip_address=request.remote_addr)
         return jsonify({'success': True, 'message': 'File permanently deleted.'})
 
 @api_bp.route('/folders', methods=['GET'])

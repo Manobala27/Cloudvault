@@ -5,6 +5,7 @@ from app.models import ActivityLog, User
 from app.services.two_factor_service import two_factor_service
 from app.services.notification_service import notification_service
 from app.services.email_service import email_service
+from app.services.cloudpulse_service import cloudpulse_service
 from app import db
 import io
 import csv
@@ -224,6 +225,7 @@ def verify_2fa():
             log = ActivityLog(user_id=user.id, action='OTP_SUCCESS', ip_address=request.remote_addr)
             db.session.add(log)
             db.session.commit()
+            cloudpulse_service.log_login_success(user=user, ip_address=request.remote_addr, auth_method="2FA_OTP")
             
             # Clear 2FA session data
             session.pop('2fa_user_id', None)
@@ -238,6 +240,7 @@ def verify_2fa():
             log = ActivityLog(user_id=user.id, action='OTP_FAILED', ip_address=request.remote_addr)
             db.session.add(log)
             db.session.commit()
+            cloudpulse_service.log_login_failure(email=user.email, ip_address=request.remote_addr, attempts=1, reason="invalid_2fa_otp")
             
             notification_service.create_notification(
                 user_id=user.id,

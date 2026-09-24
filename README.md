@@ -100,6 +100,50 @@ https://cloudvault-1-w43f.onrender.com
 - Application Hosted on Render
 - Database Hosted on Neon PostgreSQL
 
+## 📡 CloudPulse Monitoring & Log Analytics Integration
+
+CloudVault is integrated with **CloudPulse** — an enterprise serverless real-time log analytics and monitoring platform on AWS.
+
+```
+CloudVault (Monitored Application)
+   │ (HTTP POST /logs)
+   ▼
+CloudPulse API Gateway
+   │
+   ▼
+Amazon SQS (LogProcessingQueue)
+   │
+   ▼
+AWS Lambda (LogProcessorFunction)
+   │
+   ├──────────────────────────────┐
+   ▼                              ▼
+Amazon DynamoDB (Logs Storage)   Amazon SNS (AlertTopic)
+   │                              │ (For ERROR / CRITICAL events)
+   ▼                              ▼
+CloudPulse Dashboard             Email Alert Notifications
+```
+
+### Monitored Real-Time Application Events:
+1. **`FILE_UPLOAD`**: Dispatched upon file or version upload (`INFO` on success, `ERROR` on failure triggering SNS alerts).
+2. **`FILE_DOWNLOAD`**: Dispatched upon standard, version, or public shared link download (`INFO`).
+3. **`FILE_DELETE`**: Dispatched on soft delete (`INFO`) and permanent deletion of files/folders (`WARNING`).
+4. **`FILE_SHARE`**: Dispatched when public links are generated, accessed, revoked, or expired (`INFO`).
+5. **`LOGIN_SUCCESS`**: Dispatched on password login and 2FA OTP verification (`INFO`).
+6. **`LOGIN_FAILURE`**: Dispatched on invalid credentials (`WARNING` for single attempt, `ERROR` for $\ge 5$ attempts).
+7. **`FILE_RESTORE` / `FILE_VERSION`**: Dispatched on file/folder trash restoration or version rollback (`INFO`).
+
+### Non-Blocking & Fault-Tolerant Architecture:
+CloudVault's integration service (`app.services.cloudpulse_service.cloudpulse_service`) ensures zero operational coupling. If CloudPulse is undergoing maintenance or temporarily unreachable, CloudVault continues normal operations smoothly without user disruption.
+
+### Environment Configuration:
+```bash
+CLOUDPULSE_ENABLED=true
+CLOUDPULSE_API_URL=https://c2064m9sol.execute-api.ap-south-1.amazonaws.com/dev/logs
+CLOUDPULSE_SERVICE_NAME=CloudVault
+CLOUDPULSE_TIMEOUT=3.0
+```
+
 
 ## 👨‍💻 Author
 
