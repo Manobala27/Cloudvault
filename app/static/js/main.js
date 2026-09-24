@@ -9,42 +9,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     
     // 1. Dark Mode Toggle
-    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeToggleBtns = document.querySelectorAll('#theme-toggle, .theme-toggle-btn');
     const htmlElement = document.documentElement;
-    const themeIcon = document.getElementById('theme-icon');
 
     // Check local storage or system preference
-    const currentTheme = localStorage.getItem('theme');
-    if (currentTheme) {
-        htmlElement.setAttribute('data-bs-theme', currentTheme);
-        updateThemeIcon(currentTheme);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        htmlElement.setAttribute('data-bs-theme', 'dark');
-        updateThemeIcon('dark');
-    }
+    const currentTheme = localStorage.getItem('theme') || (htmlElement.getAttribute('data-bs-theme') || 'dark');
+    htmlElement.setAttribute('data-bs-theme', currentTheme);
+    updateThemeIcon(currentTheme);
 
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', (e) => {
+    themeToggleBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const current = htmlElement.getAttribute('data-bs-theme');
+            const current = htmlElement.getAttribute('data-bs-theme') || 'dark';
             const target = current === 'dark' ? 'light' : 'dark';
             htmlElement.setAttribute('data-bs-theme', target);
             localStorage.setItem('theme', target);
             updateThemeIcon(target);
         });
-    }
+    });
 
     function updateThemeIcon(theme) {
-        if (!themeIcon) return;
-        if (theme === 'dark') {
-            themeIcon.classList.remove('bi-moon-fill');
-            themeIcon.classList.add('bi-sun-fill');
-            themeIcon.style.color = '#ffc107'; // Sun color
-        } else {
-            themeIcon.classList.remove('bi-sun-fill');
-            themeIcon.classList.add('bi-moon-fill');
-            themeIcon.style.color = '#6c757d';
-        }
+        const themeIcons = document.querySelectorAll('#theme-icon, .theme-icon');
+        themeIcons.forEach(icon => {
+            if (theme === 'dark') {
+                icon.classList.remove('bi-moon-fill');
+                icon.classList.add('bi-sun-fill');
+                icon.style.color = '#ffc107'; // Sun color
+            } else {
+                icon.classList.remove('bi-sun-fill');
+                icon.classList.add('bi-moon-fill');
+                icon.style.color = '#64748b'; // Moon color in light mode
+            }
+        });
     }
 
     // 2. Instant Search Filter (DOM based)

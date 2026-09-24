@@ -44,7 +44,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-white-50">
+                                    <span class="text-muted">
                                         <i class="bi bi-file-earmark"></i> {{ tag.files|length }} files, 
                                         <i class="bi bi-folder"></i> {{ tag.folders|length }} folders
                                     </span>
@@ -60,7 +60,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="3" class="text-center py-5 text-white-50">
+                                <td colspan="3" class="text-center py-5 text-muted">
                                     <i class="bi bi-tags fs-1"></i>
                                     <p class="mt-2 mb-0">You haven't created any tags yet.</p>
                                 </td>
@@ -88,7 +88,7 @@
             </div>
             <div class="modal-body p-4">
                 <p>Are you sure you want to permanently delete the tag <strong>{{ tag.name }}</strong>?</p>
-                <p class="text-white-50 small mb-0">This will remove the tag from all files and folders. The files and folders themselves will NOT be deleted.</p>
+                <p class="text-muted small mb-0">This will remove the tag from all files and folders. The files and folders themselves will NOT be deleted.</p>
             </div>
             <div class="modal-footer border-0 pt-0">
                 <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>

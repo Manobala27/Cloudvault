@@ -50,7 +50,7 @@
                         <button class="cv-action-btn" type="button" data-bs-toggle="dropdown" data-bs-toggle="tooltip" data-bs-placement="top" title="More Options">
                             <i class="bi bi-three-dots-vertical"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0">
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                             <li><button class="dropdown-item {% if not item %}cv-clone-tag{% endif %}" data-bs-toggle="modal" data-bs-target="{% if item %}#tagFileModal{{ item.id }}{% endif %}"><i class="bi bi-tags me-2"></i> Tags</button></li>
                             <li><button class="dropdown-item {% if not item %}cv-clone-version{% endif %}" data-bs-toggle="modal" data-bs-target="{% if item %}#versionModal{{ item.id }}{% endif %}"><i class="bi bi-clock-history me-2"></i> Versions</button></li>
                             <li><hr class="dropdown-divider"></li>
@@ -105,7 +105,7 @@
                             <i class="bi bi-three-dots-vertical fs-5"></i>
                         </button>
                         {% if item %}
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0">
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                             <li><button class="dropdown-item btn-favorite-folder" data-folder-id="{{ item.id }}"><i class="bi {% if item.is_favorite %}bi-star-fill text-warning{% else %}bi-star{% endif %} me-2"></i> Favorite</button></li>
                             <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#tagFolderModal{{ item.id }}"><i class="bi bi-tags me-2"></i> Tags</button></li>
                             <li><hr class="dropdown-divider"></li>

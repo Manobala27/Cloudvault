@@ -111,7 +111,7 @@
                             <span class="text-truncate text-high fw-semibold" style="max-width: 110px;">{{ current_user.username }}</span>
                         </div>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-start w-100 shadow-sm border-0" aria-labelledby="sidebarUserDropdown">
+                    <ul class="dropdown-menu dropdown-menu-start w-100 shadow-sm border-0" aria-labelledby="sidebarUserDropdown">
                         <li><a class="dropdown-item py-2" href="{{ url_for('security.settings') }}"><i class="bi bi-shield-lock me-2 text-primary"></i>Security</a></li>
                         <li><a class="dropdown-item py-2" href="{{ url_for('api_keys.index') }}"><i class="bi bi-key-fill me-2 text-info"></i>API Keys</a></li>
                         <li><a class="dropdown-item py-2" href="{{ url_for('backups.index') }}"><i class="bi bi-cloud-arrow-down-fill me-2 text-success"></i>Backup</a></li>
@@ -183,7 +183,7 @@
                                 {{ current_user.username[0]|upper }}
                             </div>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-sm border-0" aria-labelledby="headerUserDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="headerUserDropdown">
                             <li><a class="dropdown-item py-2" href="{{ url_for('security.settings') }}"><i class="bi bi-shield-lock me-2 text-primary"></i>Security</a></li>
                             <li><a class="dropdown-item py-2" href="{{ url_for('api_keys.index') }}"><i class="bi bi-key-fill me-2 text-info"></i>API Keys</a></li>
                             <li><a class="dropdown-item text-danger py-2" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
@@ -193,12 +193,12 @@
             </header>
             
             <!-- Mobile Offcanvas Drawer -->
-            <div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="mobileOffcanvas" aria-labelledby="mobileOffcanvasLabel" style="width: 280px; border-right: 1px solid var(--cv-surface-border);">
+            <div class="offcanvas offcanvas-start bg-surface text-high" tabindex="-1" id="mobileOffcanvas" aria-labelledby="mobileOffcanvasLabel" style="width: 280px; border-right: 1px solid var(--cv-surface-border);">
                 <div class="offcanvas-header border-bottom border-secondary border-opacity-10">
-                    <h5 class="offcanvas-title d-flex align-items-center gap-2" id="mobileOffcanvasLabel">
+                    <h5 class="offcanvas-title d-flex align-items-center gap-2 text-high" id="mobileOffcanvasLabel">
                         <i class="bi bi-cloud-arrow-up-fill text-primary"></i> CloudVault
                     </h5>
-                    <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
                 <div class="offcanvas-body d-flex flex-column p-0">
                     <nav class="flex-grow-1 p-3">

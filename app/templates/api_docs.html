@@ -35,7 +35,7 @@
                     <p class="mt-4 mb-2">All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.</p>
                     
                     <h6 class="fw-bold mt-4 mb-3">Example Request</h6>
-                    <pre class="bg-dark text-light p-3 rounded rounded-3"><code>curl -X GET https://your-domain.com/api/v1/files \
+                    <pre class="bg-surface-alt text-high border border-themed p-3 rounded-3"><code>curl -X GET https://your-domain.com/api/v1/files \
   -H "Authorization: Bearer cv_your_api_key_here"</code></pre>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                         
                         <h6 class="fw-bold">Query Parameters</h6>
                         <table class="table table-bordered mb-4">
-                            <thead class="table-light">
+                            <thead>
                                 <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
                             </thead>
                             <tbody>
@@ -64,7 +64,7 @@
                         </table>
                         
                         <h6 class="fw-bold">Response Example</h6>
-                        <pre class="bg-dark text-light p-3 rounded rounded-3"><code>{
+                        <pre class="bg-surface-alt text-high border border-themed p-3 rounded-3"><code>{
   "success": true,
   "data": [
     {
@@ -90,7 +90,7 @@
                         
                         <h6 class="fw-bold">Form Data Parameters</h6>
                         <table class="table table-bordered mb-4">
-                            <thead class="table-light">
+                            <thead>
                                 <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
                             </thead>
                             <tbody>
@@ -100,7 +100,7 @@
                         </table>
                         
                         <h6 class="fw-bold">Example Request</h6>
-                        <pre class="bg-dark text-light p-3 rounded rounded-3"><code>curl -X POST https://your-domain.com/api/v1/upload \
+                        <pre class="bg-surface-alt text-high border border-themed p-3 rounded-3"><code>curl -X POST https://your-domain.com/api/v1/upload \
   -H "Authorization: Bearer cv_your_api_key_here" \
   -F "file=@/path/to/local/file.jpg" \
   -F "folder_id=2"</code></pre>
@@ -142,7 +142,7 @@
                     <p class="text-muted mb-4">CloudVault uses conventional HTTP response codes to indicate the success or failure of an API request.</p>
                     
                     <table class="table table-bordered">
-                        <thead class="table-light">
+                        <thead>
                             <tr><th>Code</th><th>Status</th><th>Meaning</th></tr>
                         </thead>
                         <tbody>
@@ -152,7 +152,7 @@
                             <tr><td><code>403</code></td><td><span class="badge bg-danger">Forbidden</span></td><td>The API key is valid, but the account is disabled or lacks permissions.</td></tr>
                             <tr><td><code>404</code></td><td><span class="badge bg-secondary">Not Found</span></td><td>The requested resource does not exist.</td></tr>
                             <tr><td><code>429</code></td><td><span class="badge bg-warning text-dark">Too Many Requests</span></td><td>You have exceeded your 100 req/min quota.</td></tr>
-                            <tr><td><code>500</code></td><td><span class="badge bg-dark">Server Error</span></td><td>Something went wrong on CloudVault's end (e.g. S3 upload failure).</td></tr>
+                            <tr><td><code>500</code></td><td><span class="badge bg-danger">Server Error</span></td><td>Something went wrong on CloudVault's end (e.g. S3 upload failure).</td></tr>
                         </tbody>
                     </table>
                 </div>

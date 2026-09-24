@@ -864,3 +864,191 @@
     animation: floatVault 5s infinite ease-in-out;
     animation-delay: 0.5s;
 }
+
+/* ==========================================================================
+   Light Theme Support for Auth Pages
+   ========================================================================== */
+html[data-bs-theme="light"] body.auth-page-body,
+[data-bs-theme="light"] .auth-page-body,
+[data-bs-theme="light"].auth-page-body {
+    background-color: #F8FAFC !important;
+    color: #0F172A !important;
+}
+
+html[data-bs-theme="light"] .auth-page-body main.container,
+[data-bs-theme="light"] .auth-page-body main.container {
+    background-color: #F8FAFC !important;
+}
+
+html[data-bs-theme="light"] .auth-container,
+[data-bs-theme="light"] .auth-container {
+    background-color: #F8FAFC !important;
+}
+
+html[data-bs-theme="light"] .auth-main-pane,
+[data-bs-theme="light"] .auth-main-pane {
+    background-color: #F8FAFC !important;
+}
+
+html[data-bs-theme="light"] .auth-sidebar,
+[data-bs-theme="light"] .auth-sidebar {
+    background: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 60%),
+                radial-gradient(circle at 100% 100%, rgba(37, 99, 235, 0.04) 0%, transparent 50%),
+                #F1F5F9 !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-bs-theme="light"] .auth-sidebar::before,
+[data-bs-theme="light"] .auth-sidebar::before {
+    background-image: 
+        linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px) !important;
+}
+
+[data-bs-theme="light"] .sidebar-glow {
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%) !important;
+}
+
+[data-bs-theme="light"] .brand-name {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .brand-tagline {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .brand-tagline span {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .brand-tagline .highlight {
+    background: linear-gradient(90deg, #0F172A 0%, #475569 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+[data-bs-theme="light"] .brand-tagline .accent {
+    background: linear-gradient(90deg, #2563EB 0%, #3B82F6 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+[data-bs-theme="light"] .brand-description {
+    color: #475569 !important;
+}
+
+[data-bs-theme="light"] .brand-footer {
+    color: #64748B !important;
+}
+
+[data-bs-theme="light"] .auth-card {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                0 20px 40px -15px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+[data-bs-theme="light"] .auth-card-title,
+[data-bs-theme="light"] h2.auth-card-title,
+[data-bs-theme="light"] .auth-card h2 {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .auth-card-subtitle {
+    color: #64748B !important;
+}
+
+[data-bs-theme="light"] .auth-label {
+    color: #334155 !important;
+}
+
+[data-bs-theme="light"] .auth-input {
+    background-color: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    color: #0F172A !important;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+
+[data-bs-theme="light"] .auth-input::placeholder {
+    color: #94A3B8 !important;
+}
+
+[data-bs-theme="light"] .auth-input:focus {
+    background-color: #FFFFFF !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16),
+                inset 0 1px 2px rgba(0,0,0,0.02) !important;
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .auth-input-icon {
+    color: #94A3B8 !important;
+}
+
+[data-bs-theme="light"] .password-toggle-btn {
+    color: #64748B !important;
+}
+
+[data-bs-theme="light"] .auth-checkbox-label {
+    color: #475569 !important;
+}
+
+[data-bs-theme="light"] .auth-link {
+    color: #2563EB !important;
+}
+
+[data-bs-theme="light"] .auth-link-secondary {
+    color: #64748B !important;
+}
+
+[data-bs-theme="light"] .auth-input:-webkit-autofill,
+[data-bs-theme="light"] .auth-input:-webkit-autofill:hover, 
+[data-bs-theme="light"] .auth-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0F172A !important;
+    -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
+}
+
+[data-bs-theme="light"] .auth-btn-outline {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    color: #475569 !important;
+}
+
+[data-bs-theme="light"] .auth-btn-outline:hover {
+    background: #F1F5F9 !important;
+    border-color: rgba(0, 0, 0, 0.2) !important;
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .auth-nav-link {
+    color: #64748B !important;
+}
+
+[data-bs-theme="light"] .auth-nav-link:hover {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .mobile-brand-logo {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .form-check-label {
+    color: #475569 !important;
+}
+
+/* Light Mode Vector SVG Elements */
+[data-bs-theme="light"] .glass-vault-svg path[fill="rgba(17, 24, 39, 0.65)"] {
+    fill: rgba(255, 255, 255, 0.9) !important;
+    stroke: rgba(59, 130, 246, 0.4) !important;
+}
+
+[data-bs-theme="light"] .glass-vault-svg path[fill="rgba(17, 24, 39, 0.7)"] {
+    fill: rgba(255, 255, 255, 0.95) !important;
+    stroke: #94A3B8 !important;
+}
+
+[data-bs-theme="light"] .glass-vault-svg circle[stroke="rgba(255, 255, 255, 0.04)"] {
+    stroke: rgba(0, 0, 0, 0.06) !important;
+}

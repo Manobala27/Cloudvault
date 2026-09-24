@@ -191,6 +191,11 @@
         }
         document.getElementById('recentUploads').innerHTML = uploadsHTML;
 
+        // Dynamic Theme Colors for Charts
+        const isDark = (document.documentElement.getAttribute('data-bs-theme') || 'dark') === 'dark';
+        const chartTextColor = isDark ? '#CBD5E1' : '#475569';
+        const chartGridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)';
+
         // Charts
         const commonOptions = {
             responsive: true,
@@ -198,7 +203,7 @@
             plugins: {
                 legend: {
                     labels: {
-                        color: '#CBD5E1'
+                        color: chartTextColor
                     }
                 }
             }
@@ -215,7 +220,7 @@
                     label: 'Files Uploaded',
                     data: data.trend.counts,
                     borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                    backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.08)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.4
@@ -226,11 +231,11 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1, color: '#CBD5E1' },
-                        grid: { color: 'rgba(255, 255, 255, 0.06)' }
+                        ticks: { stepSize: 1, color: chartTextColor },
+                        grid: { color: chartGridColor }
                     },
                     x: {
-                        ticks: { color: '#CBD5E1' },
+                        ticks: { color: chartTextColor },
                         grid: { display: false }
                     }
                 }
@@ -264,7 +269,7 @@
                         labels: {
                             padding: 20,
                             usePointStyle: true,
-                            color: '#CBD5E1'
+                            color: chartTextColor
                         }
                     }
                 }

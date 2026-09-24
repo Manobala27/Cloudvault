@@ -116,21 +116,21 @@
                 {% endif %}
                 
                 {% if user_tags %}
-                <select class="form-select form-themed border-0 shadow-sm py-2 fw-medium text-low" onchange="if(this.value) window.location.href=this.value;" style="min-width: 120px;" data-bs-theme="dark">
-                    <option class="bg-dark text-white" value="">All Tags</option>
+                <select class="form-select form-themed border-0 shadow-sm py-2 fw-medium text-low" onchange="if(this.value) window.location.href=this.value;" style="min-width: 120px;">
+                    <option value="">All Tags</option>
                     {% for t in user_tags %}
-                    <option class="bg-dark text-white" value="{{ url_for('tags.view_tag', tag_id=t.id) }}">{{ t.name }}</option>
+                    <option value="{{ url_for('tags.view_tag', tag_id=t.id) }}">{{ t.name }}</option>
                     {% endfor %}
                 </select>
                 {% endif %}
                 
-                <select class="form-select form-themed border-0 shadow-sm py-2 fw-medium text-low w-auto" name="sort" onchange="this.form.submit()" data-bs-theme="dark">
-                    <option class="bg-dark text-white" value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Recent Files</option>
-                    <option class="bg-dark text-white" value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
-                    <option class="bg-dark text-white" value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
-                    <option class="bg-dark text-white" value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
-                    <option class="bg-dark text-white" value="largest" {% if sort_by == 'largest' %}selected{% endif %}>Largest</option>
-                    <option class="bg-dark text-white" value="smallest" {% if sort_by == 'smallest' %}selected{% endif %}>Smallest</option>
+                <select class="form-select form-themed border-0 shadow-sm py-2 fw-medium text-low w-auto" name="sort" onchange="this.form.submit()">
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Recent Files</option>
+                    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                    <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                    <option value="largest" {% if sort_by == 'largest' %}selected{% endif %}>Largest</option>
+                    <option value="smallest" {% if sort_by == 'smallest' %}selected{% endif %}>Smallest</option>
                 </select>
             </form>
         </div>
@@ -484,12 +484,12 @@
 {% endfor %}
 <!-- Toast Container -->
 <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
-    <div id="statusToast" class="toast align-items-center text-white bg-dark border-secondary" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="statusToast" class="toast align-items-center text-high bg-surface border-themed shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body" id="statusToastBody">
                 Message
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto shadow-none" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-close text-reset me-2 m-auto shadow-none" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>

@@ -20,11 +20,11 @@
                 <tbody>
                     {% for share in shares %}
                     <tr>
-                        <td class="ps-4 fw-semibold text-white">
+                        <td class="ps-4 fw-semibold text-high">
                             <i class="bi bi-file-earmark-text text-secondary me-2"></i>
                             {{ share.file.original_filename }}
                         </td>
-                        <td class="text-white-50 small">
+                        <td class="text-muted small">
                             {{ share.created_at.strftime('%Y-%m-%d %H:%M') }}
                         </td>
                         <td>
@@ -35,7 +35,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <div class="d-flex flex-column gap-1 small text-white-50">
+                            <div class="d-flex flex-column gap-1 small text-muted">
                                 <div><i class="bi bi-key{% if share.password_hash %}-fill text-warning{% endif %}"></i> {{ 'Password Protected' if share.password_hash else 'No Password' }}</div>
                                 <div><i class="bi bi-clock"></i> {{ share.expires_at.strftime('%Y-%m-%d') if share.expires_at else 'Never Expires' }}</div>
                             </div>
@@ -43,13 +43,13 @@
                         <td>
                             <div class="small">
                                 <span class="fw-bold">{{ share.download_count }}</span>
-                                <span class="text-white-50">/ {{ share.download_limit if share.download_limit else '∞' }}</span>
+                                <span class="text-muted">/ {{ share.download_limit if share.download_limit else '∞' }}</span>
                             </div>
                         </td>
                         <td class="text-end pe-4">
                             {% if share.is_active %}
                             <div class="input-group input-group-sm mb-2" style="max-width: 250px; margin-left: auto;">
-                                <input type="text" class="form-control text-white-50" value="{{ url_for('files.shared_file', share_token=share.share_token, _external=True) }}" readonly id="shareLink{{ share.id }}">
+                                <input type="text" class="form-control text-high" value="{{ url_for('files.shared_file', share_token=share.share_token, _external=True) }}" readonly id="shareLink{{ share.id }}">
                                 <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard(document.getElementById('shareLink{{ share.id }}').value)"><i class="bi bi-clipboard"></i></button>
                             </div>
                             <form action="{{ url_for('files.revoke_specific_share', share_id=share.id) }}" method="POST" class="d-inline">

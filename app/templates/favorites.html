@@ -12,12 +12,12 @@
             <input class="form-control form-themed border-0 shadow-none bg-transparent py-2" type="text" id="instant-search" placeholder="Search favorites...">
         </div>
         <form method="GET" action="{{ url_for('files.favorites') }}" class="d-flex">
-            <select class="form-select form-themed border-0 shadow-sm py-2 fw-medium text-low w-auto" name="sort" onchange="this.form.submit()" style="min-width: 160px;" data-bs-theme="dark">
-                <option value="recently_favorited" class="bg-dark text-white" {% if sort_by == 'recently_favorited' %}selected{% endif %}>Recently Favorited</option>
-                <option value="newest" class="bg-dark text-white" {% if sort_by == 'newest' %}selected{% endif %}>Newest Upload</option>
-                <option value="oldest" class="bg-dark text-white" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest Upload</option>
-                <option value="name_asc" class="bg-dark text-white" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
-                <option value="name_desc" class="bg-dark text-white" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+            <select class="form-select form-themed border-0 shadow-sm py-2 fw-medium text-low w-auto" name="sort" onchange="this.form.submit()" style="min-width: 160px;">
+                <option value="recently_favorited" {% if sort_by == 'recently_favorited' %}selected{% endif %}>Recently Favorited</option>
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Upload</option>
+                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest Upload</option>
+                <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
             </select>
         </form>
     </div>

@@ -355,7 +355,7 @@
 
         if(p.query) addChip(`Query: "${p.query}"`, 'bg-primary');
         if(p.type !== 'all') addChip(`Type: ${p.type}`, 'bg-info');
-        if(p.favorite) addChip(`<i class="bi bi-star-fill text-warning"></i> Favorites`, 'bg-dark');
+        if(p.favorite) addChip(`<i class="bi bi-star-fill text-warning"></i> Favorites`, 'bg-secondary');
         
         tagNames.forEach(t => {
             hasFilter = true;
@@ -366,9 +366,9 @@
             `);
         });
 
-        if(p.extensions.length > 0) addChip(`Ext: ${p.extensions.join(', ')}`, 'bg-dark');
-        if(p.size_min || p.size_max) addChip(`Size: ${p.size_min ? formatSize(p.size_min) : '0'} - ${p.size_max ? formatSize(p.size_max) : 'Max'}`, 'bg-dark');
-        if(p.date_start || p.date_end) addChip(`Date: ${p.date_start || 'Any'} to ${p.date_end || 'Any'}`, 'bg-dark');
+        if(p.extensions.length > 0) addChip(`Ext: ${p.extensions.join(', ')}`, 'bg-secondary');
+        if(p.size_min || p.size_max) addChip(`Size: ${p.size_min ? formatSize(p.size_min) : '0'} - ${p.size_max ? formatSize(p.size_max) : 'Max'}`, 'bg-secondary');
+        if(p.date_start || p.date_end) addChip(`Date: ${p.date_start || 'Any'} to ${p.date_end || 'Any'}`, 'bg-secondary');
 
         if(!hasFilter) {
             activeFiltersContainer.innerHTML = `<span class="text-muted small">Showing all active items</span>`;
